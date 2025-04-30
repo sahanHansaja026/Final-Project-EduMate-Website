@@ -1,0 +1,67 @@
+/* CMS Container */
+.cms-container {
+    width: 100%;
+    max-width: 800px;
+    margin: 20px auto;
+    background-color: #f5f5f5;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Header */
+.cms-container h2 {
+    font-size: 24px;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* Toolbar */
+.toolbar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+.toolbar button {
+    padding: 8px 12px;
+    background-color: #505050;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.toolbar button:hover {
+    background-color: #0056b3;
+}
+
+/* Advanced Options */
+.toolbar .font-size,
+.toolbar .color-picker {
+    padding: 6px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    cursor: pointer;
+}
+
+/* Content Area */
+.content-area {
+    width: 100%;
+    min-height: 300px;
+    border: 1px solid #545454;
+    padding: 15px;
+    font-size: 16px;
+    line-height: 1.6;
+    border-radius: 4px;
+    outline: none;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+}

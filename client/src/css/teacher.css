@@ -1,0 +1,53 @@
+/* src/css/teacherViewAssignments.css */
+.teacher-view {
+    max-width: 800px;
+    margin: auto;
+    padding: 20px;
+    background-color: #f5f7fa;
+    color: #333;
+  }
+  
+  .teacher-view h2 {
+    text-align: center;
+    font-size: 2rem;
+    color: #444;
+  }
+  
+  .error-message {
+    color: red;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .assignments-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .assignment-card {
+    padding: 15px;
+    border-radius: 10px;
+    background: linear-gradient(145deg, #e2e8f0, #ffffff);
+    box-shadow: 4px 4px 10px #b8b9be, -4px -4px 10px #ffffff;
+    color: #333;
+    transition: transform 0.3s;
+  }
+  
+  .assignment-card:hover {
+    transform: translateY(-5px);
+  }
+  
+  .assignment-card h3 {
+    font-size: 1.25rem;
+    color: #333;
+    margin-bottom: 10px;
+  }
+  
+  .assignment-card p {
+    font-size: 1rem;
+    line-height: 1.5;
+    color: #555;
+    white-space: pre-wrap;
+  }
+  

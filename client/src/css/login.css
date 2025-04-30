@@ -1,0 +1,79 @@
+.login  {
+  background-color: rgb(255, 255, 255);
+  width: 100%;
+}
+.login .formbox {
+  margin-top: 5px;
+}
+.login .formbox h1 {
+  font-size: 75px;
+  color: rgb(0, 0, 0);
+  font-weight: bold;
+  margin-left: 0px;
+  margin-top: -20px;
+}
+.login .formbox p {
+  font-size: 35px;
+  color: rgb(0, 0, 0);
+  margin-top: -55px;
+  margin-left: 30px;
+}
+.formbox .content {
+  display: flex;
+}
+.login .formbox .content img {
+  width: 480px;
+  margin-left: 30px;
+}
+.login .formbox .content form {
+  margin-left: 400px;
+  flex-direction: column;
+}
+.login .formbox label {
+  font-size: 40px;
+  font-weight: bold;
+  color: rgb(0, 0, 0);
+}
+.formbox input[type="email"],
+.formbox input[type="password"],
+.formbox input[type="text"] {
+  width: 500px;
+  padding: 15px;
+  border: 1px solid white;
+  background-color: #7e99a6;
+  border-radius: 50px;
+  font-size: 25px;
+  color: #000;
+}
+.login .formbox .remember {
+  display: flex;
+  color: rgb(0, 0, 0);
+  gap: 10px;
+}
+.login .formbox .remember input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  accent-color: #007bff;
+  cursor: pointer;
+  margin-top: 28px;
+}
+.login .formbox button {
+  width: 350px;
+  padding: 10px 0;
+  border-radius: 50px;
+  font-size: 25px;
+  font-weight: bold;
+  cursor: pointer;
+}
+.formbox .change {
+  display: flex;
+  font-size: 25px;
+  color: rgb(0, 0, 0);
+  margin-top: 15px;
+  font-weight: bold;
+}
+.formbox .change a {
+  text-decoration: none;
+  color: #000;
+  font-weight: bold;
+}

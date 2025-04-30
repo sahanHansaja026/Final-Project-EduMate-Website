@@ -1,0 +1,111 @@
+.home {
+  background-color: rgb(58, 57, 60);
+  margin: 0px;
+}
+
+.share-icon {
+  cursor: pointer;
+  margin-top: 10px;
+}
+.countenrolle {
+  cursor: pointer;
+  color: white;
+}
+.countenrolle strong{
+  color: white;
+}
+.share-options {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  top: 30px;
+  left: 0;
+  background-color: #333;
+  border: 1px solid #444;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  padding: 10px;
+  z-index: 10;
+}
+
+.share-option {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  text-decoration: none;
+  color: white;
+  font-size: 24px;
+  flex-direction: row;
+}
+
+.share-option:hover {
+  background-color: #555;
+}
+
+.share-option svg {
+  margin-right: 8px;
+}
+
+.home a {
+  text-decoration: none;
+}
+.card {
+  position: relative;
+}
+
+.share-icon {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  cursor: pointer;
+  display: flex;
+}
+.countenrolle {
+  position:relative;
+  cursor: pointer;
+  display: flex;
+}
+.share-options {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  position: absolute;
+  bottom: 40px; /* Adjust if needed to keep the menu above the icon */
+  right: 10px;
+  background-color: #333;
+  border: 1px solid #444;
+  border-radius: 4px;
+  padding: 10px;
+  z-index: 10;
+  width: fit-content;
+  height: fit-content;
+}
+
+.share-option {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  text-decoration: none;
+  color: rgb(255, 255, 255);
+  font-size: 25px;
+  background-color: transparent;
+}
+.share-options {
+  position: absolute;
+  top: 10px; /* Adjust this to position it where you want */
+  right: 10px; /* Adjust as needed */
+  background-color: rgba(0, 0, 0, 0.8);
+  padding: 10px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  z-index: 1;
+}
+.share-option:hover {
+  background-color: #555;
+}
+
+.share-option svg {
+  margin-right: 8px;
+}

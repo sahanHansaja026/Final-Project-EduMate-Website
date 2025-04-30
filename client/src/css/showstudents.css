@@ -1,0 +1,141 @@
+/* General styling for the container */
+.add-students-container {
+  width: 80%;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Header Styling */
+.add-students-container h2 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.add-students-container p {
+  color: #555;
+  font-size: 1rem;
+  margin-bottom: 10px;
+}
+
+/* Styling the Table */
+.add-students-container table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  background-color: #fff;
+}
+
+.add-students-container th,
+td {
+  padding: 12px;
+  text-align: left;
+  border: 1px solid #ddd;
+  font-size: 1rem;
+}
+
+.add-students-container th {
+  background-color: #f4f4f4;
+  color: #333;
+}
+
+.add-students-container tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.add-students-container tr:hover {
+  background-color: #f1f1f1;
+}
+
+/* Styling for Error and Loading States */
+.add-students-container p.error {
+  color: red;
+  font-weight: bold;
+}
+
+.add-students-container p.loading {
+  color: blue;
+  font-weight: bold;
+}
+
+/* Button styling for form submit */
+.add-students-container button {
+  padding: 10px 20px;
+  background-color: #c93030;
+  color: rgb(0, 0, 0);
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  font-size: 1rem;
+  transition: background-color 0.3s ease;
+}
+.btn {
+  display: inline-block;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: bold;
+  text-decoration: none;
+  text-align: center;
+  cursor: pointer;
+  border: none;
+  border-radius: 4px;
+}
+
+.btn-warning {
+  background-color: #ffc107;
+  color: #fff;
+}
+
+.btn-warning:hover {
+  background-color: #ffca28;
+}
+
+.btn i {
+  margin-right: 5px;
+}
+
+.btn-danger {
+  background-color: #ff0707;
+  color: #fff;
+}
+
+.btn-danger:hover {
+  background-color: #ff2828;
+}
+
+.btn-success {
+  background-color: #bebebe;
+  margin-top: 10px;
+  margin-left: 2px;
+}
+.add-students-container button {
+  background-color: #969696;
+}
+.add-students-container button:hover {
+  background-color: #45a049;
+}
+
+/* Input Fields styling */
+.add-students-container input[type="text"],
+.add-students-container input[type="email"],
+.add-students-container input[type="tel"],
+.add-students-container input[type="date"] {
+  width: 100%;
+  padding: 10px;
+  margin: 8px 0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-sizing: border-box;
+}
+
+.add-students-container input[readonly] {
+  background-color: #f4f4f4;
+}
+
+/* Add spacing around form */
+.add-students-container form {
+  margin-top: 20px;
+}

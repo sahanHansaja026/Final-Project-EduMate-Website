@@ -1,0 +1,106 @@
+.input_sub1 {
+  padding: 20px;
+  background-color: transparent;
+  border-radius: 8px;
+  width: 1000px;
+  display: flex;
+  height: auto;
+  margin-top: 15px;
+}
+
+.input_sub1 .container {
+  width: 900px;
+  margin: auto;
+}
+
+.input_sub1 .cardshowimage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed #f6f6f6;
+  border-radius: 8px;
+  padding: 10px;
+  cursor: pointer;
+  margin-bottom: 20px;
+  transition: border-color 0.3s;
+  height: auto;
+  width: fit-content;
+  margin-left: -12px;
+}
+.input_sub1 .cardshowimage img {
+  width: 900px;
+  height: 250px;
+}
+.input_sub1 .cardshowimage:hover {
+  border-color: #007bff;
+}
+
+.input_sub1 .default-profile-picture {
+  color: #aaa;
+  text-align: center;
+  padding: 20px;
+  font-size: 16px;
+}
+
+.input_sub1.box {
+  margin-bottom: 15px;
+}
+
+.input_sub1 label {
+  font-weight: bold;
+  display: block;
+  margin-bottom: 5px;
+}
+
+.input_sub1 input[type="text"] {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  font-size: 35px;
+  background-color: transparent;
+  color: rgb(0, 0, 0);
+}
+.input_sub1 textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  font-size: 28px;
+  background-color: transparent;
+  color: rgb(0, 0, 0);
+  height: 125px;
+  resize: none; /* Disable manual resizing */
+  overflow-y: hidden; /* Hide vertical overflow */
+  min-height: 50px;
+}
+.input_sub1 input[type="text"]:focus,
+.input_sub1 textarea:focus {
+  border-color: transparent;
+  outline: none;
+  background-color: transparent;
+}
+
+.input_sub1 button {
+  background-color: #000000;
+  color: rgb(255, 255, 255);
+  border: none;
+  padding: 10px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 25px;
+}
+
+.input_sub1 input[type="text"]::placeholder {
+  color: #b7b7b7;
+  opacity: 1;
+  font-size: 35px;
+  font-weight: bold;
+}
+
+.input_sub1 textarea::placeholder {
+  color: #bab7b7;
+  opacity: 1;
+  font-size: 28px;
+  font-weight: bold;
+}

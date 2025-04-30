@@ -1,0 +1,111 @@
+.messagearea{
+  display: block;
+  margin: 0;
+}
+.messagearea h1{
+  color: black;
+}
+.messagearea p{
+  text-align: left;
+}
+.message-container {
+  width: 100%;
+  max-width: 800px;
+  margin: 30px auto;
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  color: black;
+}
+
+/* Header styling */
+.message-container .message-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.message-container .message-header h2 {
+  margin: 0;
+  font-size: 24px;
+  color: #333;
+}
+
+.message-container .message-header p {
+  font-size: 16px;
+  color: #555;
+}
+
+/* User info styling */
+.message-container .user-info {
+  margin-bottom: 20px;
+  padding: 10px;
+  background-color: #f0f0f0;
+  border-radius: 8px;
+}
+
+.message-container .user-info p {
+  font-size: 14px;
+  color: #333;
+}
+
+.message-container .user-info strong {
+  color: #0073e6;
+}
+
+/* Styling the form */
+.message-container .message-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  background-color: white;
+  color: black;
+}
+
+/* Message textarea */
+.message-container .message-textarea {
+  padding: 12px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  resize: vertical;
+  min-height: 120px;
+  outline: none;
+  transition: border-color 0.3s ease;
+  background-color: white;
+  color: rgb(0, 0, 0);
+}
+
+ .message-textarea:focus {
+  border-color: #0073e6;
+}
+
+/* Send message button */
+.send-message-btn {
+  align-self: flex-start;
+  padding: 10px 20px;
+  background-color: #0073e6;
+  color: white;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s ease;
+}
+
+ .send-message-btn:hover {
+  background-color: #005bb5;
+}
+ .message-list {
+    display: block;
+    margin-left: 0px;
+}
+/* Preventing centering of the entire page content */
+.messagearea {
+  padding: 20px;  /* Optional padding */
+  text-align: left;  /* Align all text to the left */
+  display: block;  
+  color: black;/* Ensures the content is block-level */
+}
+
+

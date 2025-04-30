@@ -1,0 +1,76 @@
+/* General styling */
+.page-title {
+  text-align: center;
+  font-size: 2rem;
+  margin-bottom: 20px;
+}
+
+.input-video-container {
+  width: 80%;
+  margin: 0 auto;
+  max-width: 800px;
+}
+
+.input-form label {
+  display: block;
+  margin-bottom: 10px;
+}
+
+.video-name-input {
+  width: 100%;
+  padding: 10px;
+  font-size: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+.file-drop-area {
+  position: relative;
+  width: 100%;
+  padding: 20px;
+  border: 2px dashed #ccc;
+  border-radius: 5px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.drop-area.active {
+  background-color: #f0f0f0;
+  border-color: #00aaff;
+}
+
+.file-input {
+  display: none;
+}
+
+.video-preview-container {
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.video-preview {
+  width: 100%;
+  height: auto;
+  max-width: 600px;
+}
+
+.submit-btn,
+.delete-btn {
+  width: 100%;
+  padding: 10px;
+  margin-top: 20px;
+  font-size: 1rem;
+  cursor: pointer;
+  border: none;
+  border-radius: 5px;
+}
+
+.submit-btn {
+  background-color: #4caf50;
+  color: white;
+}
+
+.delete-btn {
+  background-color: #f44336;
+  color: white;
+}

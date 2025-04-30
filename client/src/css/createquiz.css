@@ -1,0 +1,109 @@
+/* General body styles for background and centering content */
+.quiz body{
+  font-family: 'Arial', sans-serif;
+  background-color: transparent;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0;
+}
+
+.quiz .container {
+  background-color: transparent;
+  border-radius: 10px;
+  padding: 2rem;
+  max-width: 600px;
+  width: 100%;
+  animation: fadeIn 0.8s ease-in-out;
+}
+
+.quiz  h1 {
+  text-align: center;
+  color: #ffffff;
+  font-size: 36px;
+  margin-bottom: 1rem;
+}
+
+.quiz form {
+  display: flex;
+  flex-direction: column;
+}
+
+.quiz label {
+  font-size: 20px;
+  margin-bottom: 0.5rem;
+  color: #ffffff;
+  font-weight: bold;
+}
+
+.quiz input[type="text"], 
+.quiz textarea {
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 0.8rem;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+  width: 100%;
+  background-color: #f9f9f9;
+  transition: background-color 0.3s ease;
+}
+
+.quiz input[type="text"]:focus,
+.quiz textarea:focus {
+  background-color: #e9f0ff;
+  border-color: #74ebd5;
+  outline: none;
+}
+
+.quiz textarea {
+  resize: none;
+  height: 150px;
+}
+
+.quiz  button {
+  background-color: #1000ef;
+  color: white;
+  border: none;
+  font-size: 1.2rem;
+  border-radius: 5px;
+  width: 630px;
+  font-size: 30px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.quiz button:hover {
+  transform: translateY(-3px);
+}
+
+.quiz button:active {
+  transform: translateY(1px);
+}
+
+/* Success/Error Message Styles */
+.quiz p {
+  text-align: center;
+  font-size: 1rem;
+  margin-top: 1rem;
+}
+
+.quiz .success {
+  color: #4caf50;
+}
+
+.quiz .error {
+  color: #f44336;
+}
+
+/* Fade in animation for the container */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

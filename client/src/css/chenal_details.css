@@ -1,0 +1,167 @@
+/* chenal_details.css */
+
+.channel-page {
+  max-width: 100%;
+  margin: 0 auto;
+  font-family: Arial, sans-serif;
+  color: #000000;
+  background-color: rgb(255, 255, 255);
+}
+
+/* Banner styling */
+.banner {
+  height: 400px;
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: flex-end;
+  position: relative;
+}
+
+.banner-overlay {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  padding: 20px;
+}
+
+.channel-title {
+  font-size: 32px;
+  font-weight: bold;
+  margin: 0;
+}
+
+/* Channel Details */
+.channel-details {
+  padding: 20px;
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-top: none;
+}
+
+.admin-info h2 {
+  font-size: 24px;
+  margin-bottom: 10px;
+  color: #444;
+}
+
+.admin-info p {
+  font-size: 16px;
+  line-height: 1.5;
+  margin: 4px 0;
+}
+
+.channel-summary {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  width: 1450px;
+}
+
+.channel-summary h3 {
+  font-size: 20px;
+  color: #555;
+  margin-bottom: 10px;
+}
+
+.channel-summary p {
+  font-size: 16px;
+  line-height: 1.6;
+  color: #666;
+  display: contents;
+}
+.channel-summary p.collapsed {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3; /* Show only 3 lines */
+  -webkit-box-orient: vertical;
+}
+
+.channel-summary p.expanded {
+  display: block;
+}
+
+.toggle-button {
+  color: #0073e6;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  padding: 0;
+}
+.collapsed {
+  max-height: 1.2em; /* Show only one line */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.expanded {
+  max-height: none; /* Show full content */
+  white-space: normal;
+}
+.tab {
+  overflow: hidden;
+  background-color: #000000;
+  margin-top: 20px;
+}
+
+.tab button {
+  background-color: transparent;
+  float: left;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  padding: 14px -22px;
+  transition: 0.3s;
+  font-size: 25px;
+  font-weight: bold;
+  width: 500px;
+}
+
+.tab button:hover {
+  background-color: transparent;
+  border-bottom: 4px solid #000000;
+  border-top: transparent;
+  border-left: transparent;
+  border-right: transparent;
+}
+
+.tab button.active {
+  background-color: transparent;
+  border-bottom: 4px solid #0000ff;
+  border-top: transparent;
+  border-left: transparent;
+  border-right: transparent;
+  color: #0000ff;
+}
+
+.tabcontent {
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  border-top: none;
+}
+
+/* Display only the active tab content */
+.tabcontent.active {
+  display: block;
+}
+.channel-page .chaneldpimage{
+  width: 250px;
+  height: 250px;
+  border-radius: 50%;
+  border: 5px solid rgb(27, 11, 255);
+  margin-left: -300px;
+  margin-bottom: -80px;
+}
+.chanelprofile{
+  margin-top: 205px;
+}
+.tabcontent {
+  display: none; /* Hidden by default */
+}
+.tabcontent.active {
+  display: block; /* Display active tab */
+}

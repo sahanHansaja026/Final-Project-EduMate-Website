@@ -1,0 +1,148 @@
+/* General container styling */
+.editor-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: #f4f7fb;
+}
+
+/* Toolbar styling */
+.toolbar {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 15px;
+  background: #007bff;
+  border-bottom: 2px solid #ddd;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Toolbar buttons and selects */
+.toolbar button,
+.toolbar select,
+.toolbar input[type="color"] {
+  background-color: #ffffff;
+  border: 1px solid #ddd;
+  padding: 10px;
+  margin-right: 10px;
+  margin-bottom: 5px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  color: #333;
+  transition: all 0.3s ease;
+}
+
+.toolbar button:hover,
+.toolbar select:hover,
+.toolbar input[type="color"]:hover {
+  background-color: #e0f0ff;
+  border-color: #007bff;
+}
+
+.toolbar button:active,
+.toolbar select:active,
+.toolbar input[type="color"]:active {
+  background-color: #007bff;
+  color: white;
+}
+
+.toolbar select {
+  width: 120px;
+}
+
+.toolbar input[type="text"] {
+  flex-grow: 1;
+  padding: 12px;
+  font-size: 16px;
+  border-radius: 5px;
+  margin-right: 10px;
+  border: 1px solid #ddd;
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Editable content area styling */
+.editable-content {
+  flex: 1;
+  padding: 20px;
+  margin: 20px;
+  background: #ffffff;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  overflow-y: auto;
+  height: auto;
+  color: #333;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.05);
+  font-family: 'Roboto', sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.editable-content:empty:before {
+  content: attr(placeholder);
+  color: #aaa;
+}
+
+.editable-content img {
+  max-width: 100%;
+  display: block;
+  margin: 20px 0;
+  border-radius: 8px;
+}
+
+.editable-content h1, 
+.editable-content h2, 
+.editable-content h3 {
+  font-family: 'Poppins', sans-serif;
+  color: #007bff;
+}
+
+/* Image controls styling */
+.image-controls {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  margin: 20px 0;
+}
+
+.image-controls button {
+  padding: 8px 16px;
+  font-size: 14px;
+  border: 1px solid #ddd;
+  background: #f5f5f5;
+  cursor: pointer;
+  border-radius: 6px;
+  color: #333;
+  transition: all 0.3s ease;
+}
+
+.image-controls button:hover {
+  background-color: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+/* Responsiveness */
+@media (max-width: 768px) {
+  .toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .toolbar button,
+  .toolbar select,
+  .toolbar input[type="text"] {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+
+  .image-controls {
+    flex-direction: column;
+    gap: 10px;
+  }
+}

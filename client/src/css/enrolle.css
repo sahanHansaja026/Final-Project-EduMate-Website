@@ -1,0 +1,81 @@
+/* Container styling for centering and layout */
+.enrolle-container {
+  /* Take full viewport height */
+  background: white; /* Gradient background */
+  padding: 20px;
+  color: #000000;
+  font-family: "Arial", sans-serif;
+}
+.enrole_deatails h2 {
+  font-size: 55px;
+  color: rgb(0, 0, 0);
+  font-weight: bold;
+  margin-top: -10px;
+}
+.enrole_deatails {
+  margin: 10px;
+}
+.enrole_deatails .showdetails {
+  display: flex;
+  flex-direction: row;
+}
+.enrole_deatails p {
+  font-size: 20px;
+  font-weight: 100;
+}
+.enrole_deatails .showingcard {
+  flex-direction: column;
+}
+.enrolle-container button {
+  margin-left: 10px;
+  width: 250px;
+  height: 55px;
+  color: white;
+  font-weight: bold;
+  font-size: 30px;
+  background-color: #000000;
+  border: 2px solid rgb(0, 0, 0);
+  border-radius: 25px;
+  cursor: pointer;
+}
+.enrolle-container button:hover {
+  background-color: #003cff;
+}
+.commengidelines h3 {
+  font-size: 30px;
+}
+.commengidelines p {
+  font-size: 20px;
+  margin-top: 10px;
+}
+.a {
+  text-indent: 50px;
+}
+.b {
+  text-indent: 100px;
+}
+.showingcard img {
+  width: 450px;
+  height: 450px;
+}
+/* Example CSS for Tags */
+.tags {
+  margin-top: 20px;
+}
+
+.tags p {
+  font-weight: bold;
+}
+
+.tags ul {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+.tags li {
+  display: inline-block;
+  margin-right: 10px;
+  background-color: #f0f0f0;
+  padding: 5px 10px;
+  border-radius: 5px;
+}

@@ -1,0 +1,181 @@
+.subcribeplane-card-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.subcribeplane-card-content {
+  background: rgb(255, 255, 255);
+  padding: 20px;
+  border-radius: 10px;
+  width: 1400px;
+  height: auto;
+  text-align: center;
+  scrollbar-width: 1px;
+  overflow: auto;
+}
+
+.subcribeplane-card-content button {
+  background-color: #fbfbfb;
+  color: rgb(255, 0, 0);
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  font-size: 18px;
+  margin-top: 10px;
+}
+
+.subcribeplane-card-content button:hover {
+  background-color: #ffffff;
+}
+.subcribeplane-card-image img {
+  max-width: 20%; /* Set max width to 80% of the modal */
+  height: auto; /* Maintain aspect ratio */
+  margin-top: 20px;
+  border-radius: 5px;
+}
+.subcribeplane-card-content .planemainbox {
+  border: 1px solid rgb(67, 67, 67);
+  width: 100%;
+  height: fit-content;
+  text-align: center;
+  border-radius: 25px;
+}
+.planemainbox button {
+  background-color: white;
+  color: rgb(86, 86, 86);
+  width: auto;
+  height: auto;
+  border: 2px solid rgb(81, 81, 81);
+  border-radius: 15px;
+  font-weight: bold;
+}
+.planemainbox button:hover {
+  background-color: white;
+}
+.subcribeplane-card-content .planeboxes {
+  display: flex;
+  flex-direction: row;
+  width: auto;
+  height: auto;
+  margin-top: 15px;
+  padding: 20px;
+  gap: 60px;
+}
+.planeboxes .planebox {
+  width: 400px;
+  height: auto;
+  border: 1px solid rgb(83, 83, 83);
+  align-items: flex-start;
+  flex-direction: column;
+  text-align: left;
+  padding: 6px;
+  border-radius: 25px;
+}
+.planebox .title {
+  width: auto;
+  height: 80px;
+}
+.planebox h1 {
+  color: #000;
+  font-size: 40px;
+}
+.planebox p {
+  font-size: 18px;
+  font-weight: bold;
+  color: rgb(90, 90, 90);
+  margin-bottom: -20px;
+}
+.pricebox {
+  display: flex;
+  flex-direction: column;
+  padding: 0px;
+  gap: 2px;
+}
+.pricebox h1 {
+  font-size: 40px;
+  margin-bottom: -20px;
+}
+.pricebox p {
+  font-size: 20px;
+}
+.planebox .subcribe {
+  width: 200px;
+  height: auto;
+  background-color: #41b261;
+  color: white;
+  margin-top: 30px;
+  border: 0px;
+}
+.planebox .subcribe:hover {
+  width: 200px;
+  height: auto;
+  background-color: #6cd189;
+  color: rgb(77, 77, 77);
+  margin-top: 30px;
+  border: 0px;
+}
+.planebox .dissable {
+  width: 200px;
+  height: auto;
+  background-color: #a4a3a3;
+  color: rgb(255, 255, 255);
+  margin-top: 30px;
+  border: 1px solid rgb(124, 124, 124);
+}
+.planebox .dissable:hover {
+  width: 200px;
+  height: auto;
+  background-color: #a4a3a3;
+  color: rgb(255, 255, 255);
+  margin-top: 30px;
+  border: 1px solid rgb(124, 124, 124);
+}
+.planebox .choose {
+  width: 200px;
+  height: auto;
+  background-color: #ffffff;
+  color: rgb(0, 0, 0);
+  margin-top: 30px;
+  border: 3px solid rgb(124, 124, 124);
+}
+.planebox .choose:hover {
+  width: 200px;
+  height: auto;
+  background-color: #1325ee;
+  color: rgb(223, 223, 223);
+  margin-top: 30px;
+  border: 3px solid rgb(124, 124, 124);
+}
+.planebox li {
+  display: flex;
+  align-items: center;
+  margin: 10px 0;
+  font-size: 16px;
+  color: #555;
+  background-color: #e9f7f6; /* Light green background */
+  padding: 1px;
+  border-radius: 5px;
+  position: relative;
+  list-style: none; 
+  font-weight: bold;
+}
+
+/* Adding the checkmark icon */
+.planebox li::before {
+  content: "✔"; /* Unicode for the checkmark */
+  color: #4c4faf; /* Green color */
+  font-size: 18px;
+  margin-right: 10px;
+}
+
+/* Hover effect */
+.planebox li:hover {
+  background-color: #d1f2eb; /* Slightly darker green on hover */
+}

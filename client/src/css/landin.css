@@ -1,0 +1,298 @@
+.landing {
+  background-color: #000000;
+  height: 100%;
+  margin-bottom: -40px;
+}
+.landing .title {
+  display: flex;
+}
+.title .hedder {
+  flex-direction: column;
+}
+.landing .title h1 {
+  font-size: 30px;
+  color: white;
+  gap: 2px;
+  margin: 10px;
+}
+.landing .title button {
+  margin-left: 1100px;
+  margin-top: 20px;
+  background-color: rgb(232, 232, 50);
+  color: black;
+  font-weight: bold;
+  font-size: 20px;
+  height: 45px;
+  border-radius: 25px;
+  transition: background-color 0.3s ease, transform 0.3s ease; /* Add transition for smooth effect */
+}
+
+/* Animation on hover */
+.landing .title button:hover {
+  background-color: rgb(200, 200, 30); /* Change background color on hover */
+  transform: scale(1.05); /* Scale the button slightly */
+}
+
+.landing .maincontainer {
+  display: flex;
+  margin-left: 50px;
+}
+.maincontainer .silinder {
+  width: 555px;
+  height: 450px;
+  background-color: rgb(205, 205, 125);
+  border-radius: 150px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.maincontainer .silinder img {
+  width: 220px;
+  height: 250px;
+}
+.maincontainer .subcontainer {
+  flex-direction: column;
+  margin-left: 25px;
+}
+.maincontainer .circle1 {
+  width: 200px;
+  height: 200px;
+  background-color: palevioletred;
+  border-radius: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.maincontainer .circle2 {
+  width: 200px;
+  height: 200px;
+  background-color: transparent;
+  border-radius: 100%;
+  border: 2px solid white;
+  margin-top: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: "Agdasima", sans-serif;
+  text-align: center;
+}
+.maincontainer .circle2 h2 {
+  color: white;
+  font-size: 45px;
+  font-weight: bold;
+  font-family: "Agdasima", sans-serif;
+  margin-bottom: -25px;
+}
+.maincontainer .circle2 p {
+  color: white;
+  font-size: 25px;
+  font-family: "Agdasima", sans-serif;
+}
+.maincontainer .circle1 img {
+  width: 155px;
+  height: auto;
+  margin-top: -10px;
+}
+.maincontainer .mainheddr {
+  flex-direction: column;
+  margin-left: 30px;
+  
+}
+.mainheddr h1 {
+  font-size: 75px;
+  display: flex;
+  color: white;
+  font-weight: bold;
+}
+.mainheddr p {
+  font-size: 20px;
+  color: white;
+  font-weight: 500;
+  font-family: "Agdasima", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  margin-top: -45px;
+}
+.landing .boxcontainer {
+  display: flex;
+  margin: 40px;
+  gap: 40px;
+}
+.landing .box {
+  width: 450px;
+  height: 650px;
+  background-color: transparent;
+  border-radius: 50px;
+  border: 4px solid white;
+}
+.landing .box h2 {
+  margin-top: 30px;
+  margin-left: 40px;
+  color: white;
+  font-size: 40px;
+  font-weight: bold;
+  font-family: "Agdasima", sans-serif;
+}
+.landing .box hr {
+  border: 0;
+  height: 2px;
+  width: 80%;
+  background-color: #ffffff; /* Dark gray */
+  margin-top: -20px;
+  margin-left: 40px; /* Vertical spacing */
+}
+.landing .box img {
+  width: 100px;
+  height: 100px;
+}
+.boxcontainer .landbox {
+  flex-direction: column;
+  color: #000000;
+}
+.boxcontainer .boxland0 {
+  width: 940px;
+  height: 200px;
+  background-color: white;
+  border-radius: 50px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.boxcontainer .boxland0 p{
+  width: 450px;
+  font-size: 25px;
+  font-weight: 500;
+  font-family: "Oswald", sans-serif;
+  font-optical-sizing: auto;
+}
+.boxland0 .quiz-count{
+  color: rgb(0, 0, 0);
+  flex-direction: column;
+  text-align: center;
+  margin-left: 20px;
+  width: 220px;
+  height: 155px;
+  background-color: rgb(167, 167, 167);
+  border-radius: 25px;
+}
+.quiz-count:hover{
+  background-color: yellow;
+}
+.quiz-count h3{
+  font-weight: bold;
+  font-family: "Agdasima", sans-serif;
+  margin-bottom: -25px;
+  font-size: 25px
+}
+.boxcontainer .subboxland {
+  display: flex;
+  gap: 40px;
+  margin-top: 40px;
+  margin-bottom: 55px;
+}
+.boxcontainer .boxland1 {
+  width: 450px;
+  height: 410px;
+  background-color: rgb(143, 244, 125);
+  border-radius: 50px;
+}
+.boxcontainer .boxland2 {
+  width: 450px;
+  height: 410px;
+  background-color: rgb(245, 240, 150);
+  border-radius: 50px;
+}
+.landing .iconscontainer {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  font-family: "Agdasima", sans-serif;
+  gap: 10px;
+  color: white;
+}
+.landing .iconscontainer1 {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 250px;
+  color: white;
+}
+.landing .iconscontainer2 {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 250px;
+  color: white;
+}
+
+.landing .iconscontainer1 h3 {
+  font-size: 18px;
+  font-family: "Agdasima", sans-serif;
+}
+.landing .iconscontainer2 h3 {
+  font-size: 18px;
+  font-family: "Agdasima", sans-serif;
+}
+.landing .iconscontainer1 p {
+  font-size: 14px;
+  font-family: "Agdasima", sans-serif;
+}
+.landing .iconscontainer2 p {
+  font-size: 18px;
+  font-family: "Agdasima", sans-serif;
+}
+.iconscontainer1 h3{
+  font-size: 18px;
+  font-family: "Agdasima", sans-serif;
+}
+.iconscontainer p{
+  font-size: 15px;
+  font-family: "Agdasima", sans-serif;
+}
+.boxland0  .vertical-bar {
+  width: 5px; /* Width of the vertical bar */
+  height: 159px; /* Height of the vertical bar */
+  background-color: #000000; /* Color of the bar */
+}
+@media (max-width: 600px) {
+  .landing {
+    background-color: #000000; /* Change background color for better readability */
+    height: auto; /* Adjust height for better content fitting */
+    margin-bottom: 0; 
+    display: contents;/* Remove negative margin to avoid layout issues */
+  }
+  .landing .silinder,.subcontainer{
+    display: none;
+  }
+  .landing .boxcontainer{
+    display: contents;
+  }
+  .landing .title button{
+    margin-left: 500px;
+    width: 450px;
+    font-size: 25px;
+    height: 50px;
+  }
+  .landing .mainheddr{
+    margin-left: 0px;
+    flex-direction: row;
+  }
+  .landing .mainheddr h1{
+    font-size: 32px;
+    margin-bottom: 50px;
+    
+  }
+  .landing .mainheddr p{
+    font-size: 12px;
+  }
+  .landbox{
+    display: none;
+  }
+  .landbox p{
+    display: none;
+  }
+}

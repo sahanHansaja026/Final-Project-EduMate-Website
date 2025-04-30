@@ -1,0 +1,119 @@
+
+.quiz-container {
+  max-width: 800px;
+  margin: 50px auto;
+  padding: 20px;
+  background-color: #2d2d2d; 
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.quiz-title {
+  color: #00ff00; 
+  text-align: center;
+  font-size: 2.5em;
+  margin-bottom: 10px;
+}
+
+.quiz-card-id {
+  text-align: center;
+  font-size: 1.2em;
+  color: #ffffff;
+}
+
+.question-numbers {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.question-number {
+  background-color: #00ff00; 
+  color: #000000; 
+  border: none;
+  padding: 10px;
+  margin: 10px;
+  border-radius: 10%;
+  font-size: 1.2em;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-weight: bold;
+  width: 40px;
+}
+
+.question-number.correct {
+  background-color: #0f00b3;
+  color: rgb(255, 255, 255); 
+}
+
+.question-number.incorrect {
+  background-color: #ff3333;
+  color: white; 
+}
+
+.question-number:hover {
+  background-color: #33ff33;
+}
+
+.quiz-subtitle {
+  font-size: 1.5em;
+  margin-bottom: 20px;
+  text-align: center;
+  color: #00ff00; 
+}
+
+.quiz-question p {
+  font-size: 1.2em;
+}
+
+.quiz-answers label {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 1.1em;
+  font-size: 25px;
+  color:white;
+}
+
+.quiz-answers input[type="radio"] {
+  margin-right: 10px;
+  cursor: pointer;
+}
+
+.correct-answer {
+  font-weight: bold;
+  color: #00ff00; 
+  margin-top: 20px;
+}
+
+.navigation-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.previous-button,
+.next-button {
+  background-color: #00ff00; 
+  border: none;
+  color: #1b1b1b; 
+  padding: 10px 20px;
+  font-size: 1.1em;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.previous-button:hover,
+.next-button:hover {
+  background-color: #33ff33; 
+}
+
+.previous-button:disabled,
+.next-button:disabled {
+  background-color: #666666; 
+  cursor: not-allowed;
+}
+.quiz-question h2{
+  color: white;
+  font-size: 25px;
+  font-weight: bold;
+}
