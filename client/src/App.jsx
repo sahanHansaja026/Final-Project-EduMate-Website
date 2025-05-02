@@ -33,6 +33,7 @@ import ArticleEdit from "./components/articaledit";
 import QuizEditCurd from "./components/Editting/quixedit";
 import QuestionDeatils from "./components/questiondetails";
 import QuestionEdit from "./components/Editting/questionedit";
+import SettingsPage from "./components/settings";
 
 //for chenals
 import ChenaHome from "./chanel/chenal_home";
@@ -84,6 +85,7 @@ const App = () => {
         <Route exact path="/quizedit/:quiz_id" element={<QuizEditCurd />} />
         <Route exact path="/getquestion/:_id" element={<QuestionDeatils />} />
         <Route exact path="/qedit/:_id" element={<QuestionEdit />} />
+        <Route exact path="/settings/:card_id" element={<SettingsPage />} />
         <Route
           exact
           path="/articaledit/:article_id"

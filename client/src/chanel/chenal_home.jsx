@@ -22,7 +22,7 @@ const ChenalDetails = () => {
       .get(`http://localhost:9001/chnel/${id}`)
       .then((res) => {
         if (res.data.success) {
-          setPost(res.data.post); // Set post data when available
+          setPost(res.data.userProfile); // Set post data when available
         }
       })
       .catch((error) => {
@@ -83,11 +83,16 @@ const ChenalDetails = () => {
       <div
         className="banner"
         style={{
-          backgroundImage: `url(${
-            userProfile?.image || "/images/default.png"
-          })`, // Use profile image or default if not available
-          backgroundSize: "cover", // Ensure the image covers the element
+          backgroundImage: `url('${
+            userProfile?.image
+              ? userProfile.image
+              : "/images/400 Error Bad Request-rafiki.png"
+          }')`,
+          backgroundSize: "cover",
           backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+          height: "300px", // Set a visible height
+          width: "100%", // Ensure full width
         }}
       >
         <div className="banner-overlay">
@@ -100,7 +105,7 @@ const ChenalDetails = () => {
               src={
                 userProfile?.profileimage
                   ? userProfile.profileimage // Profile image from backend
-                  : "/images/default.png"
+                  : "../images/default.png"
               }
               alt="Profile"
               className="chaneldpimage"

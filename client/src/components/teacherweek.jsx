@@ -11,6 +11,7 @@ import {
   FaVideo,
   FaStickyNote,
   FaClipboardList,
+  FaCog,
 } from "react-icons/fa";
 
 const AddPage = ({ setCardId }) => {
@@ -110,7 +111,10 @@ const AddPage = ({ setCardId }) => {
     setView("details"); // Switch back to details view
     setSelectedMaterial(material);
   };
-
+  const handleSettingsClick = (card_id) => {
+    markProgress(card_id);
+    navigate(`/settings/${card_id}`);
+  };
   const handleQuizClick = (quiz_id) => {
     markProgress(quiz_id);
     navigate(`/quiz/${quiz_id}`);
@@ -155,6 +159,8 @@ const AddPage = ({ setCardId }) => {
   return (
     <div className="page-container">
       <div className="sidebar">
+        {post && post.email === email && (
+          <FaCog onClick={() => handleSettingsClick(selectedMaterial.card_id)} />)}
         <h3>Course Materials</h3>
         <ul>
           {assignments.map((assignment) => (

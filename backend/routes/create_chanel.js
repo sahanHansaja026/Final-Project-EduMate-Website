@@ -54,24 +54,29 @@ routers.get("/ch", async (req, res) => {
   }
 });
 
-// get a specific post by ID
 routers.get("/chnel/:id", async (req, res) => {
   try {
     const postId = req.params.id;
-    const post = await Posts.findById(postId).exec();
-    if (!post) {
+    const userProfile = await Posts.findById(postId).lean();
+
+    if (!userProfile) {
       return res
         .status(404)
         .json({ success: false, message: "Post not found" });
     }
-    if (post.image && post.image.data) {
-      post.image = `data:${post.image.contentType};base64,${post.image.data.toString("base64")}`;
+
+    if (userProfile.image && userProfile.image.data) {
+      userProfile.image = `data:${
+        userProfile.image.contentType
+      };base64,${Buffer.from(userProfile.image.data).toString("base64")}`;
     }
-    return res.status(200).json({ success: true, post });
+
+    return res.status(200).json({ success: true, userProfile });
   } catch (error) {
     return res.status(400).json({ error: error.message });
   }
 });
+
 
 
 //get a count

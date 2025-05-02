@@ -108,14 +108,13 @@ const Enrolle = ({ setCardId }) => {
             <h2>{cardDetails.title}</h2>
             <div className="showdetails">
               {cardDetails.image ? (
-                <img
-                  src={cardDetails.image} // Base64 string
-                  alt="Post"
-                />
+                <img src={cardDetails.image} alt="Post" />
               ) : (
-                <p>No image</p>
+                <img
+                  src="/images/400 Error Bad Request-rafiki.png"
+                  alt="Fallback"
+                />
               )}
-
               <div className="a">
                 <p>{cardDetails.summery}</p>
               </div>
@@ -123,7 +122,7 @@ const Enrolle = ({ setCardId }) => {
           </div>
         </div>
       )}
-      <p>{enrollmentCount} already enrolled</p>
+      <div className="enp">{enrollmentCount} already enrolled</div>
       <button onClick={handleEnrollClick}>Enroll</button>
       <div className="commengidelines">
         <h3>

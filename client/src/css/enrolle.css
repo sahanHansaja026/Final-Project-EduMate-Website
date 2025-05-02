@@ -50,6 +50,7 @@
 }
 .a {
   text-indent: 50px;
+  margin-left: 100px;
 }
 .b {
   text-indent: 100px;
@@ -62,7 +63,9 @@
 .tags {
   margin-top: 20px;
 }
-
+.enrole_deatails .enp{
+  color: blue;
+}
 .tags p {
   font-weight: bold;
 }
