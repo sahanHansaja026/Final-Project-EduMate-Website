@@ -6,9 +6,9 @@ import "../css/enrolle.css"; // Import the CSS file
 
 const Enrolle = ({ setCardId }) => {
   const [email, setEmail] = useState("");
-  const [setMessage] = useState("");
+  const [message, setMessage] = useState(""); // ✅ Fixed
   const [cardDetails, setCardDetails] = useState({});
-  const [enrollmentCount, setEnrollmentCount] = useState(0); // State for enrollment count
+  const [enrollmentCount, setEnrollmentCount] = useState(0);
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -44,10 +44,7 @@ const Enrolle = ({ setCardId }) => {
   useEffect(() => {
     const fetchCardDetails = async () => {
       try {
-        const card_id = id;
-        const response = await axios.get(
-          `http://localhost:9001/postes/${card_id}`
-        );
+        const response = await axios.get(`http://localhost:9001/postes/${id}`);
         if (response.data.success) {
           setCardDetails(response.data.post);
         }
@@ -89,7 +86,11 @@ const Enrolle = ({ setCardId }) => {
 
       await axios.post("http://localhost:9001/enroll", enrollmentData);
       setMessage("Enrollment successful");
-      setEnrollmentCount((prevCount) => prevCount + 1); // Update count immediately on successful enrollment
+
+      // Optional: show message briefly, then reload
+      setTimeout(() => {
+        window.location.reload(); // 🔁 Full page refresh
+      }, 1500);
     } catch (error) {
       if (error.response && error.response.status === 400) {
         setMessage("You have already enrolled in this course.");
@@ -122,8 +123,14 @@ const Enrolle = ({ setCardId }) => {
           </div>
         </div>
       )}
+
       <div className="enp">{enrollmentCount} already enrolled</div>
+
       <button onClick={handleEnrollClick}>Enroll</button>
+
+      {/* ✅ Show message if present */}
+      {message && <div className="message">{message}</div>}
+
       <div className="commengidelines">
         <h3>
           Community Comment Guidelines: Fostering a Positive Learning Space
