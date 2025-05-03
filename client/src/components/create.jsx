@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom"; 
 import axios from "axios";
 import "../css/question.css";
@@ -13,6 +13,15 @@ const AddPage = ({ setQuizId }) => {
     }
   }, [quizId, setQuizId]);
   const quiz_id=quizId;
+
+  // Log username when it changes
+  useEffect(() => {
+    console.log("Current moduleid:", id);
+  }, [id]);
+  // Log email when it changes
+  useEffect(() => {
+    console.log("Current quiz:", quiz_id);
+  }, [quiz_id]);
 
   return (
     <div>

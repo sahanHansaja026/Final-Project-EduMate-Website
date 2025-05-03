@@ -116,11 +116,9 @@ const Search = () => {
                 <div className="card-image">
                   <img
                     src={
-                      post.image
-                        ? `http://localhost:9001/Uploads/${post.image}`
-                        : ""
-                    }
-                    alt={post.image ? post.image : "No Image"}
+                      post.image || "/images/400 Error Bad Request-rafiki.png"
+                    } // Replace with your actual default image URL
+                    alt={post.image ? "Post Image" : "No Image Available"}
                   />
                 </div>
                 <div className="card-header">

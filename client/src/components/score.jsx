@@ -6,7 +6,7 @@ import "../css/score.css";
 
 const ScorePage = () => {
   const { quizId: quizIdFromParams } = useParams(); // Get quiz_id from the URL
-  const { state } = useLocation(); // Get the state passed from the Quiz component
+  const { state } = useLocation();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [isScoreSaved, setIsScoreSaved] = useState(false); // Track if score has been saved
@@ -14,7 +14,15 @@ const ScorePage = () => {
   const score = state?.score || 0; // Default to 0 if no score is passed
   const total = state?.total || 0;
   const quizId = state?.quizId || quizIdFromParams; // Use state quizId or fallback to URL param
-
+  // Log username when it changes
+  useEffect(() => {
+    console.log("Current username:", username);
+  }, [username]);
+  // Log email when it changes
+  useEffect(() => {
+    console.log("Current email:", email);
+  }, [email]);
+  
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -53,7 +61,9 @@ const ScorePage = () => {
     <div className="score-page">
       <div className="score-card">
         <h2>Quiz Completed!</h2>
-        <p className="score">Your Score: {score} / {total}</p>
+        <p className="score">
+          Your Score: {score} / {total}
+        </p>
       </div>
     </div>
   );

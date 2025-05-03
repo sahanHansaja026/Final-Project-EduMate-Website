@@ -28,14 +28,21 @@ router.post("/score/save", async (req, res) => {
   }
 });
 
-// GET all scores for the current user
-router.get("/scores", async (req, res) => {
-  const { email } = req.query; 
+// Route to get all scores by quizId
+router.get("/score/quiz/:quizId", async (req, res) => {
+  const { quizId } = req.params;
+
   try {
-    const scores = await Score.find({ email: email });
-    res.json(scores);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+    // Find scores with the matching quizId
+    const scores = await Score.find({ quizId });
+
+    if (scores.length === 0) {
+      return res.status(200).json({ message: "No scores found for this quiz" });
+    }
+
+    res.status(200).json(scores);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch scores" });
   }
 });
 

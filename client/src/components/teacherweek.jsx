@@ -131,6 +131,18 @@ const AddPage = ({ setCardId }) => {
     markProgress(quiz_id);
     navigate(`/quizedit/${quiz_id}`);
   };
+    const handlQuizGradeClick = (quiz_id) => {
+      markProgress(quiz_id);
+      navigate(`/quizgradeview/${quiz_id}`);
+  };
+    const handlCMSEditClick = (CMS_id) => {
+      markProgress(CMS_id);
+      navigate(`/CMSedit/${CMS_id}`);
+    };
+    const handlCMSGradeClick = (CMS_id) => {
+      markProgress(CMS_id);
+      navigate(`/CMSgradeview/${CMS_id}`);
+    };
   const handleAssignmentEditClick = (assignment_id) => {
     markProgress(assignment_id);
     navigate(`/assgnmentedit/${assignment_id}`);
@@ -160,7 +172,10 @@ const AddPage = ({ setCardId }) => {
     <div className="page-container">
       <div className="sidebar">
         {post && post.email === email && (
-          <FaCog onClick={() => handleSettingsClick(selectedMaterial.card_id)} />)}
+          <FaCog
+            onClick={() => handleSettingsClick(selectedMaterial.card_id)}
+          />
+        )}
         <h3>Course Materials</h3>
         <ul>
           {assignments.map((assignment) => (
@@ -304,12 +319,37 @@ const AddPage = ({ setCardId }) => {
 
               {selectedMaterial.CMS_name && (
                 <div>
+                  <div className="editandtitle">
+                    {post && post.email === email && (
+                      <div className="assignment-card">
+                        <div className="action-buttons">
+                          <button
+                            className="edit-btn"
+                            onClick={() =>
+                              handlCMSEditClick(selectedMaterial.CMS_id)
+                            }
+                          >
+                            <i className="fas fa-edit"></i> Edit
+                          </button>
+
+                          <button
+                            className="grade-btn"
+                            onClick={() =>
+                              handlCMSGradeClick(selectedMaterial.CMS_id)
+                            }
+                          >
+                            <i className="fas fa-chart-bar"></i> View Grade
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                   <h3>
                     <FaClipboardList /> CMS: {selectedMaterial.CMS_name}
                   </h3>
                   <button
                     className="btn-action"
-                    onClick={() => handleCMSClick(selectedMaterial._id)}
+                    onClick={() => handleCMSClick(selectedMaterial.CMS_id)}
                   >
                     Open CMS
                   </button>
@@ -320,14 +360,27 @@ const AddPage = ({ setCardId }) => {
                 <div>
                   <div className="editandtitle">
                     {post && post.email === email && (
-                      <button
-                        className="three-dots-btn"
-                        onClick={() =>
-                          handlQuizEditClick(selectedMaterial.quiz_id)
-                        }
-                      >
-                        <h4>Click to Edit</h4>
-                      </button>
+                      <div className="assignment-card">
+                        <div className="action-buttons">
+                          <button
+                            className="edit-btn"
+                            onClick={() =>
+                              handlQuizEditClick(selectedMaterial.quiz_id)
+                            }
+                          >
+                            <i className="fas fa-edit"></i> Edit
+                          </button>
+
+                          <button
+                            className="grade-btn"
+                            onClick={() =>
+                              handlQuizGradeClick(selectedMaterial.quiz_id)
+                            }
+                          >
+                            <i className="fas fa-chart-bar"></i> View Grade
+                          </button>
+                        </div>
+                      </div>
                     )}
                   </div>
                   <h3>

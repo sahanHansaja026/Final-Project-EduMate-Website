@@ -47,6 +47,7 @@
   width: 100%;
   background-color: #f9f9f9;
   transition: background-color 0.3s ease;
+  color: black;
 }
 
 .quiz input[type="text"]:focus,
@@ -54,6 +55,7 @@
   background-color: #e9f0ff;
   border-color: #74ebd5;
   outline: none;
+  color: black;
 }
 
 .quiz textarea {

@@ -13,6 +13,15 @@ const MyModule = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [shareMenuVisible, setShareMenuVisible] = useState(null); // Track which post’s share menu is open
 
+    // Log username when it changes
+    useEffect(() => {
+      console.log("Current username:", username);
+    }, [username]);
+    // Log email when it changes
+    useEffect(() => {
+      console.log("Current email:", email);
+    }, [email]);
+  
   useEffect(() => {
     const fetchData = async () => {
       try {

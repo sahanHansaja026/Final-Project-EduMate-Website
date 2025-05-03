@@ -5,21 +5,35 @@ const routee = express.Router();
 // Search posts by partial title
 // Search posts by partial title
 routee.post("/search", (req, res) => {
-  const { title: title } = req.body;
+  const { title } = req.body;
 
   if (!title) {
     return res.status(400).json({ error: "Module name is required" });
   }
 
-  // Use a regular expression to match any word starting with the input letters
-  const regex = new RegExp(`\\b${title}`, 'i'); // \b for word boundary, case-insensitive
+  const regex = new RegExp(title, 'i'); // 'i' for case-insensitive, removed \b for broader match
 
   Posts.find({ title: { $regex: regex } })
     .then((posts) => {
       if (!posts || posts.length === 0) {
         return res.status(404).json({ error: "No Module is found" });
       }
-      return res.status(200).json({ success: true, existingPosts: posts });
+
+      const processedPosts = posts.map((post) => {
+        const postObject = {
+          ...post._doc,
+        };
+
+        if (post.image && post.image.data) {
+          postObject.image = `data:${post.image.contentType};base64,${post.image.data.toString("base64")}`;
+        } else {
+          postObject.image = null;
+        }
+
+        return postObject;
+      });
+
+      return res.status(200).json({ success: true, existingPosts: processedPosts });
     })
     .catch((err) => {
       return res.status(500).json({ error: err.message });
