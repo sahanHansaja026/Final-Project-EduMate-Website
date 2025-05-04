@@ -44,9 +44,10 @@
   .navbar-links {
     display: flex;
     gap: 15px;
-    margin-left: 800px;
+    margin-left: 750px;
     font-weight: bold;
     font-size: 25px; 
+    align-items: center;
   }
   
   .navbar-links a {
@@ -60,4 +61,13 @@
   .navbar-links a:hover {
     color: #000000; 
   }
-  
+  .navbar-links img{
+    width: 50px;
+    height: 50px;
+  }
+  .chatbotes-button{
+    width: fit-content;
+    height: fit-content;
+    background-color: white;
+    border: 0px;
+  }

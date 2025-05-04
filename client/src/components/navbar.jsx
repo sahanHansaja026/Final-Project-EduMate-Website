@@ -3,24 +3,27 @@ import { Link } from "react-router-dom";
 import authService from "../services/authService";
 import axios from "axios";
 import "../css/navbar.css";
+import chatbot from "/src/images/chatbot.gif";
+import ChatbotPopup from "./chatbot"; // Import the chatbot popup
 
 function Navbar() {
   const [user, setUser] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
+  const [showChatbot, setShowChatbot] = useState(false); // Visibility state
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         const userData = await authService.getUserData();
-        setUser(userData); // Set user data if available
+        setUser(userData);
         if (userData && userData.email) {
-          fetchUserProfile(userData.email); // Fetch user profile if email exists
+          fetchUserProfile(userData.email);
         } else {
-          setUserProfile(null); // If no user data, show default image
+          setUserProfile(null);
         }
       } catch (error) {
         console.error("Failed to fetch user data", error);
-        setUserProfile(null); // On error, set profile to null to show default image
+        setUserProfile(null);
       }
     };
 
@@ -33,13 +36,13 @@ function Navbar() {
         `http://localhost:9001/profiles?email=${email}`
       );
       if (response.data.success && response.data.userProfile) {
-        setUserProfile(response.data.userProfile); // Update state with user profile data
+        setUserProfile(response.data.userProfile);
       } else {
-        setUserProfile(null); // No profile found, set to null
+        setUserProfile(null);
       }
     } catch (error) {
       console.error("Failed to fetch user profile:", error);
-      setUserProfile(null); // On error, set profile to null
+      setUserProfile(null);
     }
   };
 
@@ -52,10 +55,8 @@ function Navbar() {
               <Link to="/Profile">
                 <img
                   src={
-                    userProfile && userProfile.profileimage
-                      ? userProfile.profileimage.trim() !== ""
-                        ? userProfile.profileimage
-                        : "../images/default.png"
+                    userProfile?.profileimage?.trim()
+                      ? userProfile.profileimage
                       : "../images/default.png"
                   }
                   alt="Profile"
@@ -73,6 +74,13 @@ function Navbar() {
               <Link to="/dashboard">Dashboard</Link>
               <Link to="/about">About Us</Link>
               <Link to="/">Logout</Link>
+              {/* Chatbot trigger */}
+              <button
+                onClick={() => setShowChatbot(true)}
+                className="chatbotes-button"
+              >
+                <img src={chatbot} alt="Chatbot" />
+              </button>
             </>
           ) : (
             <>
@@ -82,6 +90,12 @@ function Navbar() {
           )}
         </div>
       </div>
+
+      {/* Conditionally render the chatbot popup */}
+      <ChatbotPopup
+        visible={showChatbot}
+        closeChat={() => setShowChatbot(false)}
+      />
     </nav>
   );
 }
