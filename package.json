@@ -7,7 +7,7 @@
   "dev": "concurrently \"npm run server\" \"npm run client\" \"npm run mlserver\"",
   "server": "cd backend && node server.js",
   "client": "cd client && npm run dev",
-  "mlserver": "cd ml-server && python app.py"
+  "mlserver": "cd ml-server && python chatbot.py"
 },
   "keywords": [],
   "author": "",
