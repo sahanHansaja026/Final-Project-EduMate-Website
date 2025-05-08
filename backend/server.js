@@ -30,6 +30,8 @@ const Subscripion = require("./routes/subscription");
 const Message = require("./routes/message");
 const FireVideo = require("./routes/firevedio");
 const Articals_d = require("./routes/artical");
+const CMSGet = require("./routes/getCMS");
+const GradeCMS = require("./routes/grageCMS");
 
 const app = express();
 const PORT = process.env.PORT || 9001;
@@ -61,6 +63,8 @@ app.use(Subscribers);
 app.use(Message);
 app.use(FireVideo);
 app.use(Articals_d);
+app.use(CMSGet);
+app.use(GradeCMS);
 
 //for chanel
 app.use(ChenalCreateRoute);

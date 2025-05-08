@@ -1,0 +1,85 @@
+.cms-gradecontainer {
+  background-color: white;
+  max-width: 800px;
+  margin: 40px auto;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  color: black;
+}
+
+.cms-gradecontainer h2 {
+  font-size: 28px;
+  color: #2c3e50;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.cms-gradecontainer h3 {
+  font-size: 22px;
+  color: #34495e;
+  margin-bottom: 20px;
+}
+
+.cms-gradecontainer ul {
+  list-style: none;
+  padding: 0;
+}
+
+.cms-gradecontainer li {
+  background-color: #f9f9f9;
+  margin-bottom: 20px;
+  padding: 20px;
+  border-radius: 10px;
+  border-left: 4px solid #3498db;
+  transition: transform 0.2s;
+}
+
+.cms-gradecontainer li:hover {
+  transform: scale(1.02);
+}
+
+.cms-gradecontainer strong {
+  display: block;
+  margin-bottom: 5px;
+  color: #2c3e50;
+}
+
+.cms-gradecontainer .markinputs {
+  margin-top: 15px;
+  font-weight: bold;
+  color: #2980b9;
+}
+
+.cms-gradecontainer hr {
+  margin-top: 15px;
+  border: none;
+  border-top: 1px solid #ccc;
+}
+.cms-gradecontainer .mark-input {
+  display: block;
+  margin-top: 8px;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 16px;
+  width: 100%;
+  max-width: 200px;
+  box-sizing: border-box;
+}
+.cms-gradecontainer .submit-mark-btn {
+  margin-top: 10px;
+  padding: 8px 16px;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.cms-gradecontainer .submit-mark-btn:hover {
+  background-color: #2980b9;
+}

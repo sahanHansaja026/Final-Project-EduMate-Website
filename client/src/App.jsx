@@ -36,6 +36,8 @@ import QuestionEdit from "./components/Editting/questionedit";
 import SettingsPage from "./components/settings";
 import QuizGradeShow from "./components/grading/quizgrade";
 import ChatBot from "./components/chatbot";
+import CMSGrage from "./components/grading/CMSgrage";
+import CMSShow from "./components/grading/CMSshow";
 
 //for chenals
 import ChenaHome from "./chanel/chenal_home";
@@ -43,7 +45,6 @@ import MOduleOwner from "./chanel/moduleowner";
 import ChenalEnrollment from "./chanel/chenalenrollement";
 import CheanelHome from "./chanel/chenal_home";
 import Addstudents_and_teachers from "./chanel/addstudents_and_teachers";
-
 
 const App = () => {
   const location = useLocation();
@@ -88,12 +89,14 @@ const App = () => {
         <Route exact path="/getquestion/:_id" element={<QuestionDeatils />} />
         <Route exact path="/qedit/:_id" element={<QuestionEdit />} />
         <Route exact path="/settings/:card_id" element={<SettingsPage />} />
-        <Route exact path="/chatbot" element={<ChatBot/> }/>
+        <Route exact path="/chatbot" element={<ChatBot />} />
         <Route
           exact
           path="/quizgradeview/:quiz_id"
           element={<QuizGradeShow />}
         />
+        <Route exact path="/CMSgradeadd/:id" element={<CMSGrage />} />
+        <Route exact path="/CMSgradeview/:CMS_id" element={<CMSShow />} />
         <Route
           exact
           path="/articaledit/:article_id"

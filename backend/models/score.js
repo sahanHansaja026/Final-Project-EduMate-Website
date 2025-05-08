@@ -1,26 +1,32 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
-const scoreSchema = new mongoose.Schema({
-  quizId: {
-    type: String,
-    required: true
+const scoreSchema = new mongoose.Schema(
+  {
+    quizId: {
+      type: String,
+      required: true,
+    },
+    score: {
+      type: Number,
+      required: true,
+    },
+    username: {
+      type: String,
+      required: true,
+    },
+    email: {
+      type: String,
+      required: true,
+    },
   },
-  score: {
-    type: Number,
-    required: true
-  },
-  username: {
-    type: String,
-    required: true
-  },
-  email: {
-    type: String,
-    required: true
-  },
-}, { timestamps: true });
+  {
+    timestamps: true,
+    collection: "scores",
+  }
+);
 
-// Create a compound index to ensure that the combination of cardId and username is unique
-scoreSchema.index({ cardId: 1, username: 1 }, { unique: true });
+// ❌ This line was causing the error
+// scoreSchema.index({ cardId: 1, username: 1 });
 
-const Score = mongoose.model('Score', scoreSchema);
+const Score = mongoose.model("Score", scoreSchema);
 module.exports = Score;
