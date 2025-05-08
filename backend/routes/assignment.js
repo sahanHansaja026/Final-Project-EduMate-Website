@@ -23,38 +23,6 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-// Route for saving an assignment
-router.post(
-  "/assignment/save",
-  upload.single("assignment"), // Handle a single assignment upload
-  async (req, res) => {
-    try {
-      const { card_id, assignment_name, assignment_id } = req.body;
-
-      // Check if all required fields are provided
-      if (!card_id || !assignment_name || !assignment_id || !req.file) {
-        return res.status(400).json({ error: "All fields are required" });
-      }
-
-      // Store the assignment file path
-      const assignmentPath = req.file.filename;
-
-      // Create a new post with the provided data
-      const newPost = new Posts({
-        card_id,
-        assignment_name,
-        assignment_id,
-        assignment: assignmentPath,
-      });
-
-      // Save the post to the database
-      await newPost.save();
-      return res.status(200).json({ success: "Assignment saved successfully" });
-    } catch (error) {
-      return res.status(400).json({ error: error.message });
-    }
-  }
-);
 
 // Get all assignments with pagination
 router.get("/assignment", async (req, res) => {
@@ -96,25 +64,7 @@ router.get("/assignment/:id", async (req, res) => {
   }
 });
 
-// Get a specific quiz by ID
-router.get("/quiz_details/:quizId", async (req, res) => {
-  try {
-    const quiz_id = req.params.quizId;
 
-    // If not using ObjectId, replace findById with a query
-    const quiz = await Posts.findOne({ quiz_id: quiz_id });
-
-    if (!quiz) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Quiz not found" });
-    }
-
-    return res.status(200).json({ success: true, quiz });
-  } catch (error) {
-    return res.status(400).json({ success: false, message: "sahan" });
-  }
-});
 
 router.get("/assignment/get/:assignment_id", async (req, res) => {
   try {

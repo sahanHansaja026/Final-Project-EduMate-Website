@@ -111,6 +111,10 @@ const AddPage = ({ setCardId }) => {
     setView("details"); // Switch back to details view
     setSelectedMaterial(material);
   };
+    const handleCourseClick = (card_id) => {
+      markProgress(card_id);
+      navigate(`/teacherweek/${card_id}`);
+    };
   const handleSettingsClick = (card_id) => {
     markProgress(card_id);
     navigate(`/settings/${card_id}`);
@@ -167,15 +171,9 @@ const AddPage = ({ setCardId }) => {
       console.error("Error marking progress:", error);
     }
   };
-
   return (
     <div className="page-container">
       <div className="sidebar">
-        {post && post.email === email && (
-          <FaCog
-            onClick={() => handleSettingsClick(selectedMaterial.card_id)}
-          />
-        )}
         <h3>Course Materials</h3>
         <ul>
           {assignments.map((assignment) => (
@@ -203,8 +201,36 @@ const AddPage = ({ setCardId }) => {
           </button>
         )}
       </div>
-
       <div className="content">
+        <div className="horizontalbar">
+          {/*show grade to the students*/}
+          {post && email !== post.email && (
+            <button
+              className="three-dots-btn"
+              onClick={() =>
+                handleAssignmentEditClick(selectedMaterial.assignment_id)
+              }
+            >
+              <h4>My Grade</h4>
+            </button>
+          )}
+          {/* settings */}
+          {post && post.email === email && (
+            <button
+              className="three-dots-btn"
+              onClick={() => handleSettingsClick(selectedMaterial.card_id)}
+            >
+              <h4>Settings</h4>
+            </button>
+          )}
+          {/* Course */}
+          <button
+            className="three-dots-btn"
+            onClick={() => handleCourseClick(selectedMaterial.card_id)}
+          >
+            <h4>Course</h4>
+          </button>
+        </div>
         {view === "details" ? (
           loading ? (
             <p>Loading assignments...</p>
@@ -212,8 +238,7 @@ const AddPage = ({ setCardId }) => {
             <div className="assignment-details">
               <div>
                 <h2>{selectedMaterial.assignment_name}</h2>
-
-                {selectedMaterial.assignment && (
+                {selectedMaterial.assignment_url && (
                   <p>
                     {post && post.email === email && (
                       <button
@@ -229,7 +254,7 @@ const AddPage = ({ setCardId }) => {
                     )}
                     <FaFileAlt /> Assignment File:{" "}
                     <a
-                      href={`http://localhost:9001/Assignmentfile/${selectedMaterial.assignment}`}
+                      href={`${selectedMaterial.assignment_url}`}
                       target="_blank"
                       rel="noopener noreferrer"
                     >
@@ -252,7 +277,6 @@ const AddPage = ({ setCardId }) => {
                       </button>
                     )}
                   </div>
-
                   <video
                     width="1000"
                     height="auto" // This adjusts the height automatically based on the width
@@ -267,7 +291,6 @@ const AddPage = ({ setCardId }) => {
                   </video>
                 </div>
               )}
-
               {selectedMaterial.note_name && selectedMaterial.note && (
                 <div>
                   <h3>
@@ -297,7 +320,6 @@ const AddPage = ({ setCardId }) => {
                     )}
                   </div>
                   <h3>Notes: {selectedMaterial.article_name}</h3>
-
                   {/* Display article content using dangerouslySetInnerHTML */}
                   <div
                     className="article-content"
@@ -305,7 +327,6 @@ const AddPage = ({ setCardId }) => {
                       __html: selectedMaterial.content,
                     }}
                   />
-
                   {/* Link to download the article content */}
                   <a
                     href={`http://localhost:9001/NotesFile/${selectedMaterial.content}`} // Adjust this to point to the correct file if needed
@@ -316,7 +337,6 @@ const AddPage = ({ setCardId }) => {
                   </a>
                 </div>
               )}
-
               {selectedMaterial.CMS_name && (
                 <div>
                   <div className="editandtitle">
@@ -331,7 +351,6 @@ const AddPage = ({ setCardId }) => {
                           >
                             <i className="fas fa-edit"></i> Edit
                           </button>
-
                           <button
                             className="grade-btn"
                             onClick={() =>
@@ -355,7 +374,6 @@ const AddPage = ({ setCardId }) => {
                   </button>
                 </div>
               )}
-
               {selectedMaterial.quiz_name && (
                 <div>
                   <div className="editandtitle">
@@ -370,7 +388,6 @@ const AddPage = ({ setCardId }) => {
                           >
                             <i className="fas fa-edit"></i> Edit
                           </button>
-
                           <button
                             className="grade-btn"
                             onClick={() =>
@@ -389,7 +406,6 @@ const AddPage = ({ setCardId }) => {
                   <div className="parbox">
                     <p>{selectedMaterial.description}</p>
                   </div>
-
                   <button
                     className="btn-action"
                     onClick={() => handleQuizClick(selectedMaterial.quiz_id)}

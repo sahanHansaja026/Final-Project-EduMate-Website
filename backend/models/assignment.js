@@ -8,6 +8,9 @@ const postSchema = new Schema({
   assignment_name: {
     type: String,
   },
+  assignment_url: {
+    type: String,
+  },
   assignment: {
     type: String,
   },

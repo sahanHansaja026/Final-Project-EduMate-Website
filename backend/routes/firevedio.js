@@ -1,75 +1,53 @@
 const express = require("express");
 const multer = require("multer");
-const admin = require("firebase-admin");
 const mongoose = require("mongoose");
-const Posts = require("../models/assignment"); // your MongoDB model
-const path = require("path");
+const Posts = require("../models/assignment");
+const { bucket } = require("./firebase"); // ✅ Use shared config
 
 const router = express.Router();
-
-// Firebase Admin SDK initialization
-const serviceAccount = require("../serviceAccountKey.json");
-
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  storageBucket: "scurd-e749c.appspot.com", // 🔥 Replace with your Firebase Storage bucket name
-});
-
-const bucket = admin.storage().bucket();
-
-// Multer configuration
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-// Save video route
 router.post("/video/save", upload.single("video"), async (req, res) => {
   try {
     const { card_id, video_name, video_id } = req.body;
     const finalVideoId = video_id || new mongoose.Types.ObjectId().toString();
 
     if (!card_id || !video_name || !req.file) {
-      return res
-        .status(400)
-        .json({
-          error: "All fields (card_id, video_name, video file) are required",
-        });
+      return res.status(400).json({
+        error: "All fields (card_id, video_name, video file) are required",
+      });
     }
 
-    // Upload file to Firebase Storage
     const fileName = `videos/${finalVideoId}_${req.file.originalname}`;
     const file = bucket.file(fileName);
 
     await file.save(req.file.buffer, {
-      metadata: {
-        contentType: req.file.mimetype,
-      },
-      public: true, // Set to true if you want public access
+      metadata: { contentType: req.file.mimetype },
+      public: true,
     });
 
-    // Generate public URL
     const videoUrl = `https://storage.googleapis.com/${bucket.name}/${file.name}`;
 
-    // Create new MongoDB document
     const newVideo = new Posts({
       card_id,
       video_name,
       video_id: finalVideoId,
-      video_url: videoUrl, // Save only the URL
+      video_url: videoUrl,
     });
 
     await newVideo.save();
 
-    return res
-      .status(200)
-      .json({
-        success: true,
-        message: "Video uploaded and data saved successfully!",
-      });
+    res.status(200).json({
+      success: true,
+      message: "Video uploaded and data saved successfully!",
+    });
   } catch (error) {
     console.error("Error saving video:", error);
-    return res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error.message });
   }
 });
+
 
 router.get("/video/:id", async (req, res) => {
   try {
@@ -158,6 +136,5 @@ router.put(
     }
   }
 );
-
 
 module.exports = router;

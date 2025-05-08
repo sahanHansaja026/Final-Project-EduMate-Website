@@ -192,7 +192,7 @@ export default class Home extends Component {
                     <img
                       src={
                         post.image
-                          ? `http://localhost:9001/Uploads/${post.image}`
+                          ? post.image
                           : "default-image.jpg"
                       }
                       alt={post.image ? post.image : "No Image"}

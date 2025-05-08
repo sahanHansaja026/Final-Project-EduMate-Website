@@ -447,3 +447,13 @@
 .grade-btn:hover {
   background-color: #1976d2;
 }
+.content .horizontalbar{
+  width: 100%;
+  height: 80px;
+  background-color: rgb(192, 191, 191);
+  border-bottom: 2px solid black;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 5px;
+}
