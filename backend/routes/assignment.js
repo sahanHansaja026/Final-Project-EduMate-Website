@@ -182,5 +182,24 @@ router.delete("/assignment/delete/:assignment_id", async (req, res) => {
     return res.status(500).json({ error: error.message });
   }
 });
+// Get a specific quiz by ID
+router.get("/quiz_details/:quizId", async (req, res) => {
+  try {
+    const quiz_id = req.params.quizId;
+
+    // If not using ObjectId, replace findById with a query
+    const quiz = await Posts.findOne({ quiz_id: quiz_id });
+
+    if (!quiz) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Quiz not found" });
+    }
+
+    return res.status(200).json({ success: true, quiz });
+  } catch (error) {
+    return res.status(400).json({ success: false, message: "sahan" });
+  }
+});
 
 module.exports = router;
