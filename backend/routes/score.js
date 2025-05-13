@@ -2,29 +2,36 @@ const express = require("express");
 const Score = require("../models/score");
 const router = express.Router();
 
-// Route to save score
+// Save or update a user's score for a quiz
 router.post("/score/save", async (req, res) => {
-  const { quizId, score, username, email } = req.body;
-
   try {
-    const newScore = new Score({
-      quizId,
-      score,
-      username,
-      email,
-    });
-    await newScore.save();
-    res.status(201).json({ message: "Score saved successfully!" });
-  } catch (error) {
-    if (error.code === 11000) {
-      res
-        .status(400)
-        .json({
-          error: "The combination of Card ID and Username already exists",
-        });
-    } else {
-      res.status(500).json({ error: "Failed to save score" });
+    const quizId = req.body.quizId?.trim();
+    const score = req.body.score;
+    const username = req.body.username?.trim();
+    const email = req.body.email?.trim().toLowerCase(); // normalize email
+
+    if (!quizId || !score || !username || !email) {
+      return res.status(400).json({ error: "All fields are required" });
     }
+
+    // Check for existing score with same quizId and email
+    const existingScore = await Score.findOne({ quizId, email });
+
+    if (existingScore) {
+      // Update existing
+      existingScore.score = score;
+      existingScore.username = username; // Optional
+      await existingScore.save();
+      return res.status(200).json({ message: "Score updated successfully!" });
+    } else {
+      // Create new
+      const newScore = new Score({ quizId, score, username, email });
+      await newScore.save();
+      return res.status(201).json({ message: "Score saved successfully!" });
+    }
+  } catch (error) {
+    console.error("Score save error:", error);
+    return res.status(500).json({ error: "Failed to save or update score" });
   }
 });
 

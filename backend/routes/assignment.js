@@ -25,7 +25,7 @@ const upload = multer({ storage: storage });
 
 
 // Get all assignments with pagination
-router.get("/assignment", async (req, res) => {
+router.get("/ass", async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 8;
@@ -49,7 +49,7 @@ router.get("/assignment", async (req, res) => {
 });
 
 // Get a specific assignment by ID
-router.get("/assignment/:id", async (req, res) => {
+router.get("/as/:id", async (req, res) => {
   try {
     const postId = req.params.id;
     const post = await Posts.findById(postId).exec();
