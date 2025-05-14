@@ -38,6 +38,8 @@ import QuizGradeShow from "./components/grading/quizgrade";
 import ChatBot from "./components/chatbot";
 import CMSGrage from "./components/grading/CMSgrage";
 import CMSShow from "./components/grading/CMSshow";
+import AllStudents from "./components/grading/allstudent";
+import MyGrades from "./components/grading/mygrade";
 
 //for chenals
 import ChenaHome from "./chanel/chenal_home";
@@ -90,6 +92,8 @@ const App = () => {
         <Route exact path="/qedit/:_id" element={<QuestionEdit />} />
         <Route exact path="/settings/:card_id" element={<SettingsPage />} />
         <Route exact path="/chatbot" element={<ChatBot />} />
+        <Route exact path="/corsegrade/:card_id" element={<AllStudents />} />
+        <Route exact path="/mygrade/:card_id" element={<MyGrades />} />
         <Route
           exact
           path="/quizgradeview/:quiz_id"

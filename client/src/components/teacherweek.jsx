@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import "../css/weeks.css";
@@ -111,10 +111,14 @@ const AddPage = ({ setCardId }) => {
     setView("details"); // Switch back to details view
     setSelectedMaterial(material);
   };
-    const handleCourseClick = (card_id) => {
-      markProgress(card_id);
-      navigate(`/teacherweek/${card_id}`);
-    };
+  const handleCourseClick = (card_id) => {
+    markProgress(card_id);
+    navigate(`/teacherweek/${card_id}`);
+  };
+  const handleCourseGradeClick = (card_id) => {
+    markProgress(card_id);
+    navigate(`/corsegrade/${card_id}`);
+  };
   const handleSettingsClick = (card_id) => {
     markProgress(card_id);
     navigate(`/settings/${card_id}`);
@@ -135,18 +139,18 @@ const AddPage = ({ setCardId }) => {
     markProgress(quiz_id);
     navigate(`/quizedit/${quiz_id}`);
   };
-    const handlQuizGradeClick = (quiz_id) => {
-      markProgress(quiz_id);
-      navigate(`/quizgradeview/${quiz_id}`);
+  const handlQuizGradeClick = (quiz_id) => {
+    markProgress(quiz_id);
+    navigate(`/quizgradeview/${quiz_id}`);
   };
-    const handlCMSEditClick = (CMS_id) => {
-      markProgress(CMS_id);
-      navigate(`/CMSedit/${CMS_id}`);
-    };
-    const handlCMSGradeClick = (CMS_id) => {
-      markProgress(CMS_id);
-      navigate(`/CMSgradeview/${CMS_id}`);
-    };
+  const handlCMSEditClick = (CMS_id) => {
+    markProgress(CMS_id);
+    navigate(`/CMSedit/${CMS_id}`);
+  };
+  const handlCMSGradeClick = (CMS_id) => {
+    markProgress(CMS_id);
+    navigate(`/CMSgradeview/${CMS_id}`);
+  };
   const handleAssignmentEditClick = (assignment_id) => {
     markProgress(assignment_id);
     navigate(`/assgnmentedit/${assignment_id}`);
@@ -155,10 +159,15 @@ const AddPage = ({ setCardId }) => {
     markProgress(CMS_id);
     navigate(`/WriteCMS/${CMS_id}`);
   };
-
+  const handleMyGradeEditClick = (card_id) => {
+    markProgress(card_id);
+    navigate(`/mygrade/${card_id}`);
+  };
   const handleclicknavigate = () => {
     setView("message"); // Switch to message view
   };
+  const isTeacher = useMemo(() => post && post.email === email, [post, email]);
+  // const isStudent = useMemo(() => post && email !== post.email, [post, email]);
 
   const markProgress = async (activity_id) => {
     try {
@@ -203,27 +212,21 @@ const AddPage = ({ setCardId }) => {
       </div>
       <div className="content">
         <div className="horizontalbar">
-          {/*show grade to the students*/}
-          {post && email !== post.email && (
-            <button
-              className="three-dots-btn"
-              onClick={() =>
-                handleAssignmentEditClick(selectedMaterial.assignment_id)
-              }
-            >
+
+            <button className="three-dots-btn" onClick={() => handleMyGradeEditClick(selectedMaterial.card_id)}>
               <h4>My Grade</h4>
             </button>
+
+          {isTeacher && (
+            <>
+              <button className="three-dots-btn" onClick={() => handleSettingsClick(selectedMaterial.card_id)}>
+                <h4>Settings</h4>
+              </button>
+              <button className="three-dots-btn" onClick={() => handleCourseGradeClick(selectedMaterial.card_id)}>
+                <h4>Grades</h4>
+              </button>
+            </>
           )}
-          {/* settings */}
-          {post && post.email === email && (
-            <button
-              className="three-dots-btn"
-              onClick={() => handleSettingsClick(selectedMaterial.card_id)}
-            >
-              <h4>Settings</h4>
-            </button>
-          )}
-          {/* Course */}
           <button
             className="three-dots-btn"
             onClick={() => handleCourseClick(selectedMaterial.card_id)}

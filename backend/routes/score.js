@@ -81,5 +81,27 @@ router.get("/top-card-ids", async (req, res) => {
   }
 });
 
+router.get("/getquizscore/:quizId/:email", async (req, res) => {
+  const { quizId, email } = req.params;
+
+  if (!quizId || !email) {
+    return res.status(400).json({ message: "quizId and email are required" });
+  }
+
+  try {
+    const scoreDoc = await Score.findOne({ quizId, email });
+
+    if (!scoreDoc) {
+      return res
+        .status(404)
+        .json({ message: "Score not found for the given quizId and email" });
+    }
+
+    res.status(200).json({ score: scoreDoc.score }); // ✅ Corrected key
+  } catch (error) {
+    console.error("Error fetching score:", error);
+    res.status(500).json({ message: "Server error while fetching score" });
+  }
+});
 
 module.exports = router;
