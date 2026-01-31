@@ -1,14 +1,6 @@
-"use client"; // MUST be first line
+// app/page.tsx
+import { redirect } from 'next/navigation';
 
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import LoginPage from "./Auth/loginpage";
-
-export default function AppPage() {
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<LoginPage />} />
-      </Routes>
-    </BrowserRouter>
-  );
+export default function HomePage() {
+  redirect('/auth/login'); 
 }
