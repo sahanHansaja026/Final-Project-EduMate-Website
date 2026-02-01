@@ -1,187 +1,177 @@
 "use client";
 
-import React, { useState } from "react";
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { Disclosure, Menu } from "@headlessui/react";
+import { Bars3Icon, BellIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import React from "react";
 
-// ---------------- Confirm Modal Component ----------------
-interface ConfirmModalProps {
-  message: string;
-  onConfirm: () => void;
-  onCancel: () => void;
+const navigation = [
+  { name: "Dashboard", href: "/pages/home", current: true },
+  { name: "Team", href: "/pages/modulecreation", current: false },
+  { name: "Projects", href: "#", current: false },
+  { name: "Calendar", href: "#", current: false },
+];
+
+function classNames(...classes: string[]) {
+  return classes.filter(Boolean).join(" ");
 }
 
-const ConfirmModal: React.FC<ConfirmModalProps> = ({
-  message,
-  onConfirm,
-  onCancel,
-}) => {
+export default function Navbar() {
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-50 z-50">
-      <div className="bg-white rounded-xl p-6 w-80 text-center shadow-lg animate-fadeIn">
-        <p className="text-gray-800 text-lg">{message}</p>
-        <div className="mt-6 flex justify-around gap-4">
-          <button
-            onClick={onConfirm}
-            className="px-6 py-2 rounded-full bg-green-500 text-white hover:bg-green-600 transition"
-          >
-            Yes
-          </button>
-          <button
-            onClick={onCancel}
-            className="px-6 py-2 rounded-full bg-red-500 text-white hover:bg-red-600 transition"
-          >
-            No
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
+    <Disclosure as="nav" className="bg-gray-900 relative">
+      {({ open }) => (
+        <>
+          <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
+            <div className="relative flex h-16 items-center justify-between">
+              {/* Mobile menu button */}
+              <div className="absolute inset-y-0 left-0 flex items-center sm:hidden">
+                <Disclosure.Button className="inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-white/5 hover:text-white focus:outline-2 focus:outline-indigo-500">
+                  <span className="sr-only">Open main menu</span>
+                  {open ? (
+                    <XMarkIcon className="block h-6 w-6" aria-hidden="true" />
+                  ) : (
+                    <Bars3Icon className="block h-6 w-6" aria-hidden="true" />
+                  )}
+                </Disclosure.Button>
+              </div>
 
-// ---------------- Navbar Component ----------------
-const Navbar: React.FC = () => {
-  const [open, setOpen] = useState<boolean>(false);
-  const [showModal, setShowModal] = useState(false);
-  const pathname = usePathname();
-  const router = useRouter();
+              {/* Logo + Menu */}
+              <div className="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start">
+                {/* Logo */}
+                <div className="flex flex-shrink-0 items-center">
+                  <img
+                    src="/images/Tree life-rafiki.png"
+                    alt="Logo"
+                    className="h-8 w-auto"
+                  />
+                </div>
 
-  // Check active link
-  const isActive = (href: string) => pathname === href;
+                {/* Desktop Menu */}
+                <div className="hidden sm:ml-6 sm:flex sm:space-x-4">
+                  {navigation.map((item) => (
+                    <a
+                      key={item.name}
+                      href={item.href}
+                      className={classNames(
+                        item.current
+                          ? "bg-gray-950/50 text-white"
+                          : "text-gray-300 hover:bg-white/5 hover:text-white",
+                        "rounded-md px-3 py-2 text-sm font-medium"
+                      )}
+                      aria-current={item.current ? "page" : undefined}
+                    >
+                      {item.name}
+                    </a>
+                  ))}
+                </div>
+              </div>
 
-  // Handle Login click
-  const handleLoginClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setShowModal(true);
-  };
+              {/* Right side */}
+              <div className="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0 space-x-4">
+                {/* Search bar (desktop only) */}
+                <div className="hidden lg:flex">
+                  <input
+                    type="text"
+                    placeholder="Search..."
+                    className="rounded-full px-3 py-1 text-sm text-gray-900 placeholder-gray-500 outline-none"
+                  />
+                </div>
 
-  const handleConfirm = () => {
-    setShowModal(false);
-    router.push("/auth/login");
-  };
+                {/* Notifications */}
+                <button
+                  type="button"
+                  className="relative rounded-full p-1 text-gray-400 hover:text-white focus:outline-2 focus:outline-indigo-500"
+                >
+                  <span className="sr-only">View notifications</span>
+                  <BellIcon className="h-6 w-6" aria-hidden="true" />
+                  <span className="absolute -top-1 -right-1 inline-flex h-3 w-3 rounded-full bg-red-500" />
+                </button>
 
-  const handleCancel = () => {
-    setShowModal(false);
-  };
-
-  return (
-    <>
-      <nav className="relative flex items-center justify-between px-6 md:px-16 lg:px-24 xl:px-32 py-4 border-b border-gray-300 bg-white">
-        {/* Logo */}
-        <Link href="/" className="flex items-center">
-          <svg width="120" height="32" viewBox="0 0 157 40" fill="none">
-            {/* SVG paths unchanged */}
-          </svg>
-        </Link>
-
-        {/* Desktop Menu */}
-        <div className="hidden sm:flex items-center gap-8">
-          {[
-            { href: "/pages/home", label: "Home" },
-            { href: "/about", label: "About" },
-            { href: "/contact", label: "Contact" },
-          ].map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={`hover:text-indigo-500 ${
-                isActive(link.href) ? "border-b-2 border-indigo-500" : ""
-              }`}
-            >
-              {link.label}
-            </Link>
-          ))}
-
-          {/* Search */}
-          <div className="hidden lg:flex items-center gap-2 border border-gray-300 px-3 rounded-full">
-            <input
-              type="text"
-              placeholder="Search products"
-              className="py-1.5 bg-transparent outline-none text-sm"
-            />
-            🔍
+                {/* Profile dropdown */}
+                <Menu as="div" className="relative">
+                  <Menu.Button className="flex rounded-full focus:outline-2 focus:outline-indigo-500">
+                    <span className="sr-only">Open user menu</span>
+                    <img
+                      className="h-10 w-10 rounded-full object-cover"
+                      src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
+                      alt="User"
+                    />
+                  </Menu.Button>
+                  <Menu.Items className="absolute right-0 mt-2 w-48 origin-top-right rounded-md bg-gray-800 py-1 shadow-lg focus:outline-none">
+                    <Menu.Item>
+                      {({ active }) => (
+                        <a
+                          href="#"
+                          className={classNames(
+                            active ? "bg-white/5" : "",
+                            "block px-4 py-2 text-sm text-gray-300"
+                          )}
+                        >
+                          Your Profile
+                        </a>
+                      )}
+                    </Menu.Item>
+                    <Menu.Item>
+                      {({ active }) => (
+                        <a
+                          href="#"
+                          className={classNames(
+                            active ? "bg-white/5" : "",
+                            "block px-4 py-2 text-sm text-gray-300"
+                          )}
+                        >
+                          Settings
+                        </a>
+                      )}
+                    </Menu.Item>
+                    <Menu.Item>
+                      {({ active }) => (
+                        <a
+                          href="#"
+                          className={classNames(
+                            active ? "bg-white/5" : "",
+                            "block px-4 py-2 text-sm text-gray-300"
+                          )}
+                        >
+                          Sign out
+                        </a>
+                      )}
+                    </Menu.Item>
+                  </Menu.Items>
+                </Menu>
+              </div>
+            </div>
           </div>
 
-          {/* Cart */}
-          <div className="relative cursor-pointer">
-            🛒
-            <span className="absolute -top-2 -right-3 text-xs text-white bg-indigo-500 w-[18px] h-[18px] rounded-full flex items-center justify-center">
-              3
-            </span>
-          </div>
+          {/* Mobile menu */}
+          <Disclosure.Panel className="sm:hidden px-2 pt-2 pb-3 space-y-1">
+            {navigation.map((item) => (
+              <Disclosure.Button
+                key={item.name}
+                as="a"
+                href={item.href}
+                className={classNames(
+                  item.current
+                    ? "bg-gray-950/50 text-white"
+                    : "text-gray-300 hover:bg-white/5 hover:text-white",
+                  "block rounded-md px-3 py-2 text-base font-medium"
+                )}
+                aria-current={item.current ? "page" : undefined}
+              >
+                {item.name}
+              </Disclosure.Button>
+            ))}
 
-          {/* Login Button */}
-          <button
-            onClick={handleLoginClick}
-            className={`px-8 py-2 rounded-full text-white ${
-              isActive("/auth/login")
-                ? "bg-indigo-600"
-                : "bg-indigo-500 hover:bg-indigo-600"
-            }`}
-          >
-            Login
-          </button>
-        </div>
-
-        {/* Mobile Menu Button */}
-        <button
-          aria-label="Toggle Menu"
-          onClick={() => setOpen(!open)}
-          className="sm:hidden"
-        >
-          {open ? "✖" : "☰"}
-        </button>
-
-        {/* Mobile Menu */}
-        <div
-          className={`${
-            open ? "flex" : "hidden"
-          } absolute top-[64px] left-0 w-full bg-white shadow-md flex-col gap-4 px-6 py-6 sm:hidden`}
-        >
-          {[
-            { href: "/pages/home", label: "Home" },
-            { href: "/about", label: "About" },
-            { href: "/contact", label: "Contact" },
-          ].map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              onClick={() => setOpen(false)}
-              className={`${
-                isActive(link.href) ? "border-b-2 border-indigo-500" : ""
-              }`}
-            >
-              {link.label}
-            </Link>
-          ))}
-
-          {/* Mobile Login */}
-          <button
-            onClick={() => {
-              setOpen(false);
-              handleLoginClick;
-            }}
-            className={`mt-2 px-6 py-2 rounded-full text-white text-center ${
-              isActive("/auth/login")
-                ? "bg-indigo-600"
-                : "bg-indigo-500 hover:bg-indigo-600"
-            }`}
-          >
-            Login
-          </button>
-        </div>
-      </nav>
-
-      {/* Confirm Modal */}
-      {showModal && (
-        <ConfirmModal
-          message="Do you want to go to the Login page?"
-          onConfirm={handleConfirm}
-          onCancel={handleCancel}
-        />
+            {/* Mobile search */}
+            <div className="mt-2 px-3">
+              <input
+                type="text"
+                placeholder="Search..."
+                className="w-full rounded-full px-3 py-1 text-sm text-gray-900 placeholder-gray-500 outline-none"
+              />
+            </div>
+          </Disclosure.Panel>
+        </>
       )}
-    </>
+    </Disclosure>
   );
-};
-
-export default Navbar;
+}

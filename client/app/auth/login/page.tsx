@@ -1,9 +1,12 @@
 "use client";
 
+import { saveUser } from "../../services/authService";
+
 import React, { useState } from "react";
 import Link from "next/link";
 import axios from "axios";
 import { useRouter } from "next/navigation";
+import { API_BASE_URL } from "@/app/config/api";
 
 const LoginPage: React.FC = () => {
   const router = useRouter();
@@ -21,7 +24,7 @@ const LoginPage: React.FC = () => {
 
     try {
       const res = await axios.post(
-        "http://127.0.0.1:8000/auth/login",
+        `${API_BASE_URL}/auth/login`,
         {
           email,
           password,
@@ -32,9 +35,27 @@ const LoginPage: React.FC = () => {
         }
       );
 
+      // ✅ SAVE TOKENS
+      // SAVE TOKENS
       localStorage.setItem("access_token", res.data.access_token);
       localStorage.setItem("refresh_token", res.data.refresh_token);
 
+      // 🔥 FORCE SAFE USER SAVE
+      const user = res.data.user;
+
+      if (user && user.id && user.email) {
+        localStorage.setItem(
+          "user",
+          JSON.stringify({
+            id: user.id,
+            email: user.email,
+          })
+        );
+      } else {
+        console.error("Invalid user data from backend:", res.data);
+      }
+
+      // ✅ REDIRECT
       router.push("/pages/home");
     } catch (err: any) {
       setError(err.response?.data?.detail || "Invalid email or password");
@@ -167,7 +188,10 @@ const LoginPage: React.FC = () => {
 
           <p className="text-gray-900 text-sm mt-4">
             Don’t have an account?{" "}
-            <Link className="text-indigo-900 hover:underline" href="/auth/signup">
+            <Link
+              className="text-indigo-900 hover:underline"
+              href="/auth/signup"
+            >
               Sign up
             </Link>
           </p>

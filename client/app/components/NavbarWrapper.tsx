@@ -1,12 +1,22 @@
-"use client"
+"use client";
 
-import { usePathname } from "next/navigation"
-import Navbar from "./Navbar"
+import { usePathname } from "next/navigation";
+import Navbar from "./Navbar";
+import Footer from "./footer";
 
-export default function NavbarWrapper() {
-  const pathname = usePathname()
-  const hideNavbar = pathname === "/auth/login" || pathname === "/auth/signuppage"
+export default function NavbarWrapper(): JSX.Element | null {
+  const pathname = usePathname();
 
-  if (hideNavbar) return null
-  return <Navbar />
+  const hideLayout =
+    pathname === "/auth/login" ||
+    pathname === "/auth/signuppage";
+
+  if (hideLayout) return null;
+
+  return (
+    <>
+      <Navbar />
+      <Footer />
+    </>
+  );
 }
