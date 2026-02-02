@@ -16,7 +16,7 @@ class Notifications(BaseModel):
     push: PushNotifications
 
 
-class ProfileCreate(BaseModel):
+class ProfileBase(BaseModel):
     username: str
     about: Optional[str] = None
 
@@ -33,10 +33,14 @@ class ProfileCreate(BaseModel):
     notifications: Notifications
 
 
-class ProfileResponse(ProfileCreate):
+class ProfileCreate(ProfileBase):
+    pass  # Used for input creation/updating via form
+
+
+class ProfileResponse(ProfileBase):
     id: int
-    photo: Optional[str] = None
-    coverPhoto: Optional[str] = None
+    photo: Optional[str] = None  # base64 string
+    coverPhoto: Optional[str] = None  # base64 string
 
     class Config:
         orm_mode = True

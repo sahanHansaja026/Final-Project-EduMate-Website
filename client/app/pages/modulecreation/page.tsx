@@ -5,7 +5,6 @@ import { ChevronDownIcon } from "@heroicons/react/16/solid";
 import { useState, ChangeEvent, FormEvent, useEffect } from "react";
 import { getUser } from "@/app/services/authService";
 
-/* --- Form Data Type --- */
 type FormData = {
   username: string;
   about: string;
@@ -30,6 +29,7 @@ export default function ProfileForm() {
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [user, setUser] = useState<{ id: number; email: string } | null>(null);
+  const [loading, setLoading] = useState(true); // show loading while fetching
 
   const [formData, setFormData] = useState<FormData>({
     username: "",
@@ -49,13 +49,50 @@ export default function ProfileForm() {
     },
   });
 
-  /* --- Load current user --- */
+  /* --- Load current user and profile --- */
   useEffect(() => {
     const currentUser = getUser();
     setUser(currentUser);
+  
+    if (!currentUser) return;
+  
+    // Fetch profile by email
+    fetch(`http://127.0.0.1:8000/profiles/?email=${currentUser.email}`)
+      .then((res) => {
+        if (!res.ok) throw new Error("Profile not found");
+        return res.json();
+      })
+      .then((profile) => {
+        if (!profile) return;
+  
+        // Populate form
+        setFormData({
+          username: profile.username || "",
+          about: profile.about || "",
+          firstName: profile.firstName || "",
+          lastName: profile.lastName || "",
+          country: profile.country || "United States",
+          streetAddress: profile.streetAddress || "",
+          city: profile.city || "",
+          region: profile.region || "",
+          postalCode: profile.postalCode || "",
+          notifications: {
+            comments: profile.notifications.comments,
+            candidates: profile.notifications.candidates,
+            offers: profile.notifications.offers,
+            push: profile.notifications.push || "everything",
+          },
+        });
+  
+        // Photos
+        if (profile.photo) setPhotoPreview(`data:image/jpeg;base64,${profile.photo}`);
+        if (profile.coverPhoto) setCoverPreview(`data:image/jpeg;base64,${profile.coverPhoto}`);
+      })
+      .catch((err) => console.error("Error fetching profile:", err))
+      .finally(() => setLoading(false));
   }, []);
+  
 
-  /* --- Handlers --- */
   const handleInputChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
@@ -92,37 +129,40 @@ export default function ProfileForm() {
     if (!user) return alert("User not loaded");
 
     const form = new FormData();
-
-    // Basic fields
     form.append("username", formData.username);
     form.append("about", formData.about);
     form.append("firstName", formData.firstName);
     form.append("lastName", formData.lastName);
-
-    // Use email from logged-in user
     form.append("email", user.email);
-
     form.append("country", formData.country);
     form.append("streetAddress", formData.streetAddress);
     form.append("city", formData.city);
     form.append("region", formData.region);
     form.append("postalCode", formData.postalCode);
 
-    // Notifications (stringify booleans)
     form.append("comments", String(formData.notifications.comments));
     form.append("candidates", String(formData.notifications.candidates));
     form.append("offers", String(formData.notifications.offers));
     form.append("push", formData.notifications.push);
 
-    // Files
     if (formData.photo) form.append("photo", formData.photo);
     if (formData.coverPhoto) form.append("coverPhoto", formData.coverPhoto);
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/profiles/", {
-        method: "POST",
-        body: form,
-      });
+      // Check if user has profile
+      const resCheck = await fetch(
+        `http://127.0.0.1:8000/profiles/?email=${user.email}`
+      );
+      const existingProfile = await resCheck.json();
+
+      const url =
+        existingProfile && existingProfile.length > 0
+          ? `http://127.0.0.1:8000/profiles/${existingProfile[0].id}/` // update
+          : "http://127.0.0.1:8000/profiles/"; // create
+
+      const method = existingProfile && existingProfile.length > 0 ? "PUT" : "POST";
+
+      const res = await fetch(url, { method, body: form });
 
       if (!res.ok) {
         const error = await res.json();
@@ -130,13 +170,20 @@ export default function ProfileForm() {
       }
 
       const data = await res.json();
-      console.log("Saved:", data);
-      alert("Profile saved successfully!");
+      alert(
+        existingProfile && existingProfile.length > 0
+          ? "Profile updated successfully!"
+          : "Profile created successfully!"
+      );
+      console.log("Profile saved:", data);
     } catch (err) {
       console.error("Error saving profile:", err);
       alert("Failed to save profile");
     }
   };
+
+  if (loading) return <p className="text-white p-6">Loading profile...</p>;
+
 
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100 p-6">
