@@ -4,6 +4,7 @@ import { Disclosure, Menu } from "@headlessui/react";
 import { Bars3Icon, BellIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import React, { useEffect, useState } from "react";
 import { getUser } from "../services/authService";
+import { API_BASE_URL } from "../config/api";
 
 const navigation = [
   { name: "Dashboard", href: "/pages/home", current: true },
@@ -31,7 +32,7 @@ export default function Navbar() {
   }, []);
 
   const profileImageUrl = user
-    ? `http://localhost:8000/profiles/photo?email=${encodeURIComponent(
+    ? `${API_BASE_URL}/profiles/photo?email=${encodeURIComponent(
         user.email
       )}`
     : "/images/default-avatar.png";
@@ -116,7 +117,7 @@ export default function Navbar() {
                             active ? "bg-white/5" : "",
                             "px-4 py-2 text-sm text-gray-300"
                           )}
-                        ><a href="/pages/modulecreation">
+                        ><a href="/pages/profile">
                           {user?.email}
                           </a>
                         </div>

@@ -1,549 +1,288 @@
 "use client";
 
-import { PhotoIcon, UserCircleIcon } from "@heroicons/react/24/solid";
-import { ChevronDownIcon } from "@heroicons/react/16/solid";
-import { useState, ChangeEvent, FormEvent, useEffect } from "react";
 import { getUser } from "@/app/services/authService";
+import { useEffect, useState } from "react";
 
-type FormData = {
-  username: string;
-  about: string;
-  firstName: string;
-  lastName: string;
-  country: string;
-  streetAddress: string;
-  city: string;
-  region: string;
-  postalCode: string;
-  notifications: {
-    comments: boolean;
-    candidates: boolean;
-    offers: boolean;
-    push: "everything" | "email" | "none";
-  };
-  photo?: File;
-  coverPhoto?: File;
-};
+type Visibility = "public" | "private";
 
-export default function ProfileForm() {
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+export default function CreateModule() {
+  const [moduleName, setModuleName] = useState("");
+  const [description, setDescription] = useState("");
+  const [skills, setSkills] = useState<string[]>([]);
+  const [skillInput, setSkillInput] = useState("");
+  const [visibility, setVisibility] = useState<Visibility>("public");
+  const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [user, setUser] = useState<{ id: number; email: string } | null>(null);
-  const [loading, setLoading] = useState(true); // show loading while fetching
 
-  const [formData, setFormData] = useState<FormData>({
-    username: "",
-    about: "",
-    firstName: "",
-    lastName: "",
-    country: "United States",
-    streetAddress: "",
-    city: "",
-    region: "",
-    postalCode: "",
-    notifications: {
-      comments: true,
-      candidates: false,
-      offers: false,
-      push: "everything",
-    },
-  });
-
-  /* --- Load current user and profile --- */
+  // Get logged-in user
   useEffect(() => {
     const currentUser = getUser();
     setUser(currentUser);
-  
-    if (!currentUser) return;
-  
-    // Fetch profile by email
-    fetch(`http://127.0.0.1:8000/profiles/?email=${currentUser.email}`)
-      .then((res) => {
-        if (!res.ok) throw new Error("Profile not found");
-        return res.json();
-      })
-      .then((profile) => {
-        if (!profile) return;
-  
-        // Populate form
-        setFormData({
-          username: profile.username || "",
-          about: profile.about || "",
-          firstName: profile.firstName || "",
-          lastName: profile.lastName || "",
-          country: profile.country || "United States",
-          streetAddress: profile.streetAddress || "",
-          city: profile.city || "",
-          region: profile.region || "",
-          postalCode: profile.postalCode || "",
-          notifications: {
-            comments: profile.notifications.comments,
-            candidates: profile.notifications.candidates,
-            offers: profile.notifications.offers,
-            push: profile.notifications.push || "everything",
-          },
-        });
-  
-        // Photos
-        if (profile.photo) setPhotoPreview(`data:image/jpeg;base64,${profile.photo}`);
-        if (profile.coverPhoto) setCoverPreview(`data:image/jpeg;base64,${profile.coverPhoto}`);
-      })
-      .catch((err) => console.error("Error fetching profile:", err))
-      .finally(() => setLoading(false));
   }, []);
-  
 
-  const handleInputChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
-    const { name, value, type } = e.target;
-    if (type === "checkbox") {
-      const { checked } = e.target as HTMLInputElement;
-      setFormData((prev) => ({
-        ...prev,
-        notifications: {
-          ...prev.notifications,
-          [name]: checked,
-        },
-      }));
-    } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
+  // Example skills for autocomplete
+  const availableSkills = [
+    "English",
+    "Tamil",
+    "Math",
+    "Science",
+    "IT",
+    "Technology",
+    "Physics",
+    "Chemistry",
+    "Biology",
+  ];
+
+  // Add a skill
+  const addSkill = (skill?: string) => {
+    const newSkill = skill || skillInput.trim();
+    if (newSkill && !skills.includes(newSkill)) {
+      setSkills([...skills, newSkill]);
+      setSkillInput("");
     }
   };
 
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, files } = e.target;
-    if (!files || !files[0]) return;
-
-    const file = files[0];
-    const previewUrl = URL.createObjectURL(file);
-
-    setFormData((prev) => ({ ...prev, [name]: file }));
-
-    if (name === "photo") setPhotoPreview(previewUrl);
-    if (name === "coverPhoto") setCoverPreview(previewUrl);
+  // Remove a skill
+  const removeSkill = (skill: string) => {
+    setSkills(skills.filter((s) => s !== skill));
   };
 
-  const handleSubmit = async (e: FormEvent) => {
+  // Handle cover image change
+  const handleCoverChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files?.[0]) {
+      const file = e.target.files[0];
+      setCoverFile(file);
+      setCoverPreview(URL.createObjectURL(file));
+    }
+  };
+
+  // Submit the form
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return alert("User not loaded");
 
-    const form = new FormData();
-    form.append("username", formData.username);
-    form.append("about", formData.about);
-    form.append("firstName", formData.firstName);
-    form.append("lastName", formData.lastName);
-    form.append("email", user.email);
-    form.append("country", formData.country);
-    form.append("streetAddress", formData.streetAddress);
-    form.append("city", formData.city);
-    form.append("region", formData.region);
-    form.append("postalCode", formData.postalCode);
+    if (!moduleName) {
+      alert("Module name is required");
+      return;
+    }
 
-    form.append("comments", String(formData.notifications.comments));
-    form.append("candidates", String(formData.notifications.candidates));
-    form.append("offers", String(formData.notifications.offers));
-    form.append("push", formData.notifications.push);
+    if (!user) {
+      alert("User not found. Please login.");
+      return;
+    }
 
-    if (formData.photo) form.append("photo", formData.photo);
-    if (formData.coverPhoto) form.append("coverPhoto", formData.coverPhoto);
+    const formData = new FormData();
+    formData.append("user_id", user.id.toString()); // send user_id
+    formData.append("name", moduleName);
+    formData.append("description", description);
+    formData.append("skills", JSON.stringify(skills));
+    formData.append("visibility", visibility);
+    if (coverFile) formData.append("cover_image", coverFile);
 
     try {
-      // Check if user has profile
-      const resCheck = await fetch(
-        `http://127.0.0.1:8000/profiles/?email=${user.email}`
-      );
-      const existingProfile = await resCheck.json();
+      const res = await fetch("http://localhost:8000/modules/", {
+        method: "POST",
+        body: formData,
+      });
 
-      const url =
-        existingProfile && existingProfile.length > 0
-          ? `http://127.0.0.1:8000/profiles/${existingProfile[0].id}/` // update
-          : "http://127.0.0.1:8000/profiles/"; // create
-
-      const method = existingProfile && existingProfile.length > 0 ? "PUT" : "POST";
-
-      const res = await fetch(url, { method, body: form });
-
-      if (!res.ok) {
-        const error = await res.json();
-        throw error;
-      }
+      if (!res.ok) throw new Error("Failed to create module");
 
       const data = await res.json();
-      alert(
-        existingProfile && existingProfile.length > 0
-          ? "Profile updated successfully!"
-          : "Profile created successfully!"
-      );
-      console.log("Profile saved:", data);
-    } catch (err) {
-      console.error("Error saving profile:", err);
-      alert("Failed to save profile");
+      console.log("Module created:", data);
+      alert("Module created successfully!");
+
+      // Reset form
+      setModuleName("");
+      setDescription("");
+      setSkills([]);
+      setSkillInput("");
+      setVisibility("public");
+      setCoverFile(null);
+      setCoverPreview(null);
+    } catch (error) {
+      console.error(error);
+      alert("Error creating module");
     }
   };
 
-  if (loading) return <p className="text-white p-6">Loading profile...</p>;
-
-
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-100 p-6">
-      <form onSubmit={handleSubmit} className="max-w-5xl mx-auto space-y-12">
-        {/* Profile Section */}
-        <SectionGrid
-          title="Profile"
-          description="This information will be displayed publicly. Be careful what you share."
-        >
-          <Input
-            label="Username"
-            name="username"
-            value={formData.username}
-            onChange={handleInputChange}
-          />
-          <Textarea
-            label="About"
-            name="about"
-            value={formData.about}
-            onChange={handleInputChange}
-            helperText="Write a few sentences about yourself."
-          />
-          <FileInput
-            label="Photo"
-            name="photo"
-            icon={
-              photoPreview ? (
-                <img
-                  src={photoPreview}
-                  className="h-12 w-12 rounded-full object-cover"
-                  alt="Profile Preview"
-                />
-              ) : (
-                <UserCircleIcon className="h-12 w-12 text-gray-400" />
-              )
-            }
-            onChange={handleFileChange}
-          />
+    <div className="min-h-screen bg-gray-900 flex justify-center px-4 py-12">
+      <form
+        className="w-full max-w-3xl space-y-10 text-gray-200 relative"
+        onSubmit={handleSubmit}
+      >
+        {/* Module Info */}
+        <div>
+          {user && <p className="text-sm text-gray-400">User ID: {user.id}</p>}
+          <h2 className="text-lg font-semibold text-white">Create Module</h2>
+          <p className="text-sm text-gray-400">
+            Fill in the details to create your learning module.
+          </p>
+        </div>
 
-          <FileInput
-            label="Cover photo"
-            name="coverPhoto"
-            icon={
-              coverPreview ? (
-                <img
-                  src={coverPreview}
-                  className="h-12 w-12 rounded-md object-cover"
-                  alt="Cover Preview"
-                />
-              ) : (
-                <PhotoIcon className="h-12 w-12 text-gray-400" />
-              )
-            }
-            onChange={handleFileChange}
-            dragDrop
+        {/* Module Name */}
+        <div>
+          <label className="block text-sm font-medium">Module Name</label>
+          <input
+            type="text"
+            value={moduleName}
+            onChange={(e) => setModuleName(e.target.value)}
+            placeholder="e.g. Introduction to Flutter"
+            className="mt-2 w-full rounded-md bg-gray-800 px-3 py-2 outline outline-1 outline-gray-700 focus:outline-indigo-500"
           />
-        </SectionGrid>
+        </div>
 
-        {/* Personal Information Section */}
-        <SectionGrid
-          title="Personal Information"
-          description="Use a permanent address where you can receive mail."
-        >
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <Input
-              label="First name"
-              name="firstName"
-              value={formData.firstName}
-              onChange={handleInputChange}
+        {/* Description */}
+        <div>
+          <label className="block text-sm font-medium">Module Description</label>
+          <textarea
+            rows={4}
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Describe what this module is about..."
+            className="mt-2 w-full rounded-md bg-gray-800 px-3 py-2 outline outline-1 outline-gray-700 focus:outline-indigo-500"
+          />
+        </div>
+
+        {/* Cover Image */}
+        <div>
+          <label className="block text-sm font-medium">Cover Image</label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleCoverChange}
+            className="mt-2 block w-full text-sm text-gray-400"
+          />
+          {coverPreview && (
+            <img
+              src={coverPreview}
+              alt="Cover Preview"
+              className="mt-2 max-h-40 rounded-md object-cover"
             />
-            <Input
-              label="Last name"
-              name="lastName"
-              value={formData.lastName}
-              onChange={handleInputChange}
+          )}
+        </div>
+
+        {/* Skills with Autocomplete */}
+        <div className="relative">
+          <label className="block text-sm font-medium">Skills you’ll gain</label>
+          <div className="mt-2 flex gap-2">
+            <input
+              type="text"
+              value={skillInput}
+              onChange={(e) => setSkillInput(e.target.value)}
+              placeholder="Type a skill..."
+              className="flex-1 rounded-md bg-gray-800 px-3 py-2 outline outline-1 outline-gray-700 focus:outline-indigo-500"
             />
+            <button
+              type="button"
+              onClick={() => addSkill()}
+              className="rounded-md bg-indigo-500 px-4 py-2 text-sm font-semibold"
+            >
+              Add
+            </button>
           </div>
-          <Input
-            label="Email address"
-            name="email"
-            type="email"
-            value={user?.email || ""}
-            onChange={handleInputChange}
-          />
 
-          <Select
-            label="Country"
-            name="country"
-            value={formData.country}
-            options={["United States", "Canada", "Mexico"]}
-            onChange={handleInputChange}
-          />
-          <Input
-            label="Street address"
-            name="streetAddress"
-            value={formData.streetAddress}
-            onChange={handleInputChange}
-          />
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            <Input
-              label="City"
-              name="city"
-              value={formData.city}
-              onChange={handleInputChange}
-            />
-            <Input
-              label="State / Province"
-              name="region"
-              value={formData.region}
-              onChange={handleInputChange}
-            />
-            <Input
-              label="ZIP / Postal code"
-              name="postalCode"
-              value={formData.postalCode}
-              onChange={handleInputChange}
-            />
+          {/* Suggestions Dropdown */}
+          {skillInput && (
+            <ul className="absolute z-10 mt-1 max-h-40 w-full overflow-auto rounded-md bg-gray-800 shadow-lg">
+              {availableSkills
+                .filter(
+                  (skill) =>
+                    skill.toLowerCase().includes(skillInput.toLowerCase()) &&
+                    !skills.includes(skill)
+                )
+                .map((skill) => {
+                  const index = skill
+                    .toLowerCase()
+                    .indexOf(skillInput.toLowerCase());
+                  const beforeMatch = skill.slice(0, index);
+                  const match = skill.slice(index, index + skillInput.length);
+                  const afterMatch = skill.slice(index + skillInput.length);
+
+                  return (
+                    <li
+                      key={skill}
+                      onClick={() => addSkill(skill)}
+                      className="cursor-pointer px-3 py-2 hover:bg-indigo-500/30"
+                    >
+                      {beforeMatch}
+                      <span className="font-semibold text-indigo-300">{match}</span>
+                      {afterMatch}
+                    </li>
+                  );
+                })}
+            </ul>
+          )}
+
+          {/* Selected Tags */}
+          <div className="mt-3 flex flex-wrap gap-2">
+            {skills.map((skill) => (
+              <span
+                key={skill}
+                className="flex items-center gap-2 rounded-full bg-indigo-500/20 px-3 py-1 text-sm"
+              >
+                {skill}
+                <button
+                  type="button"
+                  onClick={() => removeSkill(skill)}
+                  className="text-red-400"
+                >
+                  ×
+                </button>
+              </span>
+            ))}
           </div>
-        </SectionGrid>
+        </div>
 
-        {/* Notifications Section */}
-        <SectionGrid
-          title="Notifications"
-          description="We'll always let you know about important changes, but you pick what else you want to hear about."
-        >
-          <div className="space-y-4">
-            <Checkbox
-              label="Comments"
-              name="comments"
-              checked={formData.notifications.comments}
-              onChange={handleInputChange}
-              helperText="Get notified when someone posts a comment."
-            />
-            <Checkbox
-              label="Candidates"
-              name="candidates"
-              checked={formData.notifications.candidates}
-              onChange={handleInputChange}
-              helperText="Get notified when a candidate applies for a job."
-            />
-            <Checkbox
-              label="Offers"
-              name="offers"
-              checked={formData.notifications.offers}
-              onChange={handleInputChange}
-              helperText="Get notified when a candidate accepts or rejects an offer."
-            />
-            <RadioGroup
-              label="Push notifications"
-              name="push"
-              options={[
-                { label: "Everything", value: "everything" },
-                { label: "Same as email", value: "email" },
-                { label: "No push notifications", value: "none" },
-              ]}
-              selected={formData.notifications.push}
-              onChange={(value) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  notifications: { ...prev.notifications, push: value },
-                }))
-              }
-            />
+        {/* Visibility */}
+        <div>
+          <label className="block text-sm font-medium">Visibility</label>
+          <div className="mt-3 flex gap-6">
+            <label className="flex items-center gap-2">
+              <input
+                type="radio"
+                checked={visibility === "public"}
+                onChange={() => setVisibility("public")}
+              />
+              Public
+            </label>
+
+            <label className="flex items-center gap-2">
+              <input
+                type="radio"
+                checked={visibility === "private"}
+                onChange={() => setVisibility("private")}
+              />
+              Private
+            </label>
           </div>
-        </SectionGrid>
+        </div>
 
-        {/* Form Actions */}
+        {/* Actions */}
         <div className="flex justify-end gap-4">
           <button
             type="button"
-            className="text-gray-300 font-semibold hover:text-white"
+            className="text-sm text-gray-400"
+            onClick={() => {
+              setModuleName("");
+              setDescription("");
+              setSkills([]);
+              setSkillInput("");
+              setVisibility("public");
+              setCoverFile(null);
+              setCoverPreview(null);
+            }}
           >
             Cancel
           </button>
           <button
             type="submit"
-            className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-6 py-2 rounded-md shadow"
+            className="rounded-md bg-indigo-500 px-6 py-2 text-sm font-semibold"
           >
-            Save
+            Create Module
           </button>
         </div>
       </form>
     </div>
   );
 }
-
-/* --- Section Grid Layout (left title/description, right inputs) --- */
-const SectionGrid: React.FC<{
-  title: string;
-  description: string;
-  children: React.ReactNode;
-}> = ({ title, description, children }) => (
-  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 border-b border-gray-700 pb-8">
-    <div className="text-sm font-medium text-gray-400 space-y-1">
-      <h2 className="text-white">{title}</h2>
-      <p>{description}</p>
-    </div>
-    <div className="md:col-span-2 space-y-6">{children}</div>
-  </div>
-);
-
-/* --- Input Components --- */
-const Input: React.FC<{
-  label: string;
-  name: string;
-  type?: string;
-  value: string;
-  onChange: (e: ChangeEvent<HTMLInputElement>) => void;
-  prefix?: string;
-}> = ({ label, name, type = "text", value, onChange, prefix }) => (
-  <div>
-    <label className="block text-sm font-medium text-gray-100">{label}</label>
-    <div className="mt-2 flex items-center rounded-md bg-gray-800 border border-gray-700 focus-within:ring-2 focus-within:ring-indigo-500">
-      {prefix && (
-        <span className="px-3 text-gray-400 select-none">{prefix}</span>
-      )}
-      <input
-        type={type}
-        id={name}
-        name={name}
-        value={value}
-        onChange={onChange}
-        className="block w-full px-3 py-2 bg-transparent text-gray-100 placeholder-gray-500 focus:outline-none"
-      />
-    </div>
-  </div>
-);
-
-const Textarea: React.FC<{
-  label: string;
-  name: string;
-  value: string;
-  onChange: (e: ChangeEvent<HTMLTextAreaElement>) => void;
-  helperText?: string;
-}> = ({ label, name, value, onChange, helperText }) => (
-  <div>
-    <label className="block text-sm font-medium text-gray-100">{label}</label>
-    <textarea
-      id={name}
-      name={name}
-      rows={3}
-      value={value}
-      onChange={onChange}
-      className="mt-2 block w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-    />
-    {helperText && <p className="mt-1 text-sm text-gray-400">{helperText}</p>}
-  </div>
-);
-
-const FileInput: React.FC<{
-  label: string;
-  name: string;
-  icon: React.ReactNode;
-  onChange: (e: ChangeEvent<HTMLInputElement>) => void;
-  dragDrop?: boolean;
-}> = ({ label, name, icon, onChange, dragDrop }) => (
-  <div>
-    <label className="block text-sm font-medium text-gray-100">{label}</label>
-    <div
-      className={`mt-2 flex items-center gap-3 ${
-        dragDrop
-          ? "justify-center border-2 border-dashed py-6 rounded-md border-gray-700"
-          : ""
-      }`}
-    >
-      {icon}
-      <label className="cursor-pointer text-indigo-500 font-semibold">
-        <span>Upload a file</span>
-        <input
-          type="file"
-          name={name}
-          onChange={onChange}
-          className="sr-only"
-        />
-      </label>
-
-      {dragDrop && <p className="text-gray-400 pl-2">or drag and drop</p>}
-    </div>
-  </div>
-);
-
-const Select: React.FC<{
-  label: string;
-  name: string;
-  value: string;
-  options: string[];
-  onChange: (e: ChangeEvent<HTMLSelectElement>) => void;
-}> = ({ label, name, value, options, onChange }) => (
-  <div>
-    <label className="block text-sm font-medium text-gray-100">{label}</label>
-    <div className="mt-2 relative">
-      <select
-        id={name}
-        name={name}
-        value={value}
-        onChange={onChange}
-        className="block w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 appearance-none"
-      >
-        {options.map((opt) => (
-          <option key={opt} value={opt}>
-            {opt}
-          </option>
-        ))}
-      </select>
-      <ChevronDownIcon className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-    </div>
-  </div>
-);
-
-const Checkbox: React.FC<{
-  label: string;
-  name: string;
-  checked: boolean;
-  onChange: (e: ChangeEvent<HTMLInputElement>) => void;
-  helperText?: string;
-}> = ({ label, name, checked, onChange, helperText }) => (
-  <div className="flex items-start gap-3">
-    <input
-      type="checkbox"
-      id={name}
-      name={name}
-      checked={checked}
-      onChange={onChange}
-      className="mt-1 h-4 w-4 rounded border-gray-600 text-indigo-500 focus:ring-indigo-500"
-    />
-    <div>
-      <label className="text-sm font-medium text-gray-100" htmlFor={name}>
-        {label}
-      </label>
-      {helperText && <p className="text-sm text-gray-400">{helperText}</p>}
-    </div>
-  </div>
-);
-
-const RadioGroup: React.FC<{
-  label: string;
-  name: string;
-  options: { label: string; value: "everything" | "email" | "none" }[];
-  selected: "everything" | "email" | "none";
-  onChange: (value: "everything" | "email" | "none") => void;
-}> = ({ label, name, options, selected, onChange }) => (
-  <fieldset className="space-y-3">
-    <legend className="text-sm font-semibold text-gray-100">{label}</legend>
-    {options.map((opt) => (
-      <div key={opt.value} className="flex items-center gap-3">
-        <input
-          type="radio"
-          id={opt.value}
-          name={name}
-          checked={selected === opt.value}
-          onChange={() => onChange(opt.value)}
-          className="h-4 w-4 text-indigo-500 border-gray-600 focus:ring-indigo-500"
-        />
-        <label
-          htmlFor={opt.value}
-          className="text-sm font-medium text-gray-100"
-        >
-          {opt.label}
-        </label>
-      </div>
-    ))}
-  </fieldset>
-);

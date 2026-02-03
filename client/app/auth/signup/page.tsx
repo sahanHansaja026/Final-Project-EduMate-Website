@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
+import { API_BASE_URL } from "@/app/config/api";
 
 // rest of your code...
 
@@ -32,7 +33,7 @@ const SignupPage: React.FC = () => {
     }
 
     try {
-      const response = await axios.post("http://localhost:8000/auth/signup", {
+      const response = await axios.post(`${API_BASE_URL}/auth/signup`, {
         email,
         password
       });
