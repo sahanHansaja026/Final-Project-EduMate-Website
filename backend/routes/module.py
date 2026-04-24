@@ -1,3 +1,4 @@
+from typing import List
 from fastapi import APIRouter, UploadFile, File, Form, Depends, HTTPException
 from sqlalchemy.orm import Session
 import json
@@ -38,3 +39,23 @@ async def create_module(
     db.commit()
     db.refresh(new_module)
     return ModuleResponse.from_orm(new_module)
+
+@router.get("/user/{user_id}", response_model=List[ModuleResponse])
+def get_modules_by_user(user_id: int, db: Session = Depends(get_db)):
+    modules = db.query(Module).filter(Module.user_id == user_id).all()
+
+    if not modules:
+        return []
+
+    # 🔥 CRITICAL: convert manually
+    return [ModuleResponse.from_orm(m) for m in modules]
+
+
+@router.get("/{module_id}", response_model=ModuleResponse)
+def get_module_by_id(module_id: int, db: Session = Depends(get_db)):
+    module = db.query(Module).filter(Module.module_id == module_id).first()
+
+    if not module:
+        raise HTTPException(status_code=404, detail="Module not found")
+
+    return ModuleResponse.from_orm(module)

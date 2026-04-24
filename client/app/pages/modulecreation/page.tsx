@@ -1,5 +1,6 @@
 "use client";
 
+import { API_BASE_URL } from "@/app/config/api";
 import { getUser } from "@/app/services/authService";
 import { useEffect, useState } from "react";
 
@@ -80,7 +81,7 @@ export default function CreateModule() {
     if (coverFile) formData.append("cover_image", coverFile);
 
     try {
-      const res = await fetch("http://localhost:8000/modules/", {
+      const res = await fetch(`${API_BASE_URL}/modules/`, {
         method: "POST",
         body: formData,
       });

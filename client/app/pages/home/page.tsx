@@ -2,14 +2,50 @@
 
 import { useEffect, useState } from "react";
 import { getUser } from "../../services/authService";
+import { API_BASE_URL } from "@/app/config/api";
+
+type Module = {
+  module_id: number;
+  name: string;
+  description?: string;
+  skills: string[];
+  cover_image?: string;
+  cover_image_name?: string;
+};
 
 const HomePage = () => {
   const [user, setUser] = useState<{ id: number; email: string } | null>(null);
+  const [modules, setModules] = useState<Module[]>([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const currentUser = getUser();
     setUser(currentUser);
   }, []);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchModules = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(
+          `${API_BASE_URL}/modules/user/${user.id}`
+        );
+
+        if (!res.ok) throw new Error("Failed to fetch modules");
+
+        const data = await res.json();
+        setModules(data);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchModules();
+  }, [user]);
 
   return (
     <>
@@ -76,48 +112,58 @@ const HomePage = () => {
           </div>
         </div>
       </section>
-
-      <div className="bg-neutral-primary-soft bg-gray-900 block max-w-sm p-6 border border-default rounded-base shadow-xs mt-14 ml-4">
-        <a href="#">
-          <img
-            className="rounded-base"
-            src="/images/Tree life-rafiki.png"
-            alt="Blog cover"
-          />
-        </a>
-
-        <a href="#">
-          <h5 className="mt-6 mb-2 text-2xl text-white font-semibold tracking-tight text-heading">
-            Streamlining course and module creation, today.
-          </h5>
-        </a>
-
-        <p className="mb-6 text-body text-white">
-          In today’s fast-paced digital landscape, effective learning depends on
-          seamless collaboration between educators and learners.
-        </p>
-
-        <a
-          href="#"
-          className="inline-flex items-center text-body bg-neutral-secondary-medium box-border text-white border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none"
-        >
-          Read more
-          <svg
-            className="w-4 h-4 ms-1.5 rtl:rotate-180 -me-0.5"
-            aria-hidden="true"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
+      {/* module show */}
+      <div className="flex flex-wrap gap-6 mt-14 ml-4">
+        {modules.map((module) => (
+          <div
+            key={module.module_id}
+            className="bg-neutral-primary-soft bg-gray-900 block max-w-sm p-6 border border-default rounded-base shadow-xs"
           >
-            <path
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M19 12H5m14 0-4 4m4-4-4-4"
-            />
-          </svg>
-        </a>
+            <a href={`/start/${module.module_id}`}>
+              <img
+                className="rounded-base"
+                src={
+                  module.cover_image
+                    ? `data:image/png;base64,${module.cover_image}`
+                    : "/images/Tree life-rafiki.png"
+                }
+                alt="Module cover"
+              />
+            </a>
+
+            <a href={`/enrolle/${module.module_id}`}>
+              <h5 className="mt-6 mb-2 text-2xl text-white font-semibold tracking-tight text-heading">
+                {module.name}
+              </h5>
+            </a>
+
+            <p className="mb-6 text-body text-white">
+              {module.description || "No description available."}
+            </p>
+
+            <a
+              href={`/enrolle/${module.module_id}`}
+              className="inline-flex items-center text-body bg-neutral-secondary-medium box-border text-white border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none"
+            >
+              Read more
+              <svg
+                className="w-4 h-4 ms-1.5 rtl:rotate-180 -me-0.5"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+              >
+                <path
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 12H5m14 0-4 4m4-4-4-4"
+                />
+              </svg>
+            </a>
+          </div>
+        ))}
       </div>
     </>
   );
