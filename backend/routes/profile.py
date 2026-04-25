@@ -164,3 +164,16 @@ def get_profile_photo(
         content=profile.photo,
         media_type="image/jpeg"  # use image/png if needed
     )
+
+@router.get("/by-email")
+def get_user_name_by_email(email: str, db: Session = Depends(get_db)):
+    profile = db.query(Profile).filter(Profile.email == email).first()
+
+    if not profile:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return {
+        "email": profile.email,
+        "firstName": profile.first_name,
+        "lastName": profile.last_name
+    }

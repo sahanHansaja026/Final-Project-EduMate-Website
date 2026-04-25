@@ -17,6 +17,7 @@ const HomePage = () => {
   const [user, setUser] = useState<{ id: number; email: string } | null>(null);
   const [modules, setModules] = useState<Module[]>([]);
   const [loading, setLoading] = useState(false);
+  const [publicModules, setPublicModules] = useState<Module[]>([]);
 
   useEffect(() => {
     const currentUser = getUser();
@@ -46,6 +47,22 @@ const HomePage = () => {
 
     fetchModules();
   }, [user]);
+  useEffect(() => {
+    const fetchPublicModules = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/modules/public`);
+
+        if (!res.ok) throw new Error("Failed to fetch public modules");
+
+        const data = await res.json();
+        setPublicModules(data);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    fetchPublicModules();
+  }, []);
 
   return (
     <>
@@ -119,7 +136,7 @@ const HomePage = () => {
             key={module.module_id}
             className="bg-neutral-primary-soft bg-gray-900 block max-w-sm p-6 border border-default rounded-base shadow-xs"
           >
-            <a href={`/start/${module.module_id}`}>
+            <a href={`/enrolle/${module.module_id}`}>
               <img
                 className="rounded-base"
                 src={
@@ -137,7 +154,7 @@ const HomePage = () => {
               </h5>
             </a>
 
-            <p className="mb-6 text-body text-white">
+            <p className="mb-6 text-body text-white line-clamp-3">
               {module.description || "No description available."}
             </p>
 
@@ -165,6 +182,37 @@ const HomePage = () => {
           </div>
         ))}
       </div>
+      <hr className="h-px my-8 bg-neutral-quaternary border"></hr>
+      {/*public modules show under this*/}
+      <div className="flex flex-wrap gap-6 mt-10 ml-4">
+        {publicModules.map((module) => (
+          <div
+            key={module.module_id}
+            className="bg-gray-800 block max-w-sm p-6 border rounded-lg shadow"
+          >
+            <a href={`/enrolle/${module.module_id}`}>
+              <img
+                className="rounded"
+                src={
+                  module.cover_image
+                    ? `data:image/png;base64,${module.cover_image}`
+                    : "/images/Tree life-rafiki.png"
+                }
+                alt="Module cover"
+              />
+            </a>
+
+            <h5 className="mt-4 text-xl text-white font-semibold">
+              {module.name}
+            </h5>
+
+            <p className="text-gray-300 line-clamp-2">
+              {module.description || "No description available."}
+            </p>
+          </div>
+        ))}
+      </div>
+
     </>
   );
 };

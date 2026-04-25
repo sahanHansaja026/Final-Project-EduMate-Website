@@ -3,9 +3,11 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { getUser } from "@/app/services/authService";
+import { API_BASE_URL } from "@/app/config/api";
 
 type ModuleType = {
   id: number;
+  module_id: number;
   name: string;
   description: string;
   skills: string[];
@@ -31,7 +33,7 @@ export default function Enrolle() {
 
     const fetchModule = async () => {
       try {
-        const res = await fetch(`http://127.0.0.1:8000/modules/${id}`);
+        const res = await fetch(`${API_BASE_URL}/modules/${id}`);
         const data = await res.json();
         setModule(data);
       } catch (err) {
@@ -61,7 +63,7 @@ export default function Enrolle() {
             {module.name}
           </h1>
 
-          <p className="text-gray-600 max-w-3xl mb-6">
+          <p className="text-gray-600  mb-6">
             {module.description}
           </p>
 
@@ -91,7 +93,7 @@ export default function Enrolle() {
                 ? `data:image/png;base64,${module.cover_image}`
                 : `http://127.0.0.1:8000/modules/${id}/image`
             }
-            className="w-full h-72 object-cover rounded-xl border shadow-sm"
+            className="w-full h-72 object-contain bg-gray-100 rounded-xl border shadow-sm"
           />
 
           {/* INFO CARD */}
@@ -108,7 +110,7 @@ export default function Enrolle() {
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div className="border rounded-lg p-4">
               <p className="text-gray-500">Module ID</p>
-              <p className="font-semibold">{module.id}</p>
+              <p className="font-semibold">{module.module_id}</p>
             </div>
 
             <div className="border rounded-lg p-4">
@@ -131,17 +133,18 @@ export default function Enrolle() {
           <p className="text-sm text-gray-500 mb-6">
             Get full access to lessons and resources.
           </p>
-
-          {user?.id === module.user_id && (
-            <button className="w-full border border-gray-300 hover:bg-gray-100 text-gray-800 py-3 rounded-lg mb-3 transition">
-              Edit Module
+          <a href={`/pages/edit/moduleedit/${module.module_id}`}>
+            {user?.id === module.user_id && (
+              <button className="w-full border border-gray-300 hover:bg-gray-100 text-gray-800 py-3 rounded-lg mb-3 transition">
+                Edit Module
+              </button>
+            )}
+          </a>
+          <a href={`/moduleinside/${module.module_id}`}>
+            <button className="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-800 transition">
+              Enroll Now
             </button>
-          )}
-
-          <button className="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-800 transition">
-            Enroll Now
-          </button>
-
+          </a>
           <p className="text-xs text-gray-400 mt-4 text-center">
             Free enrollment • Instant access
           </p>
