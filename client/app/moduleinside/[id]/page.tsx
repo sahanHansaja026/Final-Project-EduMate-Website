@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { API_BASE_URL } from "@/app/config/api";
 import { getUser } from "@/app/services/authService";
+import WeekContent from "@/app/components/WeekContent";
 
 type Module = {
     module_id: number;
@@ -18,7 +19,8 @@ export default function CoursePage() {
     const params = useParams();
     const id = params?.id;
 
-    const [user, setUser] = useState<any>(null);
+    const [authUser, setAuthUser] = useState<any>(null);
+    const [profile, setProfile] = useState<any>(null);
     const [module, setModule] = useState<Module | null>(null);
     const [loading, setLoading] = useState(true);
 
@@ -42,10 +44,10 @@ export default function CoursePage() {
         if (id) fetchModule();
     }, [id]);
 
-    // ================= LOAD USER =================
+    // ================= LOAD AUTH USER =================
     useEffect(() => {
         const localUser = getUser();
-        setUser(localUser);
+        setAuthUser(localUser);
     }, []);
 
     // ================= LOAD PROFILE =================
@@ -60,7 +62,7 @@ export default function CoursePage() {
                     `${API_BASE_URL}/profiles/by-email?email=${localUser.email}`
                 );
                 const data = await res.json();
-                setUser(data);
+                setProfile(data);
             } catch (err) {
                 console.error(err);
             }
@@ -68,6 +70,10 @@ export default function CoursePage() {
 
         fetchUserProfile();
     }, []);
+
+    // ================= OWNER CHECK =================
+    const isOwner =
+        authUser && module && authUser.user_id === module.user_id;
 
     // ================= LOADING =================
     if (loading) {
@@ -122,7 +128,6 @@ export default function CoursePage() {
 
                 {/* MODULE HEADER */}
                 <div className="bg-white border rounded-lg">
-
                     <div className="border-b px-4 sm:px-6 py-4">
                         <h1 className="text-xl sm:text-2xl font-semibold text-gray-900">
                             {module.name}
@@ -145,8 +150,8 @@ export default function CoursePage() {
                                 <tr className="border-b">
                                     <th className="py-3 text-gray-500">Module owner</th>
                                     <td className="py-3 text-gray-800">
-                                        {user
-                                            ? `${user.firstName} ${user.lastName} (${user.email})`
+                                        {profile
+                                            ? `${profile.firstName} ${profile.lastName} (${profile.email})`
                                             : "Loading..."}
                                     </td>
                                 </tr>
@@ -166,7 +171,6 @@ export default function CoursePage() {
 
                 {/* DESCRIPTION */}
                 <div className="bg-white border rounded-lg">
-
                     <div className="border-b px-4 sm:px-6 py-4">
                         <h2 className="text-lg font-semibold text-gray-900">
                             Description
@@ -174,7 +178,7 @@ export default function CoursePage() {
                     </div>
 
                     <div className="p-4 sm:p-6">
-                        <p className="text-gray-700 leading-relaxed text-sm">
+                        <p className="text-gray-700 text-sm">
                             {showMore
                                 ? module.description
                                 : module.description.slice(0, 250) + "..."}
@@ -182,47 +186,27 @@ export default function CoursePage() {
 
                         <button
                             onClick={() => setShowMore(!showMore)}
-                            className="mt-4 text-sm font-medium text-gray-900 underline"
+                            className="mt-4 text-sm underline"
                         >
                             {showMore ? "Show less" : "Show more"}
                         </button>
                     </div>
                 </div>
 
-                {/* SKILLS */}
-                {module.skills && module.skills.length > 0 && (
-                    <div className="bg-white border rounded-lg">
+                {/* WEEK CONTENT */}
+                <div className="bg-white border rounded-lg p-4 sm:p-6">
+                    <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                        Weekly Content
+                    </h2>
 
-                        <div className="border-b px-4 sm:px-6 py-4">
-                            <h2 className="text-lg font-semibold text-gray-900">
-                                Skills Covered
-                            </h2>
-                        </div>
-
-                        <div className="p-4 sm:p-6">
-                            <table className="min-w-full text-sm">
-                                <tbody>
-                                    <tr>
-                                        <th className="text-left text-gray-500 w-48 align-top py-2">
-                                            Skills List
-                                        </th>
-                                        <td className="py-2">
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-2">
-                                                {module.skills.map((skill, i) => (
-                                                    <div key={i} className="text-gray-800">
-                                                        {skill}
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-
-                    </div>
-                )}
-
+                    <WeekContent
+                        weeks={5}
+                        itemsPerWeek={1}
+                        activeWeek={activeWeek}
+                        currentUserId={authUser?.id}
+                        moduleUserId={module?.user_id}
+                    />
+                </div>
             </main>
         </div>
     );
