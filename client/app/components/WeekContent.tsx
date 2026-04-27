@@ -6,6 +6,7 @@ type WeekContentProps = {
     weeks?: number;
     itemsPerWeek?: number;
     activeWeek: number;
+    moduleId: number | string;
     currentUserId?: number | string;
     moduleUserId?: number | string;
 };
@@ -16,6 +17,7 @@ export default function WeekContent({
     activeWeek,
     currentUserId,
     moduleUserId,
+    moduleId,
 }: WeekContentProps) {
     const [activeItem, setActiveItem] = useState<string | null>(null);
 
@@ -64,7 +66,7 @@ export default function WeekContent({
                                             className="flex items-center justify-between border rounded-md px-3 py-2"
                                         >
                                             {/* LEFT: CREATE BUTTON */}
-                                            <a href="/pages/create_activities/">
+                                            <a href={`/pages/create_activities/${moduleId}`}>
                                             <button
                                                 onClick={() => setActiveItem(key)}
                                                 className={`px-4 py-2 rounded-md text-sm border transition

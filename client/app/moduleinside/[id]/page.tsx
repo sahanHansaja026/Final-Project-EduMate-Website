@@ -205,6 +205,7 @@ export default function CoursePage() {
                         activeWeek={activeWeek}
                         currentUserId={authUser?.id}
                         moduleUserId={module?.user_id}
+                        moduleId={module?.module_id}
                     />
                 </div>
             </main>
