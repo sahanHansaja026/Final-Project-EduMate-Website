@@ -66,12 +66,12 @@ const HomePage = () => {
 
   return (
     <>
-      <section className="bg-white dark:bg-gray-900">
+      <section className="bg-gray-900 dark:bg-gray-900">
         <div className="py-8 px-4 mx-auto max-w-7xl text-center lg:py-16 lg:px-12">
           <a
             href="#"
             role="alert"
-            className="inline-flex justify-between items-center py-1 px-1 pr-4 mb-7 text-sm text-gray-700 bg-gray-100 rounded-full dark:bg-gray-800 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700"
+            className="inline-flex justify-between items-center py-1 px-1 pr-4 mb-7 text-sm text-gray-700 bg-gray-100 rounded-full dark:bg-gray-100 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700"
           >
             <span className="text-xs bg-primary-600 rounded-full text-white px-4 py-1.5 mr-3">
               New
@@ -92,7 +92,7 @@ const HomePage = () => {
             </svg>
           </a>
 
-          <h1 className="mb-4 text-4xl font-extrabold tracking-tight leading-none text-gray-900 md:text-5xl lg:text-6xl dark:text-white">
+          <h1 className="mb-4 text-4xl font-extrabold tracking-tight leading-none text-gray-100 md:text-5xl lg:text-6xl dark:text-white">
             We invest in learners, creators, and the world’s potential
           </h1>
 
@@ -122,95 +122,112 @@ const HomePage = () => {
 
             <a
               href="#"
-              className="inline-flex justify-center items-center py-3 px-5 text-base font-medium text-gray-900 rounded-lg border border-gray-300 hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 dark:text-white dark:border-gray-700 dark:hover:bg-gray-700 dark:focus:ring-gray-800"
+              className="inline-flex justify-center items-center py-3 px-5 text-base font-medium text-gray-100 rounded-lg border border-gray-300 hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 dark:text-white dark:border-gray-700 dark:hover:bg-gray-700 dark:focus:ring-gray-800"
             >
               Create Chanel
             </a>
           </div>
         </div>
       </section>
-      {/* module show */}
-      <div className="flex flex-wrap gap-6 mt-14 ml-4">
-        {modules.map((module) => (
-          <div
-            key={module.module_id}
-            className="bg-neutral-primary-soft bg-gray-900 block max-w-sm p-6 border border-default rounded-base shadow-xs"
-          >
-            <a href={`/enrolle/${module.module_id}`}>
-              <img
-                className="rounded-base"
-                src={
-                  module.cover_image
-                    ? `data:image/png;base64,${module.cover_image}`
-                    : "/images/Tree life-rafiki.png"
-                }
-                alt="Module cover"
-              />
-            </a>
+      {/* MODULES SECTION */}
+      <div className="max-w-7xl mx-auto px-4 mt-10">
 
-            <a href={`/enrolle/${module.module_id}`}>
-              <h5 className="mt-6 mb-2 text-2xl text-white font-semibold tracking-tight text-heading">
-                {module.name}
-              </h5>
-            </a>
+        <h2 className="text-xl font-semibold text-gray-900 mb-6">
+          Your Modules
+        </h2>
 
-            <p className="mb-6 text-body text-white line-clamp-3">
-              {module.description || "No description available."}
-            </p>
-
-            <a
-              href={`/enrolle/${module.module_id}`}
-              className="inline-flex items-center text-body bg-neutral-secondary-medium box-border text-white border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none"
-            >
-              Read more
-              <svg
-                className="w-4 h-4 ms-1.5 rtl:rotate-180 -me-0.5"
-                aria-hidden="true"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
+        {loading ? (
+          <p className="text-gray-400">Loading modules...</p>
+        ) : (
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {modules.map((module) => (
+              <div
+                key={module.module_id}
+                className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden shadow hover:shadow-xl transition duration-300"
               >
-                <path
-                  stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 12H5m14 0-4 4m4-4-4-4"
-                />
-              </svg>
-            </a>
+                <a href={`/enrolle/${module.module_id}`}>
+                  <img
+                    className="h-40 w-full object-cover hover:scale-105 transition duration-300"
+                    src={
+                      module.cover_image
+                        ? `data:image/png;base64,${module.cover_image}`
+                        : "/images/Tree life-rafiki.png"
+                    }
+                    alt="Module cover"
+                  />
+                </a>
+
+                <div className="p-4">
+                  <h3 className="text-lg font-semibold text-white line-clamp-1">
+                    {module.name}
+                  </h3>
+
+                  <p className="text-sm text-gray-400 mt-2 line-clamp-2">
+                    {module.description || "No description available."}
+                  </p>
+
+                  <a
+                    href={`/enrolle/${module.module_id}`}
+                    className="inline-flex items-center mt-4 text-blue-400 hover:text-blue-300 text-sm font-medium"
+                  >
+                    Open Module →
+                  </a>
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
+        )}
       </div>
-      <hr className="h-px my-8 bg-neutral-quaternary border"></hr>
-      {/*public modules show under this*/}
-      <div className="flex flex-wrap gap-6 mt-10 ml-4">
-        {publicModules.map((module) => (
-          <div
-            key={module.module_id}
-            className="bg-gray-800 block max-w-sm p-6 border rounded-lg shadow"
-          >
-            <a href={`/enrolle/${module.module_id}`}>
-              <img
-                className="rounded"
-                src={
-                  module.cover_image
-                    ? `data:image/png;base64,${module.cover_image}`
-                    : "/images/Tree life-rafiki.png"
-                }
-                alt="Module cover"
-              />
-            </a>
 
-            <h5 className="mt-4 text-xl text-white font-semibold">
-              {module.name}
-            </h5>
+      {/* DIVIDER */}
+      <div className="max-w-7xl mx-auto px-4 my-10">
+        <div className="border-t border-gray-800" />
+      </div>
 
-            <p className="text-gray-300 line-clamp-2">
-              {module.description || "No description available."}
-            </p>
-          </div>
-        ))}
+      {/* PUBLIC MODULES */}
+      <div className="max-w-7xl mx-auto px-4 pb-16">
+
+        <h2 className="text-xl font-semibold text-gray-900 mb-6">
+          Explore Public Modules
+        </h2>
+
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {publicModules.map((module) => (
+            <div
+              key={module.module_id}
+              className="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden shadow hover:scale-[1.02] transition duration-300"
+            >
+              <a href={`/enrolle/${module.module_id}`}>
+                <img
+                  className="h-40 w-full object-cover"
+                  src={
+                    module.cover_image
+                      ? `data:image/png;base64,${module.cover_image}`
+                      : "/images/Tree life-rafiki.png"
+                  }
+                  alt="Module cover"
+                />
+              </a>
+
+              <div className="p-4">
+                <h3 className="text-lg font-semibold text-white line-clamp-1">
+                  {module.name}
+                </h3>
+
+                <p className="text-sm text-gray-300 mt-2 line-clamp-2">
+                  {module.description || "No description available."}
+                </p>
+
+                <a
+                  href={`/enrolle/${module.module_id}`}
+                  className="inline-block mt-4 text-green-400 hover:text-green-300 text-sm font-medium"
+                >
+                  Explore →
+                </a>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
     </>

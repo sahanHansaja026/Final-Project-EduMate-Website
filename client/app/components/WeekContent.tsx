@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import WeekItemInfo from "./WeekItemInfo";
 
 type WeekContentProps = {
     weeks?: number;
@@ -49,46 +50,46 @@ export default function WeekContent({
                     <div key={w}>
                         <hr className="mb-3" />
 
-                        <h3 className="text-md font-semibold text-gray-800 mb-3">
-                            Week {String(weekNumber).padStart(2, "0")}
-                        </h3>
+                        
 
                         {isOwner ? (
                             <div className="space-y-2">
                                 {Array.from({ length: itemsPerWeek }, (_, i) => {
                                     const key = `week-${w}-item-${i}`;
-
                                     const isDone = doneItems[key];
 
                                     return (
-                                        <div
-                                            key={key}
-                                            className="flex items-center justify-between border rounded-md px-3 py-2"
-                                        >
-                                            {/* LEFT: CREATE BUTTON */}
-                                            <a href={`/pages/create_activities/${moduleId}`}>
-                                            <button
-                                                onClick={() => setActiveItem(key)}
-                                                className={`px-4 py-2 rounded-md text-sm border transition
-                                                    ${activeItem === key
-                                                        ? "bg-blue-600 text-white"
-                                                        : "bg-white hover:bg-gray-100"
-                                                    }`}
-                                            >
-                                                Create
-                                            </button>
-                                            </a>
-                                            {/* RIGHT: DONE TOGGLE */}
-                                            <button
-                                                onClick={() => toggleDone(key)}
-                                                className={`px-3 py-1 text-xs rounded-full border transition
-                                                    ${isDone
-                                                        ? "bg-green-500 text-white"
-                                                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                                                    }`}
-                                            >
-                                                {isDone ? "Done" : "Mark as Done"}
-                                            </button>
+                                        <div key={key} className="space-y-2">
+
+                                            {/* NEW COMPONENT HERE */}
+                                            <WeekItemInfo moduleId={String(moduleId)} />
+                                            <div className="flex items-center justify-between border rounded-md px-3 py-2">
+
+                                                <a href={`/pages/create_activities/${moduleId}`}>
+                                                    <button
+                                                        onClick={() => setActiveItem(key)}
+                                                        className={`px-4 py-2 rounded-md text-sm border transition
+                            ${activeItem === key
+                                                                ? "bg-blue-600 text-white"
+                                                                : "bg-white hover:bg-gray-100"
+                                                            }`}
+                                                    >
+                                                        Create
+                                                    </button>
+                                                </a>
+
+                                                <button
+                                                    onClick={() => toggleDone(key)}
+                                                    className={`px-3 py-1 text-xs rounded-full border transition
+                        ${isDone
+                                                            ? "bg-green-500 text-white"
+                                                            : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                                                        }`}
+                                                >
+                                                    {isDone ? "Done" : "Mark as Done"}
+                                                </button>
+
+                                            </div>
                                         </div>
                                     );
                                 })}
