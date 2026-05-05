@@ -83,7 +83,7 @@ export default function LMSModuleDashboard() {
             title: "Live Learning",
             visible: true,
             items: [
-                { label: "Live class integration", href: "/lms/live/integration", visible: true },
+                { label: "Live class integration", href: `/live/${id}`, visible: true },
                 { label: "Attendance tracking", href: "/lms/live/attendance", visible: true },
                 { label: "Live chat sessions", href: "/lms/live/chat", visible: true },
                 { label: "Recorded lecture access", href: "/lms/live/recordings", visible: true }
