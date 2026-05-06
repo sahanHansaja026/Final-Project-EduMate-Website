@@ -35,9 +35,9 @@ export default function LMSModuleDashboard() {
         },
         {
             title: "Quizzes & Assessments",
-            visible: false,
+            visible: true,
             items: [
-                { label: "Create MCQ, true/false, short answer quizzes", href: "/lms/quizzes/create", visible: false },
+                { label: "Create MCQ, true/false, short answer quizzes", href: `/quiz_system/create_quiz/${id}`, visible: true },
                 { label: "Timed quizzes and exams", href: "/lms/quizzes/timed", visible: false },
                 { label: "Question banks with randomization", href: "/lms/quizzes/bank", visible: false },
                 { label: "Auto and manual grading", href: "/lms/quizzes/grading", visible: false },
