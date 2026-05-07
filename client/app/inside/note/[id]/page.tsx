@@ -5,6 +5,7 @@ import axios from "axios";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useParams } from "next/navigation";
+import { API_BASE_URL } from "@/app/config/api";
 
 export default function AddContentForm() {
     const params = useParams();
@@ -48,7 +49,7 @@ export default function AddContentForm() {
                 formData.append("file", file);
             }
 
-            await axios.post("http://localhost:8000/contents/", formData, {
+            await axios.post(`${API_BASE_URL}/contents/`, formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
                 },

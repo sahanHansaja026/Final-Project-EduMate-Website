@@ -1,12 +1,15 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from database import Base, engine
-
+from fastapi.staticfiles import StaticFiles
 from routes import auth,profile,module,content,meeting,quiz
 
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
+# ✅ Serve uploads folder
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 app.add_middleware(
     CORSMiddleware,

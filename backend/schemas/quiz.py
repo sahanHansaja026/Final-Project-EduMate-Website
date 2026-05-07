@@ -18,6 +18,15 @@ class QuizBase(BaseModel):
 
 class QuizResponse(BaseModel):
     id: int
+    module_id: int
     title: str
+    description: Optional[str] = None
+
+    attempts: Optional[str] = "unlimited"
+    open_date: Optional[datetime] = None
+    close_date: Optional[datetime] = None
+
+    is_graded: Optional[bool] = True
+    shuffle_questions: Optional[bool] = False
 
     model_config = ConfigDict(from_attributes=True)

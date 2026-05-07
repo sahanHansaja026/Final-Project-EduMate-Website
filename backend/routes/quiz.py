@@ -79,3 +79,52 @@ def delete_quiz(quiz_id: int, db: Session = Depends(get_db)):
     db.commit()
 
     return {"message": "Quiz deleted successfully"}
+
+@router.put("/{quiz_id}", response_model=QuizResponse)
+def update_quiz(
+    quiz_id: int,
+
+    title: Optional[str] = Form(None),
+    description: Optional[str] = Form(None),
+
+    attempts: Optional[str] = Form(None),
+
+    open_date: Optional[datetime] = Form(None),
+    close_date: Optional[datetime] = Form(None),
+
+    is_graded: Optional[bool] = Form(None),
+    shuffle_questions: Optional[bool] = Form(None),
+
+    db: Session = Depends(get_db),
+):
+    quiz = db.query(Quiz).filter(Quiz.id == quiz_id).first()
+
+    if not quiz:
+        raise HTTPException(status_code=404, detail="Quiz not found")
+
+    # ✅ update only provided fields
+    if title is not None:
+        quiz.title = title
+
+    if description is not None:
+        quiz.description = description
+
+    if attempts is not None:
+        quiz.attempts = attempts
+
+    if open_date is not None:
+        quiz.open_date = open_date
+
+    if close_date is not None:
+        quiz.close_date = close_date
+
+    if is_graded is not None:
+        quiz.is_graded = is_graded
+
+    if shuffle_questions is not None:
+        quiz.shuffle_questions = shuffle_questions
+
+    db.commit()
+    db.refresh(quiz)
+
+    return QuizResponse.from_orm(quiz)

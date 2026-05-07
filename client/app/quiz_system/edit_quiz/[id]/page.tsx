@@ -1,15 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useParams } from "next/navigation";
 import { API_BASE_URL } from "@/app/config/api";
 
-export default function CreateQuizForm() {
+type Quiz = {
+    id: number;
+    title: string;
+    description?: string;
+    attempts: string;
+    open_date?: string;
+    close_date?: string;
+    is_graded: boolean;
+    shuffle_questions: boolean;
+    module_id: number;
+};
+
+export default function EditQuizForm() {
+
     const params = useParams();
-    const id = params.id as string;
+    const quizId = params.id as string;
+
+    const [loading, setLoading] = useState(true);
+
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [attempts, setAttempts] = useState("unlimited");
@@ -17,9 +33,50 @@ export default function CreateQuizForm() {
     const [closeDate, setCloseDate] = useState("");
     const [isGraded, setIsGraded] = useState(true);
     const [shuffleQuestions, setShuffleQuestions] = useState(false);
+    const [moduleId, setModuleId] = useState<number | null>(null);
 
-    const handleSubmit = async () => {
+    // ===============================
+    // FETCH QUIZ (GET SINGLE QUIZ)
+    // ===============================
+    useEffect(() => {
+        const fetchQuiz = async () => {
+            try {
+                const res = await fetch(`${API_BASE_URL}/quizzes/${quizId}`);
+
+                if (!res.ok) {
+                    throw new Error("Failed to fetch quiz");
+                }
+
+                const data: Quiz = await res.json();
+
+                setTitle(data.title);
+                setDescription(data.description || "");
+                setAttempts(data.attempts || "unlimited");
+                setIsGraded(data.is_graded);
+                setShuffleQuestions(data.shuffle_questions);
+                setModuleId(data.module_id);
+
+                // FIX datetime format for input
+                setOpenDate(data.open_date ? data.open_date.slice(0, 16) : "");
+                setCloseDate(data.close_date ? data.close_date.slice(0, 16) : "");
+
+            } catch (err) {
+                console.error(err);
+                alert("Failed to load quiz");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (quizId) fetchQuiz();
+    }, [quizId]);
+
+    // ===============================
+    // UPDATE QUIZ (PUT ROUTE)
+    // ===============================
+    const handleUpdate = async () => {
         try {
+
             if (openDate && closeDate && openDate > closeDate) {
                 alert("Close date must be after open date");
                 return;
@@ -27,66 +84,76 @@ export default function CreateQuizForm() {
 
             const formData = new FormData();
 
-            formData.append("module_id", id); // ✅ REQUIRED FIX
             formData.append("title", title);
             formData.append("description", description || "");
             formData.append("attempts", attempts);
-            formData.append("open_date", openDate || "");
-            formData.append("close_date", closeDate || "");
+
+            // IMPORTANT: FastAPI expects datetime or null
+            if (openDate) formData.append("open_date", openDate);
+            if (closeDate) formData.append("close_date", closeDate);
+
             formData.append("is_graded", String(isGraded));
             formData.append("shuffle_questions", String(shuffleQuestions));
 
-            await axios.post(`${API_BASE_URL}/quizzes/`, formData, {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
-            });
+            const res = await axios.put(
+                `${API_BASE_URL}/quizzes/${quizId}`,
+                formData,
+                {
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                    },
+                }
+            );
 
-            alert("Quiz created successfully!");
-
-            // reset
-            setTitle("");
-            setDescription("");
-            setAttempts("unlimited");
-            setOpenDate("");
-            setCloseDate("");
-            setIsGraded(true);
-            setShuffleQuestions(false);
+            if (res.status === 200) {
+                alert("Quiz updated successfully!");
+            }
 
         } catch (err) {
             console.error(err);
-            alert("Error creating quiz");
+            alert("Error updating quiz");
         }
     };
+
+    // ===============================
+    // LOADING STATE
+    // ===============================
+    if (loading) {
+        return <p className="p-6">Loading quiz...</p>;
+    }
 
     return (
         <Card className="rounded-2xl shadow-sm">
             <CardContent className="p-6 space-y-5">
 
                 <h3 className="text-lg font-semibold">
-                    Create New Quiz
+                    Edit Quiz
                 </h3>
-                <h1>module_id :  {id}</h1>
+
+                <p className="text-sm text-gray-500">
+                    Quiz ID: {quizId} | Module ID: {moduleId}
+                </p>
+
                 {/* TITLE */}
                 <input
                     type="text"
-                    placeholder="Quiz Title"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     className="w-full border rounded-lg px-3 py-2"
+                    placeholder="Quiz Title"
                 />
 
                 {/* DESCRIPTION */}
                 <textarea
-                    placeholder="Description"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     className="w-full border rounded-lg px-3 py-2"
+                    placeholder="Description"
                 />
 
                 {/* ATTEMPTS */}
                 <div>
-                    <label className="text-sm">Attempt Count</label>
+                    <label className="text-sm">Attempts</label>
                     <select
                         value={attempts}
                         onChange={(e) => setAttempts(e.target.value)}
@@ -152,21 +219,13 @@ export default function CreateQuizForm() {
 
                     <Button
                         variant="outline"
-                        onClick={() => {
-                            setTitle("");
-                            setDescription("");
-                            setAttempts("unlimited");
-                            setOpenDate("");
-                            setCloseDate("");
-                            setIsGraded(true);
-                            setShuffleQuestions(false);
-                        }}
+                        onClick={() => window.location.reload()}
                     >
-                        Cancel
+                        Reset
                     </Button>
 
-                    <Button onClick={handleSubmit}>
-                        Save Quiz
+                    <Button onClick={handleUpdate}>
+                        Update Quiz
                     </Button>
 
                 </div>
