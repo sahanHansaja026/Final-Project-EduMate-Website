@@ -147,10 +147,11 @@ export default function QuizLMSPage() {
                             <div className="flex flex-col gap-3">
                                 {isOwner ? (
                                     /* OWNER VIEW */
-                                    <>
+                                    <><Link href={`/quiz_system/q_and_a/${quizId}`}>
                                         <button className="w-full bg-gray-900 text-white py-3 px-4 rounded font-semibold hover:bg-black transition-colors">
                                             Create Question
                                         </button>
+                                    </Link>
                                         <Link href={`/quiz_system/edit_quiz/${quizId}`}>
                                             <button className="w-full border border-gray-300 text-gray-700 py-3 px-4 rounded font-semibold hover:bg-gray-50 transition-colors">
                                                 Edit Settings
@@ -164,16 +165,18 @@ export default function QuizLMSPage() {
                                         </button>
                                     </>
                                 ) : (
-                                    /* STUDENT VIEW */
+                                        /* STUDENT VIEW */
+                                        <Link href={`/quiz_system/student_view/${quizId}`}>
                                     <button
                                         disabled={status !== "active"}
                                         className={`w-full py-4 px-6 rounded font-bold text-center transition-all ${status === "active"
-                                                ? "bg-gray-900 text-white hover:bg-black shadow-lg shadow-gray-200"
-                                                : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                            ? "bg-gray-900 text-white hover:bg-black shadow-lg shadow-gray-200"
+                                            : "bg-gray-100 text-gray-400 cursor-not-allowed"
                                             }`}
                                     >
                                         {status === "active" ? "Start Attempt Now" : `Access ${status}`}
                                     </button>
+                                        </Link>
                                 )}
                             </div>
 
@@ -191,7 +194,7 @@ export default function QuizLMSPage() {
     );
 }
 
-// Reusable Formal Component
+// Reusable Formal Component Start Attempt Now
 function InfoTile({ label, value }: { label: string; value: string }) {
     return (
         <div className="space-y-1">
