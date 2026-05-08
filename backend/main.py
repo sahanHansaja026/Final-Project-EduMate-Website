@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from database import Base, engine
 from fastapi.staticfiles import StaticFiles
-from routes import auth,profile,module,content,meeting,quiz
+from routes import auth,profile,module,content,meeting,quiz,question
 
 Base.metadata.create_all(bind=engine)
 
@@ -25,6 +25,7 @@ app.include_router(module.router)
 app.include_router(content.router)
 app.include_router(meeting.router)
 app.include_router(quiz.router)
+app.include_router(question.router)
 
 @app.get("/")
 def root():
