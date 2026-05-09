@@ -26,11 +26,11 @@ export default function LMSModuleDashboard() {
             title: "Content Delivery",
             visible: true,
             items: [
-                { label: "Upload lecture notes (PDF, DOC, slides)", href: "/lms/content-delivery/notes", visible: true },
-                { label: "Add videos (YouTube, Vimeo, uploads)", href: "/lms/content-delivery/videos", visible: true },
-                { label: "Add audio lessons or podcasts", href: "/lms/content-delivery/audio", visible: true },
+                { label: "Upload lecture notes (PDF, DOC, slides)", href: `/inside/note/${id}`, visible: true },
+                { label: "Add videos (YouTube, Vimeo, uploads)", href: `/inside/video/${id}`, visible: true },
+                { label: "Add audio lessons or podcasts", href: "/lms/content-delivery/audio", visible: false},
                 { label: "Provide reading materials or external links", href: `/inside/note/${id}`, visible: true },
-                { label: "Organize content into structured sections", href: "/lms/content-delivery/structure", visible: true }
+                { label: "Organize content into structured sections", href: "/lms/content-delivery/structure", visible: false }
             ]
         },
         {
