@@ -21,7 +21,7 @@ class ModuleResponse(BaseModel):
     visibility: VisibilityEnum
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
     @classmethod
     def from_orm(cls, obj):

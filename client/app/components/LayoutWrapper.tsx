@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import Navbar from "./Navbar";
 import Footer from "./footer";
+import ChatBot from "./chatbot";
 
 type LayoutWrapperProps = {
   position: "top" | "bottom";
@@ -17,9 +18,16 @@ export default function LayoutWrapper({
 
   if (hideLayout) return null;
 
+  // TOP = Navbar
   if (position === "top") {
     return <Navbar />;
   }
 
-  return <Footer />;
+  // BOTTOM = Footer + ChatBot
+  return (
+    <>
+      <ChatBot />
+      <Footer />
+    </>
+  );
 }

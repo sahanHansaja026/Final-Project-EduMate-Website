@@ -43,4 +43,4 @@ class ProfileResponse(ProfileBase):
     coverPhoto: Optional[str] = None  # base64 string
 
     class Config:
-        orm_mode = True
+        from_attributes = True
