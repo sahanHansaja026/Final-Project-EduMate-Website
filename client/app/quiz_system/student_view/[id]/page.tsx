@@ -19,6 +19,7 @@ import {
 interface Option {
     id: number;
     option_text: string;
+    is_correct?: boolean;
 }
 
 interface Question {
@@ -75,15 +76,160 @@ export default function StudentQuizView() {
     };
 
     const handleFinalSubmit = async () => {
-        if (!window.confirm("Are you sure you want to submit your assessment?")) return;
+
+        if (!window.confirm("Are you sure you want to submit your assessment?")) {
+            return;
+        }
+
         setIsSubmitting(true);
+
         try {
-            console.log("Submitting:", answers);
+
+            const student_id = 1; // logged user id
+
+            let totalMarks = 0;
+            let obtainedMarks = 0;
+
+            let correctAnswers = 0;
+            let wrongAnswers = 0;
+            let skippedAnswers = 0;
+
+            // save answers
+            for (const question of questions) {
+
+                const answer = answers[question.id];
+
+                // skipped
+                if (
+                    answer === undefined ||
+                    answer === "" ||
+                    (Array.isArray(answer) && answer.length === 0)
+                ) {
+                    skippedAnswers++;
+                    continue;
+                }
+
+                let isCorrect = false;
+                let marks = 0;
+
+                // MCQ CHECK
+                if (
+                    question.question_type === "mcq" ||
+                    question.question_type === "true_false"
+                ) {
+
+                    const correctOption = question.options.find(
+                        (o: any) => o.is_correct
+                    );
+
+                    isCorrect =
+                        correctOption?.option_text === answer;
+
+                    marks = isCorrect ? question.marks : 0;
+                }
+
+                // MULTIPLE ANSWER CHECK
+                if (question.question_type === "multiple") {
+
+                    const correctOptions = question.options
+                        .filter((o: any) => o.is_correct)
+                        .map((o: any) => o.option_text)
+                        .sort();
+
+                    const selected = [...answer].sort();
+
+                    isCorrect =
+                        JSON.stringify(correctOptions) ===
+                        JSON.stringify(selected);
+
+                    marks = isCorrect ? question.marks : 0;
+                }
+
+                // TEXT QUESTIONS
+                if (
+                    question.question_type === "essay" ||
+                    question.question_type === "short"
+                ) {
+
+                    isCorrect = false;
+                    marks = 0;
+                }
+
+                totalMarks += question.marks;
+                obtainedMarks += marks;
+
+                if (isCorrect) {
+                    correctAnswers++;
+                } else {
+                    wrongAnswers++;
+                }
+
+                // save answer
+                await axios.post(
+                    `${API_BASE_URL}/student-answers/`,
+                    {
+                        quiz_id: Number(id),
+                        question_id: question.id,
+                        student_id: student_id,
+
+                        selected_option_id: null,
+
+                        answer_text:
+                            typeof answer === "string"
+                                ? answer
+                                : JSON.stringify(answer),
+
+                        is_correct: isCorrect,
+
+                        obtained_marks: marks
+                    }
+                );
+            }
+
+            // percentage
+            const percentage =
+                totalMarks > 0
+                    ? (obtainedMarks / totalMarks) * 100
+                    : 0;
+
+            // save score
+            await axios.post(
+                `${API_BASE_URL}/quiz-scores/`,
+                {
+                    quiz_id: Number(id),
+
+                    student_id: student_id,
+
+                    attempt_number: 1,
+
+                    total_marks: totalMarks,
+
+                    obtained_marks: obtainedMarks,
+
+                    percentage: percentage,
+
+                    correct_answers: correctAnswers,
+
+                    wrong_answers: wrongAnswers,
+
+                    skipped_answers: skippedAnswers,
+
+                    status: "completed"
+                }
+            );
+
             alert("Assessment successfully submitted.");
-            router.push(`/quiz_system/dashboard`);
+
+            router.push("/quiz_system/dashboard");
+
         } catch (err) {
+
+            console.error(err);
+
             alert("Submission failed.");
+
         } finally {
+
             setIsSubmitting(false);
         }
     };
