@@ -99,3 +99,25 @@ def get_score_by_quiz_and_user(
         )
 
     return scores
+
+# GET SCORES BY QUIZ ID
+@router.get(
+    "/quiz/{quiz_id}",
+    response_model=List[QuizScoreResponse]
+)
+def get_scores_by_quiz(
+    quiz_id: int,
+    db: Session = Depends(get_db)
+):
+
+    scores = db.query(QuizScore).filter(
+        QuizScore.quiz_id == quiz_id
+    ).all()
+
+    if not scores:
+        raise HTTPException(
+            status_code=404,
+            detail="No scores found"
+        )
+
+    return scores

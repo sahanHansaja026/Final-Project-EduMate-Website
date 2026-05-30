@@ -247,6 +247,10 @@ export default function WeekItemInfo({ moduleId }: Props) {
                         item.type === "content"
                             ? `/pages/content/edit/${item.assignment_id}`
                             : `/quiz_system/edit_quiz/${item.id}`;
+                    const GradeHref =
+                        item.type === "content"
+                            ? `/pages/content/edit/${item.assignment_id}`
+                            : `/quiz_system/score/manual/${item.id}`;
 
                     return (
                         <div
@@ -337,17 +341,12 @@ export default function WeekItemInfo({ moduleId }: Props) {
                                                 </button>
 
                                                 {/* GRADE */}
-                                                <button
-                                                    onClick={() =>
-                                                        console.log(
-                                                            "Grade",
-                                                            itemId
-                                                        )
-                                                    }
-                                                    className="text-xs font-bold px-3 py-1.5 rounded-lg bg-purple-100 text-purple-700 hover:bg-purple-200 transition-colors"
+                                                <Link
+                                                    href={GradeHref}
+                                                    className="text-xs font-bold px-3 py-1.5 rounded-lg bg-green-300 text-purple-500 hover:bg-yellow-200 transition-colors"
                                                 >
                                                     Grade
-                                                </button>
+                                                </Link>
                                             </div>
                                         )}
 
