@@ -42,7 +42,7 @@ const SignupPage: React.FC = () => {
       setPassword("");
       setConfirmPassword("");
       setTermsAccepted(false);
-      router.push("/auth/loginpage");
+      router.push("/auth/login");
     } catch (err: any) {
       if (err.response && err.response.data) {
         setError(err.response.data.detail);

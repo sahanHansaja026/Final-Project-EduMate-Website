@@ -1,7 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from models.subscription import PlanEnum, Subscription
 from database import get_db
 from models.user import User
+from datetime import datetime, timedelta
 from schemas.auth import SignupSchema, LoginSchema, TokenSchema
 from core.security import (
     hash_password,
@@ -21,6 +23,7 @@ router = APIRouter(prefix="/auth", tags=["Auth"])
 @router.post("/signup", status_code=201)
 def signup(data: SignupSchema, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == data.email).first()
+
     if user:
         raise HTTPException(status_code=400, detail="Email already exists")
 
@@ -33,7 +36,23 @@ def signup(data: SignupSchema, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(new_user)
 
-    return {"message": "User registered successfully"}
+    # 🔥 CREATE FREE SUBSCRIPTION AUTOMATICALLY
+    free_subscription = Subscription(
+        user_id = new_user.user_id,
+        user_email=new_user.email,
+        plan_name=PlanEnum.free,
+        start_date=datetime.utcnow(),
+        end_date=datetime.utcnow(),  # or long free period
+        status="active"
+    )
+
+    db.add(free_subscription)
+    db.commit()
+
+    return {
+        "message": "User registered successfully",
+        "user_id": new_user.user_id
+    }
 
 # ---------------- LOGIN ----------------
 @router.post("/login", response_model=TokenSchema)

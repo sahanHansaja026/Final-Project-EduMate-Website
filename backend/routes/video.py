@@ -191,3 +191,69 @@ def delete_video(video_id: int, db: Session = Depends(get_db)):
     return {
         "message": "Video deleted successfully"
     }
+    
+# =========================
+# UPDATE VIDEO (PUT)
+# =========================
+
+@router.put("/{video_id}", response_model=VideoResponse)
+async def update_video(
+    video_id: int,
+    title: str = Form(...),
+    description: Optional[str] = Form(None),
+    source_type: str = Form(...),
+    video_url: Optional[str] = Form(None),
+    video_file: Optional[UploadFile] = File(None),
+    thumbnail: Optional[UploadFile] = File(None),
+    open_date: Optional[date] = Form(None),
+    close_date: Optional[date] = Form(None),
+    db: Session = Depends(get_db),
+):
+    # 1. Fetch the existing record
+    video = db.query(Video).filter(Video.id == video_id).first()
+    if not video:
+        raise HTTPException(status_code=404, detail="Video resource not found")
+
+    # 2. Handle Video Source Modifications
+    if source_type == "Upload":
+        # If a brand new file is uploaded, process it and delete the old one if it exists
+        if video_file:
+            if video.source_type == "Upload" and video.video_url and os.path.exists(video.video_url):
+                try: os.remove(video.video_url)
+                except: pass
+
+            new_video_path = f"{VIDEO_DIR}/{video_file.filename}"
+            with open(new_video_path, "wb") as buffer:
+                shutil.copyfileobj(video_file.file, buffer)
+            video.video_url = new_video_path
+        # If source_type is "Upload" but no new file is sent, keep the existing path
+    else:
+        # If changing to YouTube/Vimeo, clean up any old local video file
+        if video.source_type == "Upload" and video.video_url and os.path.exists(video.video_url):
+            try: os.remove(video.video_url)
+            except: pass
+        video.video_url = video_url
+
+    # 3. Handle Thumbnail Update
+    if thumbnail:
+        # Wipe out old thumbnail from server storage
+        if video.thumbnail_url and os.path.exists(video.thumbnail_url):
+            try: os.remove(video.thumbnail_url)
+            except: pass
+
+        new_thumb_path = f"{THUMBNAIL_DIR}/{thumbnail.filename}"
+        with open(new_thumb_path, "wb") as buffer:
+            shutil.copyfileobj(thumbnail.file, buffer)
+        video.thumbnail_url = new_thumb_path
+
+    # 4. Bind remaining data payloads
+    video.title = title
+    video.description = description
+    video.source_type = source_type
+    video.open_date = open_date
+    video.close_date = close_date
+
+    db.commit()
+    db.refresh(video)
+    
+    return video
