@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { API_BASE_URL } from "@/app/config/api";
+import { getUser } from "@/app/services/authService";
 
 export default function CreateQuizForm() {
     const params = useParams();
@@ -17,9 +18,49 @@ export default function CreateQuizForm() {
     const [closeDate, setCloseDate] = useState("");
     const [isGraded, setIsGraded] = useState(true);
     const [shuffleQuestions, setShuffleQuestions] = useState(false);
+    const router = useRouter();
+
+    const [user, setUser] = useState<{ id: number; email: string } | null>(null);
+    const [quota, setQuota] = useState<any>(null);
+    // load user
+    useEffect(() => {
+        const currentUser = getUser();
+        setUser(currentUser);
+    }, []);
+
+    useEffect(() => {
+        const loadQuota = async () => {
+            if (!user) return;
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/quota/quiz/${user.id}`);
+                const data = await res.json();
+                setQuota(data);
+            } catch (err) {
+                console.error(err);
+            }
+        };
+
+        loadQuota();
+    }, [user]);
 
     const handleSubmit = async () => {
         try {
+
+            if (!user) {
+                alert("User not found");
+                return;
+            }
+
+            // 🔥 CHECK QUIZ QUOTA BEFORE CREATE
+            const res = await fetch(`${API_BASE_URL}/quota/quiz/${user.id}`);
+            const quotaData = await res.json();
+
+            if (!quotaData.can_create) {
+                router.push("/subscription?reason=quiz_limit");
+                return;
+            }
+
             if (openDate && closeDate && openDate > closeDate) {
                 alert("Close date must be after open date");
                 return;
@@ -27,7 +68,7 @@ export default function CreateQuizForm() {
 
             const formData = new FormData();
 
-            formData.append("module_id", id); // ✅ REQUIRED FIX
+            formData.append("module_id", id);
             formData.append("title", title);
             formData.append("description", description || "");
             formData.append("attempts", attempts);

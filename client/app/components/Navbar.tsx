@@ -141,7 +141,7 @@ export default function Navbar() {
                     <Menu.Item>
                       {({ active }) => (
                         <a
-                          href="/pages/subscripion"
+                          href="/subscription"
                           className={classNames(
                             active ? "bg-white/5" : "",
                             "block px-4 py-2 text-sm text-gray-300"

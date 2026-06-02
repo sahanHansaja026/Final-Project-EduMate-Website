@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException
+from typing import Optional
+from fastapi import APIRouter, Depends, Form, HTTPException
 from sqlalchemy.orm import Session
-
+from datetime import datetime
 from database import get_db
 from models.subscription import Subscription
 from schemas.subscription import SubscriptionResponse
@@ -68,4 +69,30 @@ def check_access(
     return {
         "user_id": user_id,
         "access": access
+    }
+
+@router.put("/update/{user_id}")
+def update_subscription(
+    user_id: int,
+    subscription_type: str = Form(...),
+    status: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    sub = db.query(Subscription).filter(
+        Subscription.user_id == user_id
+    ).first()
+
+    if not sub:
+        raise HTTPException(404, "Subscription not found")
+
+    sub.subscription_type = subscription_type
+    sub.status = status
+
+    db.commit()
+    db.refresh(sub)
+
+    return {
+        "message": "Subscription updated",
+        "subscription_type": sub.subscription_type,
+        "status": sub.status
     }

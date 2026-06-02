@@ -1,7 +1,7 @@
 "use client";
 
-import { useParams } from "next/navigation";
-import { useState, useRef } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useState, useRef, useEffect } from "react";
 import axios from "axios";
 
 import {
@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 
 import { API_BASE_URL } from "@/app/config/api";
+import { getUser } from "@/app/services/authService";
 
 export default function VideoInput() {
 
@@ -42,7 +43,32 @@ export default function VideoInput() {
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const videoInputRef = useRef<HTMLInputElement>(null);
+    const router = useRouter();
 
+    const [user, setUser] = useState<{ id: number; email: string } | null>(null);
+    const [quota, setQuota] = useState<any>(null);
+
+    // load user
+    useEffect(() => {
+        const currentUser = getUser();
+        setUser(currentUser);
+    }, []);
+
+    useEffect(() => {
+        const loadQuota = async () => {
+            if (!user) return;
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/quota/video/${user.id}`);
+                const data = await res.json();
+                setQuota(data);
+            } catch (err) {
+                console.error(err);
+            }
+        };
+
+        loadQuota();
+    }, [user]);
     // =========================
     // METADATA
     // =========================
@@ -91,6 +117,20 @@ export default function VideoInput() {
 
         try {
 
+            if (!user) {
+                alert("User not found");
+                return;
+            }
+
+            // 🔥 CHECK VIDEO QUOTA FIRST
+            const quotaRes = await fetch(`${API_BASE_URL}/quota/video/${user.id}`);
+            const quotaData = await quotaRes.json();
+
+            if (!quotaData.can_create) {
+                router.push("/subscription");
+                return;
+            }
+
             setLoading(true);
 
             const formData = new FormData();
@@ -105,10 +145,7 @@ export default function VideoInput() {
             formData.append("open_date", openDate);
             formData.append("close_date", closeDate);
 
-            // =========================
             // VIDEO
-            // =========================
-
             if (source === "Upload") {
 
                 if (!videoFile) {
@@ -119,21 +156,13 @@ export default function VideoInput() {
                 formData.append("video_file", videoFile);
 
             } else {
-
                 formData.append("video_url", videoUrl);
             }
 
-            // =========================
             // THUMBNAIL
-            // =========================
-
             if (thumbnailFile) {
                 formData.append("thumbnail", thumbnailFile);
             }
-
-            // =========================
-            // API
-            // =========================
 
             const response = await axios.post(
                 `${API_BASE_URL}/videos`,
@@ -152,15 +181,13 @@ export default function VideoInput() {
         } catch (error) {
 
             console.error(error);
-
             alert("Upload failed");
 
         } finally {
-
             setLoading(false);
         }
     };
-
+    
     return (
         <div className="min-h-screen bg-white text-slate-900 flex flex-col">
 

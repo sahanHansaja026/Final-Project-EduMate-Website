@@ -2,6 +2,7 @@
 
 import { API_BASE_URL } from "@/app/config/api";
 import { getUser } from "@/app/services/authService";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 type Visibility = "public" | "private";
@@ -15,6 +16,7 @@ export default function CreateModule() {
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [user, setUser] = useState<{ id: number; email: string } | null>(null);
+  const router = useRouter();
 
   // Get logged-in user
   useEffect(() => {
@@ -57,7 +59,18 @@ export default function CreateModule() {
       setCoverPreview(URL.createObjectURL(file));
     }
   };
+  // check subscription
+  const checkQuota = async (userId: number) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/quota/module/${userId}`);
+      if (!res.ok) throw new Error("Failed to check quota");
 
+      return await res.json();
+    } catch (err) {
+      console.error(err);
+      return null;
+    }
+  };
   // Submit the form
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,8 +85,21 @@ export default function CreateModule() {
       return;
     }
 
+    // 🔥 CHECK QUOTA BEFORE CREATING MODULE
+    const quota = await checkQuota(user.id);
+
+    if (!quota) {
+      alert("Unable to verify subscription");
+      return;
+    }
+
+    if (!quota.can_create) {
+      router.push("/subscription");
+      return;
+    }
+
     const formData = new FormData();
-    formData.append("user_id", user.id.toString()); // send user_id
+    formData.append("user_id", user.id.toString());
     formData.append("name", moduleName);
     formData.append("description", description);
     formData.append("skills", JSON.stringify(skills));
@@ -92,7 +118,7 @@ export default function CreateModule() {
       console.log("Module created:", data);
       alert("Module created successfully!");
 
-      // Reset form
+      // reset
       setModuleName("");
       setDescription("");
       setSkills([]);
@@ -100,12 +126,13 @@ export default function CreateModule() {
       setVisibility("public");
       setCoverFile(null);
       setCoverPreview(null);
+
     } catch (error) {
       console.error(error);
       alert("Error creating module");
     }
   };
-
+  
   return (
     <div className="min-h-screen bg-gray-900 flex justify-center px-4 py-12">
       <form
