@@ -5,7 +5,7 @@ from datetime import datetime
 from database import get_db
 from models.subscription import Subscription
 from schemas.subscription import SubscriptionResponse
-
+from datetime import datetime, timedelta
 from routes.access_control import can_access
 
 router = APIRouter(prefix="/subscription", tags=["Subscription"])
@@ -83,16 +83,26 @@ def update_subscription(
     ).first()
 
     if not sub:
-        raise HTTPException(404, "Subscription not found")
+        raise HTTPException(
+            status_code=404,
+            detail="Subscription not found"
+        )
 
-    sub.subscription_type = subscription_type
+    # 🔥 update plan + status
+    sub.plan_name = subscription_type
     sub.status = status
+
+    # 🔥 set subscription period (1 year from now)
+    sub.start_date = datetime.utcnow()
+    sub.end_date = sub.start_date + timedelta(days=365)
 
     db.commit()
     db.refresh(sub)
 
     return {
         "message": "Subscription updated",
-        "subscription_type": sub.subscription_type,
-        "status": sub.status
+        "plan_name": sub.plan_name,
+        "status": sub.status,
+        "start_date": sub.start_date,
+        "end_date": sub.end_date
     }

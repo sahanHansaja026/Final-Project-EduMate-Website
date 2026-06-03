@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from database import Base, engine
 from fastapi.staticfiles import StaticFiles
-from routes import auth,profile,module,content,meeting,quiz,question,video,quiz_score,student_answer,subscription_routes,module_quota,video_quota,quiz_quota
+from routes import auth,profile,module,content,meeting,quiz,question,video,quiz_score,student_answer,subscription_routes,module_quota,video_quota,quiz_quota,enrollment
 from chatbot import chatbot
 Base.metadata.create_all(bind=engine)
 
@@ -35,6 +35,7 @@ app.include_router(subscription_routes.router)
 app.include_router(module_quota.router)
 app.include_router(video_quota.router)
 app.include_router(quiz_quota.router)
+app.include_router(enrollment.router)
 
 @app.get("/")
 def root():
