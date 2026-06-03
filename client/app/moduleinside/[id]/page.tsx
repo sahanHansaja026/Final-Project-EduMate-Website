@@ -13,7 +13,8 @@ import {
     Menu,
     BookOpen,
     FileText,
-    HelpCircle
+    HelpCircle,
+    PenSquare
 } from "lucide-react";
 
 import { API_BASE_URL } from "@/app/config/api";
@@ -142,10 +143,11 @@ export default function CoursePage() {
     useEffect(() => {
         const fetchModuleItems = async () => {
             try {
-                const [contentRes, quizRes, videoRes] = await Promise.all([
+                const [contentRes, quizRes, videoRes,assignmentRes] = await Promise.all([
                     fetch(`${API_BASE_URL}/contents/module/${id}`),
                     fetch(`${API_BASE_URL}/quizzes/module/${id}`),
-                    fetch(`${API_BASE_URL}/videos/module/${id}`)
+                    fetch(`${API_BASE_URL}/videos/module/${id}`),
+                    fetch(`${API_BASE_URL}/assignments/module/${id}`)
                 ]);
 
                 const contents = contentRes.ok
@@ -171,11 +173,19 @@ export default function CoursePage() {
                         type: "video"
                     }))
                     : [];
+                const assingments = assignmentRes.ok
+                    ? (await assignmentRes.json()).map((item: any) => ({
+                        id: item.id,
+                        title: item.title,
+                        type: "assingment"
+                    }))
+                    : [];
 
                 setModuleItems([
                     ...videos,
                     ...contents,
-                    ...quizzes
+                    ...quizzes,
+                    ...assingments
                 ]);
             } catch (err) {
                 console.error(err);
@@ -280,6 +290,7 @@ export default function CoursePage() {
                                         {item.type === "video" && <VideoIcon className="w-4 h-4" />}
                                         {item.type === "quiz" && <HelpCircle className="w-4 h-4" />}
                                         {item.type === "content" && <FileText className="w-4 h-4" />}
+                                        {item.type === "assignment" && <PenSquare className="w-4 h-4" />}
                                     </div>
 
                                     <span className={`truncate text-xs sm:text-sm tracking-wide transition-opacity duration-200 ${!isSidebarOpen && "lg:opacity-0 lg:w-0"}`}>

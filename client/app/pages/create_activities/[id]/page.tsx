@@ -50,7 +50,7 @@ export default function LMSModuleDashboard() {
             visible: true,
             items: [
                 { label: "Create assignment tasks", href: "/lms/assignments/create", visible: true },
-                { label: "File upload submissions", href: "/lms/assignments/upload", visible: true },
+                { label: "File upload submissions", href: `/inside/assignment/${id}`, visible: true },
                 { label: "Text-based submissions", href: "/lms/assignments/text", visible: true },
                 { label: "Deadlines and late submission rules", href: "/lms/assignments/deadlines", visible: true },
                 { label: "Rubric-based grading", href: "/lms/assignments/rubric", visible: true },

@@ -35,6 +35,17 @@ type Video = {
     type: "video";
 };
 
+type Assignment = {
+    id: number;
+    module_id: number;
+    title: string;
+    description?: string;
+    week: number;
+    open_date?: string;
+    close_date?: string;
+    type: "assignment";
+};
+
 type Module = {
     module_id: number;
     user_id: number;
@@ -42,7 +53,7 @@ type Module = {
     description?: string;
 };
 
-type Item = Content | Quiz | Video;
+type Item = Content | Quiz | Video | Assignment;
 
 type Props = {
     moduleId: string;
@@ -120,7 +131,6 @@ export default function WeekItemInfo({ moduleId }: Props) {
                 if (videoRes.ok) {
                     const videoData = await videoRes.json();
 
-                    // Assuming schema might have week field or fallback to 1 if it's not yet in the DB model
                     formattedVideos = videoData.map((video: any) => ({
                         ...video,
                         week: video.week ?? 1,
@@ -131,11 +141,35 @@ export default function WeekItemInfo({ moduleId }: Props) {
                 console.log("No videos found");
             }
 
-            // MERGE
+            // ASSIGNMENTS (Fixed missing forward slash)
+            let formattedAssignments: Assignment[] = [];
+
+            try {
+                const assignmentRes = await fetch(
+                    `${API_BASE_URL}/assignments/module/${moduleId}`
+                );
+
+                if (assignmentRes.ok) {
+                    const assignmentData = await assignmentRes.json();
+
+                    formattedAssignments = assignmentData.map((assignment: any) => ({
+                        ...assignment,
+                        // If your backend schemas handle assignment_id, map it dynamically to id
+                        id: assignment.id ?? assignment.assignment_id,
+                        week: assignment.week ?? 1,
+                        type: "assignment",
+                    }));
+                }
+            } catch (err) {
+                console.log("No assignments found");
+            }
+
+            // MERGE ALL ITEMS
             const mergedItems = [
                 ...formattedContents,
                 ...formattedQuizzes,
                 ...formattedVideos,
+                ...formattedAssignments,
             ];
 
             // SORT BY WEEK
@@ -174,7 +208,7 @@ export default function WeekItemInfo({ moduleId }: Props) {
     // DELETE HANDLER
     const handleDelete = async (
         itemId: number,
-        type: "content" | "quiz" | "video"
+        type: "content" | "quiz" | "video" | "assignment"
     ) => {
         const confirmed = window.confirm(
             "Are you sure you want to delete this activity?"
@@ -188,8 +222,10 @@ export default function WeekItemInfo({ moduleId }: Props) {
                 endpoint = `${API_BASE_URL}/contents/${itemId}`;
             } else if (type === "quiz") {
                 endpoint = `${API_BASE_URL}/quizzes/${itemId}`;
-            } else {
+            } else if (type === "video") {
                 endpoint = `${API_BASE_URL}/videos/${itemId}`;
+            } else if (type === "assignment") {
+                endpoint = `${API_BASE_URL}/assignments/${itemId}`;
             }
 
             const res = await fetch(endpoint, {
@@ -280,8 +316,10 @@ export default function WeekItemInfo({ moduleId }: Props) {
                             detailsHref = `/activity/content/${item.assignment_id}`;
                         } else if (item.type === "quiz") {
                             detailsHref = `/quiz_system/create_questions/${item.id}?module_id=${moduleId}`;
-                        } else {
+                        } else if (item.type === "video") {
                             detailsHref = `/activity/video/${item.id}`;
+                        } else if (item.type === "assignment") {
+                            detailsHref = `/activity/assignment/${item.id}`;
                         }
 
                         let editHref = "";
@@ -289,8 +327,10 @@ export default function WeekItemInfo({ moduleId }: Props) {
                             editHref = `/pages/content/edit/${item.assignment_id}`;
                         } else if (item.type === "quiz") {
                             editHref = `/quiz_system/edit_quiz/${item.id}`;
-                        } else {
+                        } else if (item.type === "video") {
                             editHref = `/pages/video/edit/${item.id}`;
+                        } else if (item.type === "assignment") {
+                            editHref = `/pages/assignment/edit/${item.id}`;
                         }
 
                         let GradeHref = "";
@@ -298,8 +338,10 @@ export default function WeekItemInfo({ moduleId }: Props) {
                             GradeHref = `/pages/content/edit/${item.assignment_id}`;
                         } else if (item.type === "quiz") {
                             GradeHref = `/quiz_system/score/manual/${item.id}`;
-                        } else {
+                        } else if (item.type === "video") {
                             GradeHref = `/activity/video/analytics/${item.id}`;
+                        } else if (item.type === "assignment") {
+                            GradeHref = `/pages/assignment/grade/${item.id}`;
                         }
 
                         return (
@@ -319,7 +361,9 @@ export default function WeekItemInfo({ moduleId }: Props) {
                                                 ? "bg-purple-500 border-purple-200"
                                                 : item.type === "video"
                                                     ? "bg-red-500 border-red-200"
-                                                    : "bg-blue-500 border-blue-100"
+                                                    : item.type === "assignment"
+                                                        ? "bg-amber-500 border-amber-200"
+                                                        : "bg-blue-500 border-blue-100"
                                             }`}
                                     />
 
@@ -346,7 +390,9 @@ export default function WeekItemInfo({ moduleId }: Props) {
                                                             ? "bg-purple-100 text-purple-700"
                                                             : item.type === "video"
                                                                 ? "bg-red-100 text-red-700"
-                                                                : "bg-blue-100 text-blue-700"
+                                                                : item.type === "assignment"
+                                                                    ? "bg-amber-100 text-amber-700"
+                                                                    : "bg-blue-100 text-blue-700"
                                                             }`}
                                                     >
                                                         {item.type}
