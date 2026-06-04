@@ -69,7 +69,7 @@ def get_assignments_by_module(
 
     return assignments
 
-@router.put("/{assignment_id}", response_model=AssignmentResponse)
+@router.put("/update/{assignment_id}", response_model=AssignmentResponse)
 async def update_assignment(
     assignment_id: int,
     module_id: int = Form(None),

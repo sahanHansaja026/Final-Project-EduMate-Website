@@ -9,8 +9,8 @@ import { API_BASE_URL } from "../config/api";
 const navigation = [
   { name: "Dashboard", href: "/pages/home", current: true },
   { name: "Create Module", href: "/pages/modulecreation", current: false },
-  { name: "Projects", href: "#", current: false },
-  { name: "Calendar", href: "#", current: false },
+  { name: "About Us", href: "/pages/about_us", current: false },
+  { name: "channels", href: "/pages/channel", current: false },
 ];
 
 function classNames(...classes: string[]) {

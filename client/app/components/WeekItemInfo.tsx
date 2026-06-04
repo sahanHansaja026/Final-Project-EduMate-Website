@@ -330,7 +330,7 @@ export default function WeekItemInfo({ moduleId }: Props) {
                         } else if (item.type === "video") {
                             editHref = `/pages/video/edit/${item.id}`;
                         } else if (item.type === "assignment") {
-                            editHref = `/pages/assignment/edit/${item.id}`;
+                            editHref = `/pages/assinment_edit/${item.id}`;
                         }
 
                         let GradeHref = "";
