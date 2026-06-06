@@ -8,7 +8,7 @@ export default function Page() {
 
     return (
         <div>
-            <h1>Quiz ID: {id}</h1>
+            <h1>channel ID: {id}</h1>
         </div>
     );
 }

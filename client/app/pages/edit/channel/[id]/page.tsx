@@ -2,16 +2,20 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { getUser } from "../../services/authService";
-import { API_BASE_URL } from "@/app/config/api";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation"; // To grab channelId dynamically
 
-export default function CreateChannelPage() {
+import { API_BASE_URL } from "@/app/config/api";
+import { getUser } from "@/app/services/authService";
+
+export default function UpdateChannelPage() {
+    const params = useParams();
+    const router = useRouter();
+    const channelId = params?.channel_id || params?.id; // Matches dynamic folder layout names like [id] or [channel_id]
+
     const [user, setUser] = useState<{ id: number; email: string } | null>(null);
     const [channelName, setChannelName] = useState("");
     const [description, setDescription] = useState("");
     const [isPublic, setIsPublic] = useState(true);
-    const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
@@ -35,40 +39,70 @@ export default function CreateChannelPage() {
     const [coHosts, setCoHosts] = useState<string[]>([]);
     const [emailInput, setEmailInput] = useState("");
 
-    const [quota, setQuota] = useState<{
-        limit: number;
-        remaining: number;
-        used_channels: number;
-        can_create: boolean;
-        subscription_type: string;
-    } | null>(null);
-
     useEffect(() => {
         const currentUser = getUser();
         setUser(currentUser);
-
-        if (currentUser?.id) {
-            fetch(`${API_BASE_URL}/quota/channel/${currentUser.id}`)
-                .then((res) => res.json())
-                .then((data) => setQuota(data))
-                .catch((err) => console.error("Quota fetch error:", err));
-        }
     }, []);
-    const checkQuota = async (userId: number) => {
-        try {
-            const res = await fetch(`${API_BASE_URL}/quota/channel/${userId}`);
-            if (!res.ok) return null;
-            return await res.json();
-        } catch (err) {
-            console.error("Quota check failed:", err);
-            return null;
-        }
-    };
+
+    // FETCH EXISTING CHANNEL RECORDS
+    useEffect(() => {
+        if (!channelId) return;
+
+        const fetchChannelData = async () => {
+            try {
+                const response = await fetch(`${API_BASE_URL}/channels/${channelId}`);
+                if (!response.ok) {
+                    throw new Error("Failed to fetch channel configurations.");
+                }
+                const data = await response.json();
+
+                // Hydrate field state variables
+                setChannelName(data.channel_name || "");
+                setDescription(data.description || "");
+                setIsPublic(data.visibility === "public");
+                setInstituteLegalName(data.institute_legal_name || "");
+                setInstituteOwnerFullName(data.institute_owner_full_name || "");
+                setPhysicalCorporateAddress(data.physical_corporate_address || "");
+                setOfficialWebsiteLink(data.official_website_link || "");
+                setFacebookPortalLink(data.facebook_portal_link || "");
+
+                // Parse faculty roster safely array structures
+                if (data.co_hosts_and_faculty_members) {
+                    const parsedFaculty = typeof data.co_hosts_and_faculty_members === "string"
+                        ? JSON.parse(data.co_hosts_and_faculty_members)
+                        : data.co_hosts_and_faculty_members;
+                    setCoHosts(parsedFaculty);
+                }
+
+                // Handle system media maps directly from storage pathways
+                if (data.cover_image) {
+                    // Check if path is absolute URL or relative to standard media server boundaries
+                    const fullCoverUrl = data.cover_image.startsWith("http")
+                        ? data.cover_image
+                        : `${API_BASE_URL.replace("/channels", "")}/${data.cover_image}`;
+                    setCoverPreview(fullCoverUrl);
+                }
+                if (data.logo_image) {
+                    const fullLogoUrl = data.logo_image.startsWith("http")
+                        ? data.logo_image
+                        : `${API_BASE_URL.replace("/channels", "")}/${data.logo_image}`;
+                    setLogoPreview(fullLogoUrl);
+                }
+
+            } catch (err: any) {
+                console.error(err);
+                setMessage({ type: "error", text: err.message || "Failed parsing record structure." });
+            }
+        };
+
+        fetchChannelData();
+    }, [channelId]);
+
     // Cleanup object URLs to avoid memory leaks
     useEffect(() => {
         return () => {
-            if (coverPreview) URL.revokeObjectURL(coverPreview);
-            if (logoPreview) URL.revokeObjectURL(logoPreview);
+            if (coverPreview && coverPreview.startsWith("blob:")) URL.revokeObjectURL(coverPreview);
+            if (logoPreview && logoPreview.startsWith("blob:")) URL.revokeObjectURL(logoPreview);
         };
     }, [coverPreview, logoPreview]);
 
@@ -110,32 +144,16 @@ export default function CreateChannelPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-
         if (!channelName.trim() || !instituteLegalName.trim() || !instituteOwnerFullName.trim()) {
             setMessage({ type: "error", text: "Please fill out all required fields." });
             return;
         }
-
         if (!user) {
-            setMessage({ type: "error", text: "You must be logged in to create a channel." });
+            setMessage({ type: "error", text: "You must be logged in to modify this channel." });
             return;
         }
-
-        // 🔥 CHECK QUOTA BEFORE CREATING CHANNEL
-        const quota = await checkQuota(user.id);
-
-        if (!quota) {
-            setMessage({ type: "error", text: "Unable to verify subscription quota." });
-            return;
-        }
-
-        if (!quota.can_create) {
-            setMessage({
-                type: "error",
-                text: `Channel limit reached (${quota.used_channels}/${quota.limit}). Redirecting to subscription...`,
-            });
-
-            router.push("/subscription");
+        if (!channelId) {
+            setMessage({ type: "error", text: "Missing targeting record Channel Identifier identification." });
             return;
         }
 
@@ -144,7 +162,6 @@ export default function CreateChannelPage() {
 
         try {
             const formData = new FormData();
-
             formData.append("user_id", String(user.id));
             formData.append("channel_name", channelName);
             formData.append("description", description || "");
@@ -156,43 +173,25 @@ export default function CreateChannelPage() {
             formData.append("official_website_link", officialWebsiteLink || "");
             formData.append("facebook_portal_link", facebookPortalLink || "");
 
+            // Append raw files only if explicit updates have overridden baseline paths
             if (coverImage) formData.append("cover_image", coverImage);
             if (logoImage) formData.append("logo_image", logoImage);
 
-            const response = await fetch(`${API_BASE_URL}/channels/`, {
-                method: "POST",
+            // Fetch request method mutations updated from POST to PUT targeting the specific ID route bound
+            const response = await fetch(`${API_BASE_URL}/channels/${channelId}`, {
+                method: "PUT",
                 body: formData,
             });
 
             if (!response.ok) {
                 const errData = await response.json();
-                throw new Error(errData?.detail || "Failed to create the channel");
+                throw new Error(errData?.detail || "Failed to update channel properties.");
             }
 
-            setMessage({ type: "success", text: "Channel successfully published!" });
-
-            // reset
-            setChannelName("");
-            setDescription("");
-            setIsPublic(true);
-            setInstituteLegalName("");
-            setInstituteOwnerFullName("");
-            setPhysicalCorporateAddress("");
-            setOfficialWebsiteLink("");
-            setFacebookPortalLink("");
-            setCoHosts([]);
-            setEmailInput("");
-            setCoverImage(null);
-            setCoverPreview("");
-            setLogoImage(null);
-            setLogoPreview("");
-
+            setMessage({ type: "success", text: "Channel successfully updated and re-published!" });
         } catch (error: any) {
             console.error(error);
-            setMessage({
-                type: "error",
-                text: error.message || "Something went wrong. Please try again.",
-            });
+            setMessage({ type: "error", text: error.message || "Something went wrong. Please try again." });
         } finally {
             setLoading(false);
         }
@@ -212,7 +211,7 @@ export default function CreateChannelPage() {
                             ← Dashboard
                         </Link>
                         <span className="text-gray-300">/</span>
-                        <span className="text-sm font-semibold text-gray-900">Create Channel</span>
+                        <span className="text-sm font-semibold text-gray-900">Edit Channel</span>
                     </div>
                     <div className="text-xs text-gray-400 font-mono hidden sm:block">
                         Workspace User ID: {user?.id || "Unauthenticated"}
@@ -248,7 +247,7 @@ export default function CreateChannelPage() {
                     ) : (
                         <div className="text-center space-y-1 p-4">
                             <p className="text-xs font-bold uppercase tracking-widest text-gray-600 bg-white/80 px-3 py-1.5 rounded-md shadow-sm backdrop-blur-sm">
-                                Click to add cover banner
+                                Click to replace cover banner
                             </p>
                             <p className="text-[10px] text-gray-500">Target Size: 1584 × 396 px</p>
                         </div>
@@ -266,7 +265,7 @@ export default function CreateChannelPage() {
                             <img src={logoPreview} alt="Logo Preview" className="w-full h-full object-cover" />
                         ) : (
                             <div className="text-center p-2">
-                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tight block">Add Logo</span>
+                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tight block">Replace Logo</span>
                                 <span className="text-[9px] text-gray-400 block font-mono">400×400 px</span>
                             </div>
                         )}
@@ -282,10 +281,10 @@ export default function CreateChannelPage() {
                     <div className="lg:col-span-4 lg:sticky lg:top-24 space-y-6">
                         <div>
                             <h1 className="text-3xl font-black tracking-tight text-gray-900 sm:text-4xl">
-                                Channel Engine Setup
+                                Update Channel Engine
                             </h1>
                             <p className="mt-3 text-base text-gray-500 leading-relaxed">
-                                Configure your channel instance properties. Required parameters are processed downstream for identity parsing and routing layouts.
+                                Modify your channel instance properties. Required parameters are processed downstream for identity parsing and routing layouts.
                             </p>
                         </div>
 
@@ -508,18 +507,19 @@ export default function CreateChannelPage() {
 
                             {/* Form Action Controls */}
                             <div className="pt-6 border-t border-gray-200 flex items-center justify-end gap-4">
-                                <Link
-                                    href="/"
+                                <button
+                                    type="button"
+                                    onClick={() => router.back()}
                                     className="px-6 py-3 border border-gray-300 text-sm font-bold rounded-xl text-gray-700 hover:bg-gray-50 transition-colors"
                                 >
-                                    Discard Changes
-                                </Link>
+                                    Cancel
+                                </button>
                                 <button
                                     type="submit"
                                     disabled={loading}
                                     className="px-8 py-3 bg-gray-900 text-sm font-bold rounded-xl text-white hover:bg-gray-800 focus:ring-4 focus:ring-gray-200 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all min-w-[160px]"
                                 >
-                                    {loading ? "Registering..." : "Publish Channel"}
+                                    {loading ? "Saving Changes..." : "Save Changes"}
                                 </button>
                             </div>
 

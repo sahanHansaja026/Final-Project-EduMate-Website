@@ -89,10 +89,6 @@ export default function ChannelDashboardView() {
                         <Link href="/pages/channel" className="text-xs font-bold text-gray-500 hover:text-gray-900 transition-colors">
                             &larr; Directory Hub
                         </Link>
-                        <span className="text-gray-300 font-mono">/</span>
-                        <span className="text-xs font-bold font-mono bg-gray-100 text-gray-700 px-2 py-0.5 rounded border border-gray-200">
-                            ID: {channel.channel_id}
-                        </span>
                     </div>
 
                     <div className="flex items-center gap-2">
@@ -123,7 +119,7 @@ export default function ChannelDashboardView() {
                         {/* Quick Action Overlap Configuration Control Deck */}
                         <div className="absolute top-4 right-4 flex items-center gap-2 z-20">
                             <button
-                                onClick={() => router.push(`/channels/edit/${channel.channel_id}`)}
+                                onClick={() => router.push(`/pages/edit/channel/${channel.channel_id}`)}
                                 className="inline-flex items-center gap-1.5 h-9 px-3.5 bg-white/95 hover:bg-white text-gray-800 hover:text-gray-950 text-xs font-bold rounded-xl shadow-sm border border-gray-200 transition-all active:scale-95"
                                 title="Edit Configuration parameters"
                             >
@@ -218,7 +214,7 @@ export default function ChannelDashboardView() {
                             </p>
                         </div>
 
-                        {/* Enrolled Faculty Whitelist Panel */}
+                        {/* Enrolled Faculty Whitelist Panel 
                         <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
                             <div className="flex items-center justify-between mb-4">
                                 <h4 className="text-[10px] font-black uppercase tracking-widest text-gray-400">Personnel Whitelist</h4>
@@ -242,7 +238,7 @@ export default function ChannelDashboardView() {
                                 <p className="text-xs text-gray-400 italic">No co-hosts added into runtime scope indices.</p>
                             )}
                         </div>
-
+*/}
                     </div>
 
                     {/* Right Main Column Side: Creative Formal Functional Modules Panels */}
@@ -253,55 +249,18 @@ export default function ChannelDashboardView() {
                                 <h3 className="text-lg font-black tracking-tight text-gray-900">Ecosystem Framework Pools</h3>
                                 <p className="text-xs text-gray-500 mt-0.5">Assigned execution streams linked explicitly over this channel reference layer.</p>
                             </div>
+                            <Link href={`/pages/channel_modules/${channel.channel_id}`}>
                             <button className="h-9 px-4 bg-gray-900 hover:bg-gray-800 text-white text-xs font-bold rounded-xl transition-all shadow-sm active:scale-95">
                                 + New Module Setup
-                            </button>
+                                </button>
+                            </Link>
                         </div>
 
                         {/* Formal Modular Display Deck Cards Grid */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
-                            {/* Card 1 */}
-                            <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between group hover:border-gray-300 transition-all">
-                                <div>
-                                    <div className="flex items-center justify-between mb-3">
-                                        <span className="text-[9px] font-black font-mono uppercase tracking-widest px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-100 rounded">
-                                            Core Stream A
-                                        </span>
-                                        <span className="text-[11px] text-gray-400 font-medium">6 Assignments</span>
-                                    </div>
-                                    <h4 className="font-bold text-gray-900 text-sm tracking-tight group-hover:text-blue-600 transition-colors">
-                                        Advanced Microservices Infrastructure & SOA Systems
-                                    </h4>
-                                    <p className="text-xs text-gray-400 mt-1 line-clamp-2 leading-relaxed">
-                                        Integration structures testing Catalog SOAP boundaries and secure REST Orders routing engines.
-                                    </p>
-                                </div>
-                                <div className="pt-4 mt-4 border-t border-gray-100 flex items-center justify-end text-xs font-bold text-gray-900">
-                                    <span>Enter Dashboard &rarr;</span>
-                                </div>
-                            </div>
-
-                            {/* Card 2 */}
-                            <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between group hover:border-gray-300 transition-all">
-                                <div>
-                                    <div className="flex items-center justify-between mb-3">
-                                        <span className="text-[9px] font-black font-mono uppercase tracking-widest px-2 py-0.5 bg-amber-50 text-amber-700 border border-amber-100 rounded">
-                                            Lab Track B
-                                        </span>
-                                        <span className="text-[11px] text-gray-400 font-medium">Active Research</span>
-                                    </div>
-                                    <h4 className="font-bold text-gray-900 text-sm tracking-tight group-hover:text-amber-600 transition-colors">
-                                        Bioacoustic Classification & Digital Signal Audio Models
-                                    </h4>
-                                    <p className="text-xs text-gray-400 mt-1 line-clamp-2 leading-relaxed">
-                                        Acoustic classification architectures deploying real-time parsing pipelines and Explainable AI indicators.
-                                    </p>
-                                </div>
-                                <div className="pt-4 mt-4 border-t border-gray-100 flex items-center justify-end text-xs font-bold text-gray-900">
-                                    <span>Enter Dashboard &rarr;</span>
-                                </div>
-                            </div>
+                            {/* show modules in side the channel */}
+                            
 
                         </div>
 
