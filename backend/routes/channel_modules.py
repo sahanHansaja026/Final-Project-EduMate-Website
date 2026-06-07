@@ -171,3 +171,101 @@ def get_module_by_id(
             "lastName": co_host.last_name if co_host else None,
         } if module.co_host_email else None
     }
+    
+
+# =========================
+# UPDATE MODULE
+# =========================
+@router.put("/module/{module_id}", response_model=ChannelModuleResponse)
+async def update_channel_module(
+    module_id: int,
+    user_id: int = Form(None),
+    channel_id: int = Form(None),
+    name: str = Form(None),
+    description: str = Form(None),
+    co_host_email: str = Form(None),
+    skills: str = Form(None),
+    visibility: VisibilityEnum = Form(None),
+    cover_image: UploadFile = File(None),
+    db: Session = Depends(get_db),
+):
+
+    module = (
+        db.query(ChannelModule)
+        .filter(ChannelModule.module_id == module_id)
+        .first()
+    )
+
+    if not module:
+        raise HTTPException(status_code=404, detail="Module not found")
+
+    # =========================
+    # UPDATE ONLY PROVIDED FIELDS
+    # =========================
+    if user_id is not None:
+        module.user_id = user_id
+
+    if channel_id is not None:
+        module.channel_id = channel_id
+
+    if name is not None:
+        module.name = name
+
+    if description is not None:
+        module.description = description
+
+    if co_host_email is not None:
+        module.co_host_email = co_host_email
+
+    if visibility is not None:
+        module.visibility = visibility
+
+    # =========================
+    # SKILLS PARSE
+    # =========================
+    if skills is not None:
+        try:
+            skills_list = json.loads(skills)
+            if not isinstance(skills_list, list):
+                raise ValueError()
+            module.skills = skills_list
+        except:
+            raise HTTPException(status_code=400, detail="Invalid skills format")
+
+    # =========================
+    # COVER IMAGE UPDATE
+    # =========================
+    if cover_image:
+        ext = cover_image.filename.split(".")[-1]
+        filename = f"{uuid.uuid4()}.{ext}"
+        file_path = os.path.join(UPLOAD_DIR, filename)
+
+        with open(file_path, "wb") as f:
+            f.write(await cover_image.read())
+
+        module.cover_image = filename
+        module.cover_image_name = cover_image.filename
+
+    # =========================
+    # SAVE TO DB
+    # =========================
+    db.commit()
+    db.refresh(module)
+
+    # =========================
+    # RESPONSE
+    # =========================
+    return {
+        "module_id": module.module_id,
+        "user_id": module.user_id,
+        "channel_id": module.channel_id,
+        "name": module.name,
+        "description": module.description,
+        "skills": module.skills,
+        "visibility": module.visibility,
+        "cover_image": module.cover_image,
+        "cover_image_name": module.cover_image_name,
+        "co_host": {
+            "email": module.co_host_email
+        } if module.co_host_email else None
+    }
