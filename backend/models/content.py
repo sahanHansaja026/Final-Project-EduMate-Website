@@ -5,7 +5,7 @@ class Content(Base):
     __tablename__ = "module_contents"
 
     assignment_id = Column(Integer, primary_key=True, index=True)
-    module_id = Column(Integer, ForeignKey("modules.module_id"), nullable=False)
+    module_id = Column(Integer, nullable=False)
 
     title = Column(String, nullable=False)
     week = Column(Integer, nullable=False)

@@ -2,7 +2,7 @@ import os
 import json
 import shutil
 from typing import List
-
+from models.profile import Profile
 from fastapi import APIRouter, UploadFile, File, Form, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -210,3 +210,49 @@ def get_all_channels(db: Session = Depends(get_db)):
     channels = db.query(Channel).all()
     return channels
 
+
+# autarization check
+@router.get("/{channel_id}/authorize")
+def authorize_channel_access(
+    channel_id: int,
+    current_user_id: int,
+    current_email: str,
+    db: Session = Depends(get_db)
+):
+    channel = (
+        db.query(Channel)
+        .filter(Channel.channel_id == channel_id)
+        .first()
+    )
+
+    if not channel:
+        raise HTTPException(
+            status_code=404,
+            detail="Channel not found"
+        )
+
+    # Owner check
+    if channel.user_id == current_user_id:
+        return {
+            "authorized": True,
+            "role": "owner"
+        }
+
+    # Co-host check
+    co_hosts = channel.co_hosts_and_faculty_members or []
+
+    for member in co_hosts:
+        if (
+            isinstance(member, dict)
+            and member.get("email", "").lower()
+            == current_email.lower()
+        ):
+            return {
+                "authorized": True,
+                "role": "co_host"
+            }
+
+    return {
+        "authorized": False,
+        "role": None
+    }

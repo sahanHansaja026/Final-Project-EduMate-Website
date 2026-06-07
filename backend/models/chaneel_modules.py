@@ -1,6 +1,6 @@
 # models/chaneel_modules.py
 
-from sqlalchemy import Column, Integer, String, Text, Enum
+from sqlalchemy import Column, Integer, Sequence, String, Text, Enum
 from sqlalchemy.dialects.postgresql import ARRAY as PG_ARRAY
 from database import Base
 import enum
@@ -14,7 +14,7 @@ class VisibilityEnum(str, enum.Enum):
 class ChannelModule(Base):
     __tablename__ = "channel_modules"
 
-    module_id = Column(Integer, primary_key=True, index=True)
+    module_id = Column(Integer,Sequence("channel_module_id_seq",start=152670000,increment=1),primary_key=True,index=True)
 
     channel_id = Column(Integer, nullable=False)
     user_id = Column(Integer, nullable=False)

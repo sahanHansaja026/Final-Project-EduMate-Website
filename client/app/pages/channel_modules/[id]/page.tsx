@@ -1,10 +1,10 @@
 "use client";
 
 import { API_BASE_URL } from "@/app/config/api";
-import { getUser } from "@/app/services/authService";
 import { useRouter, useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Upload, X, Plus, Info, ArrowLeft } from "lucide-react";
+import { getUser } from "@/app/services/authService";
 
 type Visibility = "public" | "private";
 
@@ -21,12 +21,61 @@ export default function CreateModule() {
     const [visibility, setVisibility] = useState<Visibility>("public");
     const [coverFile, setCoverFile] = useState<File | null>(null);
     const [coverPreview, setCoverPreview] = useState<string | null>(null);
+
+    // Auth and Guard states
     const [user, setUser] = useState<{ id: number; email: string } | null>(null);
+    const [isCheckingAuth, setIsCheckingAuth] = useState(true);
     const [loading, setLoading] = useState(false);
 
+    // ==========================================
+    // AUTHENTICATION & AUTHORIZATION GUARD
+    // ==========================================
     useEffect(() => {
-        setUser(getUser());
-    }, []);
+        const checkAuthorization = async () => {
+            const localUser = getUser();
+
+            // 1. If no logged in user structure is found locally, redirect away
+            if (!localUser || !localUser.id || !localUser.email) {
+                router.push("/errors/autharization");
+                return;
+            }
+
+            setUser(localUser);
+
+            try {
+                // 2. Query your FastAPI authorize endpoint
+                const url = new URL(`${API_BASE_URL}/channels/${channelId}/authorize`);
+                url.searchParams.append("current_user_id", localUser.id.toString());
+                url.searchParams.append("current_email", localUser.email);
+
+                const response = await fetch(url.toString(), {
+                    method: "GET",
+                    headers: { "Content-Type": "application/json" }
+                });
+
+                if (!response.ok) {
+                    throw new Error("Authorization server responded with an error status.");
+                }
+
+                const authData = await response.json();
+
+                // 3. Kick user out if the authorized flag resolves to false
+                if (!authData.authorized) {
+                    router.push("/errors/autharization");
+                } else {
+                    // Access permitted! Remove loading boundary layout
+                    setIsCheckingAuth(false);
+                }
+            } catch (error) {
+                console.error("Authorization check failed:", error);
+                router.push("/errors/autharization");
+            }
+        };
+
+        if (channelId) {
+            checkAuthorization();
+        }
+    }, [channelId, router]);
 
     const availableSkills = ["English", "Tamil", "Math", "Science", "IT", "Technology", "Physics", "Chemistry", "Biology"];
 
@@ -72,6 +121,8 @@ export default function CreateModule() {
             const res = await fetch(`${API_BASE_URL}/channel-modules/`, {
                 method: "POST",
                 body: formData,
+                // Do NOT manually supply Content-Type for FormDatas. 
+                // Let the browser calculate boundaries seamlessly.
             });
 
             if (!res.ok) throw new Error("Failed to create module");
@@ -85,6 +136,18 @@ export default function CreateModule() {
             setLoading(false);
         }
     };
+
+    // Render a clean structural placeholder screen while background requests verify security state
+    if (isCheckingAuth) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-50 text-gray-500 text-sm font-medium">
+                <div className="flex flex-col items-center gap-2">
+                    <div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+                    <span>Verifying workspace privileges...</span>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-white text-gray-900">

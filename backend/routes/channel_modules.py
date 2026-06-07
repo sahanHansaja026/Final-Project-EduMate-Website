@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 import json
 import os
 import uuid
-
+from models.profile import Profile
 from models.chaneel_modules import ChannelModule, VisibilityEnum
 from schemas.channel_modules import ChannelModuleResponse
 from database import get_db
@@ -77,7 +77,10 @@ async def create_channel_module(
 # =========================
 # GET BY CHANNEL ID
 # =========================
-@router.get("/channel/{channel_id}", response_model=list[ChannelModuleResponse])
+
+
+
+@router.get("/channel/{channel_id}")
 def get_modules_by_channel(
     channel_id: int,
     db: Session = Depends(get_db)
@@ -89,4 +92,82 @@ def get_modules_by_channel(
         .all()
     )
 
-    return [ChannelModuleResponse.from_orm(m) for m in modules]
+    result = []
+
+    for module in modules:
+
+        co_host = None
+
+        if module.co_host_email:
+            co_host = (
+                db.query(Profile)
+                .filter(Profile.email == module.co_host_email)
+                .first()
+            )
+
+        result.append({
+            "module_id": module.module_id,
+            "user_id": module.user_id,
+            "channel_id": module.channel_id,
+            "name": module.name,
+            "description": module.description,
+            "skills": module.skills,
+            "visibility": module.visibility,
+            "cover_image": module.cover_image,
+            "cover_image_name": module.cover_image_name,
+
+            "co_host": {
+                "email": co_host.email if co_host else module.co_host_email,
+                "firstName": co_host.first_name if co_host else None,
+                "lastName": co_host.last_name if co_host else None,
+            } if module.co_host_email else None
+        })
+
+    return result
+
+# =========================
+# GET MODULE BY MODULE ID
+# =========================
+
+@router.get("/module/{module_id}")
+def get_module_by_id(
+    module_id: int,
+    db: Session = Depends(get_db)
+):
+    module = (
+        db.query(ChannelModule)
+        .filter(ChannelModule.module_id == module_id)
+        .first()
+    )
+
+    if not module:
+        raise HTTPException(
+            status_code=404,
+            detail="Module not found"
+        )
+
+    co_host = None
+
+    if module.co_host_email:
+        co_host = (
+            db.query(Profile)
+            .filter(Profile.email == module.co_host_email)
+            .first()
+        )
+
+    return {
+        "module_id": module.module_id,
+        "user_id": module.user_id,
+        "channel_id": module.channel_id,
+        "name": module.name,
+        "description": module.description,
+        "skills": module.skills,
+        "visibility": module.visibility,
+        "cover_image": module.cover_image,
+        "cover_image_name": module.cover_image_name,
+        "co_host": {
+            "email": co_host.email if co_host else module.co_host_email,
+            "firstName": co_host.first_name if co_host else None,
+            "lastName": co_host.last_name if co_host else None,
+        } if module.co_host_email else None
+    }
