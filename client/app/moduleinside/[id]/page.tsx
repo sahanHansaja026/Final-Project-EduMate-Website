@@ -14,12 +14,14 @@ import {
     BookOpen,
     FileText,
     HelpCircle,
-    PenSquare
+    PenSquare,
+    MessageSquare,
+    X
 } from "lucide-react";
 
 import { API_BASE_URL } from "@/app/config/api";
 import { getUser } from "@/app/services/authService";
-
+import CommentsSection from "@/app/components/CommentsSection";
 import WeekContent from "@/app/components/WeekContent";
 
 type Module = {
@@ -62,6 +64,7 @@ export default function CoursePage() {
     const [showMore, setShowMore] = useState(false);
     const [moduleItems, setModuleItems] = useState<any[]>([]);
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    const [showComments, setShowComments] = useState(false); // Controls the Right Chatbot Drawer
 
     // =========================
     // LOAD MODULE
@@ -143,7 +146,7 @@ export default function CoursePage() {
     useEffect(() => {
         const fetchModuleItems = async () => {
             try {
-                const [contentRes, quizRes, videoRes,assignmentRes] = await Promise.all([
+                const [contentRes, quizRes, videoRes, assignmentRes] = await Promise.all([
                     fetch(`${API_BASE_URL}/contents/module/${id}`),
                     fetch(`${API_BASE_URL}/quizzes/module/${id}`),
                     fetch(`${API_BASE_URL}/videos/module/${id}`),
@@ -166,26 +169,27 @@ export default function CoursePage() {
                     }))
                     : [];
 
-                const videos = videoRes.ok
+                const videosList = videoRes.ok
                     ? (await videoRes.json()).map((item: any) => ({
                         id: item.id,
                         title: item.title,
                         type: "video"
                     }))
                     : [];
-                const assingments = assignmentRes.ok
+
+                const assignments = assignmentRes.ok
                     ? (await assignmentRes.json()).map((item: any) => ({
                         id: item.id,
                         title: item.title,
-                        type: "assingment"
+                        type: "assignment"
                     }))
                     : [];
 
                 setModuleItems([
-                    ...videos,
+                    ...videosList,
                     ...contents,
                     ...quizzes,
-                    ...assingments
+                    ...assignments
                 ]);
             } catch (err) {
                 console.error(err);
@@ -211,7 +215,7 @@ export default function CoursePage() {
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-screen px-4">
-                <p className="text-gray-500 text-sm sm:text-base">
+                <p className="text-gray-500 text-sm sm:text-base animate-pulse">
                     Loading module...
                 </p>
             </div>
@@ -221,7 +225,7 @@ export default function CoursePage() {
     if (!module) {
         return (
             <div className="flex items-center justify-center min-h-screen px-4">
-                <p className="text-red-500 text-sm sm:text-base">
+                <p className="text-red-500 text-sm sm:text-base font-medium">
                     Module not found
                 </p>
             </div>
@@ -229,46 +233,53 @@ export default function CoursePage() {
     }
 
     return (
-        // Locked the container view height layout on desktop to prevent overall page scroll
-        <div className="flex flex-col lg:flex-row lg:h-screen bg-gray-50 w-full overflow-x-hidden">
+        <div className="flex flex-col lg:flex-row lg:h-screen bg-gray-50 w-full overflow-x-hidden relative">
 
-            {/* ================= LMS COLLAPSIBLE SIDEBAR ================= */}
+            {/* ================= LEFT SIDEBAR (NAVIGATION ONLY) ================= */}
             <aside
-                className={`bg-white border-b lg:border-r border-gray-200 lg:h-full transition-all duration-300 ease-in-out flex flex-col z-30 w-full
+                className={`bg-white border-b lg:border-r border-gray-200 lg:h-full transition-all duration-300 ease-in-out flex flex-col z-20 w-full
                     ${isSidebarOpen ? "lg:w-80 h-auto lg:h-full" : "lg:w-20 h-auto lg:h-full"}`}
             >
                 {/* Sidebar Header Container */}
-                <div className="p-4 border-b border-gray-200 flex items-center justify-between bg-gray-50/70 flex-shrink-0">
-                    <div className={`flex items-center gap-3 transition-opacity duration-200 ${!isSidebarOpen && "lg:opacity-0 lg:w-0 overflow-hidden"}`}>
-                        <BookOpen className="w-5 h-5 text-blue-600 flex-shrink-0" />
-                        <div className="min-w-0">
-                            <h2 className="text-sm sm:text-md font-semibold text-gray-900 truncate whitespace-nowrap">Course Content</h2>
-                            <p className="text-xs text-gray-500 mt-0.5 truncate">Select items to track</p>
+                <div className="p-4 border-b border-gray-200 flex flex-col gap-3 bg-gray-50/70 flex-shrink-0">
+                    <div className="flex items-center justify-between">
+                        <div className={`flex items-center gap-3 transition-opacity duration-200 ${!isSidebarOpen && "lg:opacity-0 lg:w-0 overflow-hidden"}`}>
+                            <BookOpen className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                            <div className="min-w-0">
+                                <h2 className="text-sm font-semibold text-gray-900 truncate whitespace-nowrap">
+                                    Course Content
+                                </h2>
+                                <p className="text-xs text-gray-500 mt-0.5 truncate">
+                                    Select items to track
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-1">
+                            {/* Expand/Collapse Trigger Switch */}
+                            <button
+                                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                                className="p-2 rounded-lg hover:bg-gray-200 text-gray-500 hover:text-gray-700 transition-colors hidden lg:block"
+                                title={isSidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
+                            >
+                                {isSidebarOpen ? <ChevronLeft className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+                            </button>
+
+                            {/* Mobile Menu Indicator Button */}
+                            <button
+                                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                                className="p-2 rounded-lg hover:bg-gray-200 text-gray-500 lg:hidden"
+                                title="Toggle Navigation"
+                            >
+                                <Menu className="w-5 h-5" />
+                            </button>
                         </div>
                     </div>
-
-                    {/* Expand/Collapse Trigger Switch */}
-                    <button
-                        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                        className="p-2 rounded-lg hover:bg-gray-200 text-gray-500 hover:text-gray-700 transition-colors hidden lg:block"
-                        title={isSidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
-                    >
-                        {isSidebarOpen ? <ChevronLeft className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-                    </button>
-
-                    {/* Mobile Menu Indicator Button */}
-                    <button
-                        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                        className="p-2 rounded-lg hover:bg-gray-200 text-gray-500 lg:hidden"
-                        title="Toggle Navigation"
-                    >
-                        <Menu className="w-5 h-5" />
-                    </button>
                 </div>
 
-                {/* Sidebar Content Items Navigation - Scrolls independently on desktop */}
-                <div className={`p-3 flex lg:flex-col gap-1 overflow-x-auto lg:overflow-y-auto flex-1 max-w-full scrollbar-thin
-                    ${!isSidebarOpen ? "hidden lg:flex items-center" : "flex lg:flex"}`}
+                {/* Sidebar Scroll Content View */}
+                <div className={`p-3 flex flex-col gap-1 overflow-x-auto lg:overflow-y-auto flex-1 max-w-full scrollbar-thin
+                    ${!isSidebarOpen ? "hidden lg:flex items-center" : "flex"}`}
                 >
                     {moduleItems.map((item) => {
                         const isSelected = selectedItem?.id === item.id && selectedItem?.type === item.type;
@@ -298,7 +309,6 @@ export default function CoursePage() {
                                     </span>
                                 </div>
 
-                                {/* Tooltip label overlay present when side menu is fully minimized */}
                                 {!isSidebarOpen && (
                                     <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 whitespace-nowrap hidden lg:block">
                                         {item.title}
@@ -310,16 +320,28 @@ export default function CoursePage() {
                 </div>
             </aside>
 
-            {/* ================= MAIN CONTENT ================= */}
-            {/* Added lg:overflow-y-auto here so information card panels track independently layout wise */}
+            {/* ================= MAIN CONTENT AREA ================= */}
             <main className="flex-1 p-3 sm:p-6 lg:p-10 space-y-6 lg:space-y-8 w-full min-w-0 lg:overflow-y-auto">
 
-                {/* ================= MODULE HEADER ================= */}
+                {/* ================= MODULE HEADER & CHAT TRIGGER ================= */}
                 <div className="bg-white border rounded-lg w-full overflow-hidden">
-                    <div className="border-b px-4 sm:px-6 py-4">
+                    <div className="border-b px-4 sm:px-6 py-4 flex items-center justify-between gap-4">
                         <h1 className="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-900 break-words">
                             {module.name}
                         </h1>
+
+                        {/* Top-Right Discussion Chatbot Toggle Button */}
+                        <button
+                            onClick={() => setShowComments(!showComments)}
+                            className={`flex-shrink-0 inline-flex items-center gap-2 px-3 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all border
+                                ${showComments
+                                    ? "bg-blue-50 text-blue-700 border-blue-200 shadow-inner"
+                                    : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50 shadow-sm"
+                                }`}
+                        >
+                            <MessageSquare className="w-4 h-4 text-blue-600" />
+                            <span className="hidden sm:inline">Module Chat</span>
+                        </button>
                     </div>
 
                     <div className="p-4 sm:p-6 w-full overflow-x-auto scrollbar-thin">
@@ -407,7 +429,6 @@ export default function CoursePage() {
                                         key={video.id}
                                         className="border rounded-xl overflow-hidden bg-white hover:shadow-lg transition flex flex-col h-full"
                                     >
-                                        {/* THUMBNAIL */}
                                         <div className="relative aspect-video bg-gray-100 w-full flex-shrink-0">
                                             {video.thumbnail_url ? (
                                                 <img
@@ -426,7 +447,6 @@ export default function CoursePage() {
                                             </div>
                                         </div>
 
-                                        {/* CONTENT */}
                                         <div className="p-4 space-y-3 flex flex-col flex-1 justify-between">
                                             <div className="space-y-1">
                                                 <h3 className="font-semibold text-sm sm:text-base text-gray-900 line-clamp-2 break-words">
@@ -437,7 +457,6 @@ export default function CoursePage() {
                                                 </p>
                                             </div>
 
-                                            {/* META */}
                                             <div className="space-y-2 text-3xs sm:text-xs text-gray-500 pt-2">
                                                 {video.open_date && (
                                                     <div className="flex items-center gap-2">
@@ -458,7 +477,6 @@ export default function CoursePage() {
                                                 )}
                                             </div>
 
-                                            {/* ACTIONS */}
                                             <div className="pt-2 w-full">
                                                 {video.source_type === "Upload" ? (
                                                     <video
@@ -506,8 +524,45 @@ export default function CoursePage() {
                         />
                     </div>
                 </div>
-
             </main>
+
+            {/* ================= RIGHT CHATBOT DRAWER PANEL ================= */}
+            <div
+                className={`fixed top-0 right-0 h-150 bg-white border-l border-gray-200 shadow-2xl z-50 flex flex-col transition-all duration-300 ease-in-out
+                    ${showComments ? "w-full sm:w-[400px] md:w-[450px] opacity-100" : "w-0 opacity-0 pointer-events-none"}`}
+            >
+                {showComments && (
+                    <div className="flex flex-col h-full w-full overflow-hidden">
+                        {/* Chat Panel Header */}
+                        <div className="p-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between flex-shrink-0">
+                            <div className="flex items-center gap-2">
+                                <div className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse" />
+                                <h3 className="font-semibold text-sm text-gray-900">
+                                    Module Discussion
+                                </h3>
+                            </div>
+
+                            {/* Close Chatbot Window Button */}
+                            <button
+                                onClick={() => setShowComments(false)}
+                                className="p-1.5 rounded-lg hover:bg-gray-200 text-gray-400 hover:text-gray-600 transition-colors"
+                                title="Close panel"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        </div>
+
+                        {/* Interactive Comments Container */}
+                        <div className="flex-1 overflow-y-auto p-4 scrollbar-thin">
+                            <CommentsSection
+                                moduleId={module.module_id}
+                                onClose={() => setShowComments(false)}
+                            />
+                        </div>
+                    </div>
+                )}
+            </div>
+
         </div>
     );
 }

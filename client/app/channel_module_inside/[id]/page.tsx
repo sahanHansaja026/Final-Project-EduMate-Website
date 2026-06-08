@@ -18,15 +18,16 @@ import {
     Settings,
     Edit3,
     Trash2,
-    Users
+    Users,
+    X,
+    MessageSquare
 } from "lucide-react";
 
 import { API_BASE_URL } from "@/app/config/api";
 import { getUser } from "@/app/services/authService";
 import WeekContent from "@/app/components/channalWeekContent";
 import Link from "next/link";
-
-
+import CommentsSection from "@/app/components/CommentsSection";
 
 type Module = {
     module_id: number;
@@ -77,7 +78,7 @@ export default function CoursePage() {
     const [moduleItems, setModuleItems] = useState<any[]>([]);
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [showSettingsDropdown, setShowSettingsDropdown] = useState(false);
-
+    const [showComments, setShowComments] = useState(false); // Controls the Right Chatbot Drawer
     const dropdownRef = useRef<HTMLDivElement>(null);
 
     // =========================
@@ -237,13 +238,11 @@ export default function CoursePage() {
     // =========================
     // ROLE & PERMISSION CHECKS
     // =========================
-    // Safely captures the authenticated identity checking both potential identity structures (.id or .user_id)
     const isOwner = authUser && module && (authUser.id === module.user_id || authUser.user_id === module.user_id);
 
     const isCoHost = authUser?.email && module?.co_host?.email &&
         authUser.email.toLowerCase() === module.co_host.email.toLowerCase();
 
-    // Settings icon displays if they are either the Owner or the Co-Host
     const hasEditPermissions = isOwner || isCoHost;
 
     // =========================
@@ -270,7 +269,7 @@ export default function CoursePage() {
     }
 
     return (
-        <div className="flex flex-col lg:flex-row lg:h-screen bg-gray-50 w-full overflow-x-hidden">
+        <div className="flex flex-col lg:flex-row lg:h-screen bg-gray-50 w-full overflow-x-hidden relative">
 
             {/* ================= LMS COLLAPSIBLE SIDEBAR ================= */}
             <aside
@@ -358,48 +357,65 @@ export default function CoursePage() {
                             </h1>
                         </div>
 
-                        {/* Privileged User Settings Dropdown Trigger */}
-                        {hasEditPermissions && (
-                            <div className="relative flex-shrink-0 self-center sm:self-start" ref={dropdownRef}>
-                                <button
-                                    onClick={() => setShowSettingsDropdown(!showSettingsDropdown)}
-                                    className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors flex items-center gap-1.5 border border-gray-200 bg-white shadow-sm"
-                                    title="Administrative Actions"
-                                >
-                                    <Settings className="w-4 h-4" />
-                                    <span className="text-xs font-medium hidden sm:inline">Settings</span>
-                                </button>
+                        {/* Top Header Controls (Discussion & Settings Toggle Area) */}
+                        <div className="flex items-center gap-2 self-center sm:self-start flex-shrink-0">
 
-                                {showSettingsDropdown && (
-                                    <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-xl z-50 py-1.5 animate-in fade-in slide-in-from-top-2 duration-150">
-                                        <Link href={`/edit/channaledit/${id}`}>
-                                        <button
-                                            onClick={() => { setShowSettingsDropdown(false); }}
-                                            className="w-full text-left px-4 py-2 text-xs sm:text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2.5"
-                                        >
-                                            <Edit3 className="w-4 h-4 text-gray-400" />
-                                            <span>Edit Module</span>
+                            {/* Discussion Toggle Button placed on top */}
+                            <button
+                                onClick={() => setShowComments(!showComments)}
+                                className={`p-2 rounded-lg transition-colors flex items-center gap-1.5 border shadow-sm ${showComments
+                                    ? "bg-blue-600 text-white border-blue-600 hover:bg-blue-700"
+                                    : "bg-white text-gray-500 border-gray-200 hover:bg-gray-100 hover:text-gray-700"
+                                    }`}
+                                title="Toggle Module Discussion"
+                            >
+                                <MessageSquare className="w-4 h-4" />
+                                <span className="text-xs font-medium hidden sm:inline">Discussion</span>
+                            </button>
+
+                            {/* Privileged User Settings Dropdown Trigger */}
+                            {hasEditPermissions && (
+                                <div className="relative" ref={dropdownRef}>
+                                    <button
+                                        onClick={() => setShowSettingsDropdown(!showSettingsDropdown)}
+                                        className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors flex items-center gap-1.5 border border-gray-200 bg-white shadow-sm"
+                                        title="Administrative Actions"
+                                    >
+                                        <Settings className="w-4 h-4" />
+                                        <span className="text-xs font-medium hidden sm:inline">Settings</span>
+                                    </button>
+
+                                    {showSettingsDropdown && (
+                                        <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-xl z-50 py-1.5 animate-in fade-in slide-in-from-top-2 duration-150">
+                                            <Link href={`/edit/channaledit/${id}`}>
+                                                <button
+                                                    onClick={() => { setShowSettingsDropdown(false); }}
+                                                    className="w-full text-left px-4 py-2 text-xs sm:text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2.5"
+                                                >
+                                                    <Edit3 className="w-4 h-4 text-gray-400" />
+                                                    <span>Edit Module</span>
+                                                </button>
+                                            </Link>
+                                            <button
+                                                onClick={() => { setShowSettingsDropdown(false); }}
+                                                className="w-full text-left px-4 py-2 text-xs sm:text-sm text-red-600 hover:bg-red-50/50 flex items-center gap-2.5"
+                                            >
+                                                <Trash2 className="w-4 h-4 text-red-400" />
+                                                <span>Delete Module</span>
                                             </button>
-                                        </Link>
-                                        <button
-                                            onClick={() => { setShowSettingsDropdown(false); }}
-                                            className="w-full text-left px-4 py-2 text-xs sm:text-sm text-red-600 hover:bg-red-50/50 flex items-center gap-2.5"
-                                        >
-                                            <Trash2 className="w-4 h-4 text-red-400" />
-                                            <span>Delete Module</span>
-                                        </button>
-                                        <div className="border-t border-gray-100 my-1"></div>
-                                        <button
-                                            onClick={() => { setShowSettingsDropdown(false); }}
-                                            className="w-full text-left px-4 py-2 text-xs sm:text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2.5"
-                                        >
-                                            <Users className="w-4 h-4 text-gray-400" />
-                                            <span>Manage Students</span>
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-                        )}
+                                            <div className="border-t border-gray-100 my-1"></div>
+                                            <button
+                                                onClick={() => { setShowSettingsDropdown(false); }}
+                                                className="w-full text-left px-4 py-2 text-xs sm:text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2.5"
+                                            >
+                                                <Users className="w-4 h-4 text-gray-400" />
+                                                <span>Manage Students</span>
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
                     </div>
 
                     <div className="p-4 sm:p-6 w-full overflow-x-auto scrollbar-thin">
@@ -413,8 +429,6 @@ export default function CoursePage() {
                                         {module.module_id}
                                     </td>
                                 </tr>
-                           
-                                
                                 <tr className="border-b">
                                     <th className="py-3 pr-4 text-gray-500 font-medium whitespace-nowrap">
                                         Visibility
@@ -606,6 +620,44 @@ export default function CoursePage() {
                 </div>
 
             </main>
+
+            {/* ================= RIGHT CHATBOT DRAWER PANEL ================= */}
+            <div
+                className={`fixed top-0 right-0 h-screen bg-white border-l border-gray-200 shadow-2xl z-50 flex flex-col transition-all duration-300 ease-in-out
+                    ${showComments ? "w-full sm:w-[400px] md:w-[450px] opacity-100" : "w-0 opacity-0 pointer-events-none"}`}
+            >
+                {showComments && (
+                    <div className="flex flex-col h-150 w-full overflow-hidden">
+                        {/* Chat Panel Header */}
+                        <div className="p-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between flex-shrink-0">
+                            <div className="flex items-center gap-2">
+                                <div className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse" />
+                                <h3 className="font-semibold text-sm text-gray-900">
+                                    Module Discussion
+                                </h3>
+                            </div>
+
+                            {/* Close Chatbot Window Button */}
+                            <button
+                                onClick={() => setShowComments(false)}
+                                className="p-1.5 rounded-lg hover:bg-gray-200 text-gray-400 hover:text-gray-600 transition-colors"
+                                title="Close panel"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        </div>
+
+                        {/* Chat / Comments Panel Content */}
+                        <div className="flex-1 overflow-y-auto p-4 scrollbar-thin">
+                            <CommentsSection
+                                moduleId={module.module_id}
+                                onClose={() => setShowComments(false)}
+                            />
+                        </div>
+                    </div>
+                )}
+            </div>
+
         </div>
     );
 }
