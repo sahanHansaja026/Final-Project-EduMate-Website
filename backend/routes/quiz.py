@@ -3,6 +3,9 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime
 
+from models.quiz_score import QuizScore
+from models.question import Question
+from models.question_option import QuestionOption
 from database import get_db
 from models.quiz import Quiz
 from schemas.quiz import QuizResponse
@@ -70,15 +73,41 @@ def get_quiz(quiz_id: int, db: Session = Depends(get_db)):
 # ✅ DELETE QUIZ
 @router.delete("/{quiz_id}")
 def delete_quiz(quiz_id: int, db: Session = Depends(get_db)):
+
     quiz = db.query(Quiz).filter(Quiz.id == quiz_id).first()
 
     if not quiz:
         raise HTTPException(status_code=404, detail="Quiz not found")
 
+    # 1. delete quiz scores
+    db.query(QuizScore).filter(
+        QuizScore.quiz_id == quiz_id
+    ).delete(synchronize_session=False)
+
+    # 2. find question IDs
+    questions = db.query(Question).filter(
+        Question.quiz_id == quiz_id
+    ).all()
+
+    question_ids = [q.id for q in questions]
+
+    # 3. delete options
+    if question_ids:
+        db.query(QuestionOption).filter(
+            QuestionOption.question_id.in_(question_ids)
+        ).delete(synchronize_session=False)
+
+    # 4. delete questions
+    db.query(Question).filter(
+        Question.quiz_id == quiz_id
+    ).delete(synchronize_session=False)
+
+    # 5. delete quiz
     db.delete(quiz)
+
     db.commit()
 
-    return {"message": "Quiz deleted successfully"}
+    return {"message": "Quiz and all related data deleted successfully"}
 
 @router.put("/{quiz_id}", response_model=QuizResponse)
 def update_quiz(

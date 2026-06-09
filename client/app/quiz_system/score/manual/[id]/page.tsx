@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams } from "next/navigation";
 import { API_BASE_URL } from "@/app/config/api";
+import {  useRouter } from "next/navigation";
 
 import {
     Trophy,
@@ -34,7 +35,7 @@ export default function QuizResultsPage() {
 
     const params = useParams();
     const quizId = params.id as string;
-
+    const router = useRouter();
     const [scores, setScores] = useState<QuizScore[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -125,13 +126,7 @@ export default function QuizResultsPage() {
                                         Percentage
                                     </th>
 
-                                    <th className="p-5 text-sm font-semibold">
-                                        Correct
-                                    </th>
-
-                                    <th className="p-5 text-sm font-semibold">
-                                        Wrong
-                                    </th>
+                                   
 
                                     <th className="p-5 text-sm font-semibold">
                                         Attempt
@@ -166,7 +161,10 @@ export default function QuizResultsPage() {
 
                                         <tr
                                             key={score.id}
-                                            className="border-b border-gray-100 hover:bg-gray-50 transition"
+                                            onClick={() =>
+                                                router.push(`/quiz_system/score/auto?quiz_id=${score.quiz_id}&student_id=${score.student_id}`)
+                                            }
+                                            className="border-b border-gray-100 hover:bg-gray-50 transition cursor-pointer"
                                         >
 
                                             {/* Student */}
@@ -195,12 +193,12 @@ export default function QuizResultsPage() {
                                             {/* Score */}
                                             <td className="p-5">
 
-                                                <div className="font-bold text-lg text-gray-900">
-                                                    {score.obtained_marks}
-                                                    <span className="text-gray-400 text-sm font-medium">
-                                                        / {score.total_marks}
+
+
+                                                    <span className="text-gray-900 text-sm font-medium">
+                                                         {score.total_marks}
                                                     </span>
-                                                </div>
+
 
                                             </td>
 
@@ -220,30 +218,7 @@ export default function QuizResultsPage() {
                                             </td>
 
                                             {/* Correct */}
-                                            <td className="p-5">
-
-                                                <div className="flex items-center gap-2 text-emerald-600 font-semibold">
-
-                                                    <CheckCircle2 className="w-5 h-5" />
-
-                                                    {score.correct_answers}
-
-                                                </div>
-
-                                            </td>
-
-                                            {/* Wrong */}
-                                            <td className="p-5">
-
-                                                <div className="flex items-center gap-2 text-red-500 font-semibold">
-
-                                                    <XCircle className="w-5 h-5" />
-
-                                                    {score.wrong_answers}
-
-                                                </div>
-
-                                            </td>
+                                            
 
                                             {/* Attempt */}
                                             <td className="p-5">

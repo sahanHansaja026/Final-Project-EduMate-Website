@@ -23,6 +23,7 @@ import { API_BASE_URL } from "@/app/config/api";
 import { getUser } from "@/app/services/authService";
 import CommentsSection from "@/app/components/CommentsSection";
 import WeekContent from "@/app/components/WeekContent";
+import Link from "next/link";
 
 type Module = {
     module_id: number;
@@ -326,22 +327,39 @@ export default function CoursePage() {
                 {/* ================= MODULE HEADER & CHAT TRIGGER ================= */}
                 <div className="bg-white border rounded-lg w-full overflow-hidden">
                     <div className="border-b px-4 sm:px-6 py-4 flex items-center justify-between gap-4">
-                        <h1 className="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-900 break-words">
-                            {module.name}
-                        </h1>
+                        {/* Module Name Container - Grows to take available space */}
+                        <div className="flex-1 min-w-0">
+                            <h1 className="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-900 break-words">
+                                {module.name}
+                            </h1>
+                        </div>
 
-                        {/* Top-Right Discussion Chatbot Toggle Button */}
-                        <button
-                            onClick={() => setShowComments(!showComments)}
-                            className={`flex-shrink-0 inline-flex items-center gap-2 px-3 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all border
-                                ${showComments
-                                    ? "bg-blue-50 text-blue-700 border-blue-200 shadow-inner"
-                                    : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50 shadow-sm"
-                                }`}
-                        >
-                            <MessageSquare className="w-4 h-4 text-blue-600" />
-                            <span className="hidden sm:inline">Module Chat</span>
-                        </button>
+                        {/* Buttons Container - Stays tightly grouped together with small spacing */}
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                            {/* Top-Right Discussion Chatbot Toggle Button */}
+                            <button
+                                onClick={() => setShowComments(!showComments)}
+                                className={`p-2 rounded-lg transition-colors flex items-center gap-1.5 border shadow-sm ${showComments
+                                    ? "bg-blue-600 text-white border-blue-600 hover:bg-blue-700"
+                                    : "bg-white text-gray-500 border-gray-200 hover:bg-gray-100 hover:text-gray-700"
+                                    }`}
+                                title="Toggle Module Discussion"
+                            >
+                                <MessageSquare className="w-4 h-4" />
+                                <span className="text-xs font-medium hidden sm:inline">Discussion</span>
+                            </button>
+
+                            {/* Grade Button */}
+                            <Link href={`/grades/student_view/${id}`}>
+                                <button
+                                    className="p-2 rounded-lg transition-colors flex items-center gap-1 border shadow-sm bg-white text-gray-500 border-gray-200 hover:bg-gray-100 hover:text-gray-700"
+                                    title="View Grades"
+                                >
+                                    <FileText className="w-4 h-4" />
+                                    <span className="text-xs font-medium hidden sm:inline">Grades</span>
+                                </button>
+                            </Link>
+                        </div>
                     </div>
 
                     <div className="p-4 sm:p-6 w-full overflow-x-auto scrollbar-thin">
