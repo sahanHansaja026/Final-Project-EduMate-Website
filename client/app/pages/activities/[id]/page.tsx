@@ -1,9 +1,14 @@
-import React from 'react'
+"use client";
 
-function page() {
+import { useParams } from "next/navigation";
+
+export default function Page() {
+  const params = useParams();
+  const id = params.id as string;
+
   return (
-    <div>page</div>
-  )
+    <div>
+      <h1>channel ID: {id}</h1>
+    </div>
+  );
 }
-
-export default page

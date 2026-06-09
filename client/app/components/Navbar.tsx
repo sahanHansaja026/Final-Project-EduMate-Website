@@ -7,10 +7,11 @@ import { getUser } from "../services/authService";
 import { API_BASE_URL } from "../config/api";
 
 const navigation = [
-  { name: "Dashboard", href: "/pages/home", current: true },
+  { name: "Home", href: "/pages/home", current: true },
   { name: "Create Module", href: "/pages/modulecreation", current: false },
   { name: "About Us", href: "/pages/about_us", current: false },
   { name: "channels", href: "/pages/channel", current: false },
+  { name: "Dashboard", href: "/pages/dashboard", current: false },
 ];
 
 function classNames(...classes: string[]) {
