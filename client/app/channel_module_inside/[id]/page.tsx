@@ -80,6 +80,8 @@ export default function CoursePage() {
     const [showSettingsDropdown, setShowSettingsDropdown] = useState(false);
     const [showComments, setShowComments] = useState(false); // Controls the Right Chatbot Drawer
     const dropdownRef = useRef<HTMLDivElement>(null);
+    const [hasAccess, setHasAccess] = useState(false);
+    const [checkingAccess, setCheckingAccess] = useState(true);
 
     // =========================
     // LOAD MODULE FROM CHANNEL ROUTE
@@ -162,6 +164,34 @@ export default function CoursePage() {
         };
         fetchUserProfile();
     }, []);
+
+    useEffect(() => {
+        const checkAccess = async () => {
+            try {
+                const res = await fetch(
+                    `${API_BASE_URL}/channel-module-access/check/${id}/${authUser?.email}`
+                );
+
+                if (!res.ok) {
+                    setHasAccess(false);
+                    return;
+                }
+
+                const data = await res.json();
+
+                setHasAccess(data.access === true);
+            } catch (err) {
+                setHasAccess(false);
+            } finally {
+                setCheckingAccess(false);
+            }
+        };
+
+        if (id && authUser?.email) {
+            checkAccess();
+        }
+    }, [id, authUser]);
+
 
     // =========================
     // LOAD MODULE ITEMS
@@ -263,6 +293,24 @@ export default function CoursePage() {
             <div className="flex items-center justify-center min-h-screen px-4">
                 <p className="text-red-500 text-sm sm:text-base font-medium">
                     Module data layer configuration entry not found
+                </p>
+            </div>
+        );
+    }
+
+    if (checkingAccess) {
+        return (
+            <div className="flex items-center justify-center h-screen text-gray-500">
+                Checking access...
+            </div>
+        );
+    }
+
+    if (!hasAccess && !hasEditPermissions) {
+        return (
+            <div className="flex items-center justify-center h-screen">
+                <p className="text-red-500 font-semibold">
+                    You are not authorized to access this module
                 </p>
             </div>
         );

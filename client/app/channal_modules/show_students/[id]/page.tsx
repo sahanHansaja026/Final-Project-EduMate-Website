@@ -53,17 +53,22 @@ export default function AuthorizedStudentsPage() {
     }, [channel_module_id]);
 
     const handleEdit = (accessId: number) => {
-        router.push(`/access/edit?id=${accessId}`);
+        router.push(`/channal_modules/edit_students/${accessId}`);
     };
 
     const handleDelete = async (studentId: number) => {
-        if (!confirm("Are you sure you want to revoke authorization for this student?")) return;
+        if (!confirm("Are you sure you want to revoke this student access?")) return;
 
         try {
-            await axios.delete(`${API_BASE_URL}/authorized-students/${studentId}`);
-            setStudents(students.filter(s => s.id !== studentId));
+            await axios.delete(
+                `${API_BASE_URL}/authorized-students/${studentId}`
+            );
+
+            // remove from UI instantly (no refetch needed)
+            setStudents((prev) => prev.filter((s) => s.id !== studentId));
+
         } catch (err) {
-            alert("Failed to delete user profile authorization.");
+            alert("Failed to delete student");
         }
     };
 

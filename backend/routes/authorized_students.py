@@ -61,3 +61,57 @@ def delete_student(
     return {
         "message": "Student removed successfully"
     }
+    
+@router.put("/{student_id}", response_model=AuthorizedStudentResponse)
+def update_student(
+    student_id: int,
+    payload: AuthorizedStudentUpdate,
+    db: Session = Depends(get_db)
+):
+
+    student = db.query(AuthorizedStudent).filter(
+        AuthorizedStudent.id == student_id
+    ).first()
+
+    if not student:
+        raise HTTPException(
+            status_code=404,
+            detail="Student not found"
+        )
+
+    # update only provided fields
+    if payload.status is not None:
+        student.status = payload.status
+
+    if payload.remark is not None:
+        student.remark = payload.remark
+
+    db.commit()
+    db.refresh(student)
+
+    return student
+
+@router.get("/{student_id}")
+def get_student_by_id(
+    student_id: int,
+    db: Session = Depends(get_db)
+):
+    student = db.query(AuthorizedStudent).filter(
+        AuthorizedStudent.id == student_id
+    ).first()
+
+    if not student:
+        raise HTTPException(
+            status_code=404,
+            detail="Student not found"
+        )
+
+    return {
+        "id": student.id,
+        "channel_module_id": student.channel_module_id,
+        "student_name": student.student_name,
+        "student_email": student.student_email,
+        "admission_date": student.admission_date,
+        "status": student.status,
+        "remark": student.remark,
+    }
