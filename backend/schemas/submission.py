@@ -13,3 +13,6 @@ class SubmissionResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class GradeUpdate(BaseModel):
+    marks: Optional[int] = None

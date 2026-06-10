@@ -414,13 +414,15 @@ export default function CoursePage() {
                                                 <span>Delete Module</span>
                                             </button>
                                             <div className="border-t border-gray-100 my-1"></div>
+                                            <Link href={`/channal_modules/show_students/${id}`}>
                                             <button
                                                 onClick={() => { setShowSettingsDropdown(false); }}
                                                 className="w-full text-left px-4 py-2 text-xs sm:text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2.5"
                                             >
                                                 <Users className="w-4 h-4 text-gray-400" />
                                                 <span>Manage Students</span>
-                                            </button>
+                                                </button>
+                                            </Link>
                                         </div>
                                     )}
                                 </div>

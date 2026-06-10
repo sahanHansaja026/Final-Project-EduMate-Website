@@ -18,6 +18,7 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 async def create_assignment(
     module_id: int = Form(...),
     title: str = Form(...),
+    full_marks: int = Form(...),   # ✅ ADD THIS
     description: str = Form(None),
     file: UploadFile = File(None),
     open_date: date = Form(None),
@@ -36,6 +37,7 @@ async def create_assignment(
     assignment = Assignment(
         module_id=module_id,
         title=title,
+        full_marks=full_marks,   # ✅ SAVE IT
         description=description,
         file_path=file_path,
         open_date=open_date,
@@ -74,6 +76,7 @@ async def update_assignment(
     assignment_id: int,
     module_id: int = Form(None),
     title: str = Form(None),
+    full_marks: int = Form(None),   # ✅ ADD THIS
     description: str = Form(None),
     file: UploadFile = File(None),
     open_date: date = Form(None),
@@ -81,24 +84,29 @@ async def update_assignment(
     allow_download: bool = Form(None),
     db: Session = Depends(get_db),
 ):
-    assignment = db.query(Assignment).filter(Assignment.id == assignment_id).first()
+    assignment = db.query(Assignment).filter(
+        Assignment.id == assignment_id
+    ).first()
 
     if not assignment:
         raise HTTPException(status_code=404, detail="Assignment not found")
 
-    # Update file if new file uploaded
+    # file update
     if file:
         path = f"{UPLOAD_DIR}/{file.filename}"
         with open(path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
         assignment.file_path = path
 
-    # Update fields only if provided
+    # field updates
     if module_id is not None:
         assignment.module_id = module_id
 
     if title is not None:
         assignment.title = title
+
+    if full_marks is not None:   # ✅ ADD THIS
+        assignment.full_marks = full_marks
 
     if description is not None:
         assignment.description = description

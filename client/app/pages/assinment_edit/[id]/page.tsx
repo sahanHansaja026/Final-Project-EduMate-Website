@@ -31,7 +31,7 @@ export default function EditAssignmentPage() {
     const [openDate, setOpenDate] = useState("");
     const [closeDate, setCloseDate] = useState("");
     const [allowDownload, setAllowDownload] = useState(true);
-
+    const [fullMarks, setFullMarks] = useState<number | "">("");
     // Asset Tracking
     const [existingFilePath, setExistingFilePath] = useState<string | null>(null);
     const [file, setFile] = useState<File | null>(null);
@@ -57,6 +57,7 @@ export default function EditAssignmentPage() {
             setDescription(assignment.description || "");
             setAllowDownload(assignment.allow_download ?? true);
             setExistingFilePath(assignment.file_path || null);
+            setFullMarks(assignment.full_marks ?? "");
 
             if (assignment.open_date) {
                 setOpenDate(assignment.open_date.split("T")[0]);
@@ -86,6 +87,7 @@ export default function EditAssignmentPage() {
             formData.append("title", title);
             formData.append("description", description);
             formData.append("allow_download", allowDownload ? "true" : "false");
+            formData.append("full_marks", String(fullMarks));
 
             if (openDate) formData.append("open_date", openDate);
             if (closeDate) formData.append("close_date", closeDate);
@@ -194,6 +196,22 @@ export default function EditAssignmentPage() {
                                     />
                                 </div>
                             </div>
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+                                Full Marks
+                            </label>
+                            <input
+                                type="number"
+                                value={fullMarks}
+                                onChange={(e) =>
+                                    setFullMarks(
+                                        e.target.value === "" ? "" : Number(e.target.value)
+                                    )
+                                }
+                                placeholder="Enter total marks"
+                                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                            />
                         </div>
 
                         <hr className="border-slate-100" />

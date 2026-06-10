@@ -5,8 +5,8 @@ class Assignment(Base):
     __tablename__ = "assignments"
 
     id = Column(Integer, primary_key=True, index=True)
-    module_id = Column(Integer, index=True)
-
+    module_id = Column(Integer, nullable=False)
+    full_marks = Column(Integer, nullable=False)
     title = Column(String, nullable=False)
     description = Column(Text, nullable=True)
 

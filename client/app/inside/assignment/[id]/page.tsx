@@ -23,7 +23,7 @@ export default function CreateAssignmentForm() {
     const [closeDate, setCloseDate] = useState("");
     const [allowDownload, setAllowDownload] = useState(true);
     const [file, setFile] = useState<File | null>(null);
-
+    const [fullMarks, setFullMarks] = useState<number | "">("");
     const [user, setUser] = useState<{ id: number; email: string } | null>(null);
     const [quota, setQuota] = useState<any>(null);
 
@@ -88,6 +88,7 @@ export default function CreateAssignmentForm() {
             formData.append("title", title);
             formData.append("description", description || "");
             formData.append("allow_download", String(allowDownload));
+            formData.append("full_marks", String(fullMarks));
 
             if (openDate) formData.append("open_date", openDate);
             if (closeDate) formData.append("close_date", closeDate);
@@ -183,7 +184,21 @@ export default function CreateAssignmentForm() {
                             className="w-full border rounded-lg px-3 py-2"
                         />
                     </div>
-
+                    {/* FULL MARKS */}
+                    <div>
+                        <label className="text-sm">Full Marks</label>
+                        <input
+                            type="number"
+                            placeholder="e.g. 100"
+                            value={fullMarks}
+                            onChange={(e) =>
+                                setFullMarks(
+                                    e.target.value === "" ? "" : Number(e.target.value)
+                                )
+                            }
+                            className="w-full border rounded-lg px-3 py-2"
+                        />
+                    </div>
                 </div>
 
                 {/* ALLOW DOWNLOAD */}

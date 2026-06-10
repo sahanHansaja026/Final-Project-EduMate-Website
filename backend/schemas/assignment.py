@@ -8,6 +8,7 @@ class AssignmentResponse(BaseModel):
     title: str
     description: Optional[str]
     file_path: Optional[str]
+    full_marks:int
     open_date: Optional[date]
     close_date: Optional[date]
     allow_download: bool

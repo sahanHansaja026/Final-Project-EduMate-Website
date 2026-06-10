@@ -49,34 +49,12 @@ export default function LMSModuleDashboard() {
             title: "Assignments",
             visible: true,
             items: [
-                { label: "Create assignment tasks", href: "/lms/assignments/create", visible: true },
+                { label: "Create assignment tasks", href: "/lms/assignments/create", visible: false },
                 { label: "File upload submissions", href: `/inside/assignment/${id}`, visible: true },
-                { label: "Text-based submissions", href: "/lms/assignments/text", visible: true },
-                { label: "Deadlines and late submission rules", href: "/lms/assignments/deadlines", visible: true },
-                { label: "Rubric-based grading", href: "/lms/assignments/rubric", visible: true },
-                { label: "Resubmission support", href: "/lms/assignments/resubmission", visible: true }
-            ]
-        },
-        {
-            title: "Student Submissions",
-            visible: true,
-            items: [
-                { label: "Upload assignments securely", href: "/lms/submissions/upload", visible: true },
-                { label: "Drag and drop file upload", href: "/lms/submissions/dragdrop", visible: true },
-                { label: "Multi-file support", href: "/lms/submissions/multifile", visible: true },
-                { label: "Version tracking", href: "/lms/submissions/versioning", visible: true },
-                { label: "Submission status monitoring", href: "/lms/submissions/status", visible: true }
-            ]
-        },
-        {
-            title: "Communication",
-            visible: true,
-            items: [
-                { label: "Discussion forums", href: "/lms/communication/forums", visible: true },
-                { label: "Q&A sections", href: "/lms/communication/qa", visible: true },
-                { label: "Instructor and student comments", href: "/lms/communication/comments", visible: true },
-                { label: "Announcements system", href: "/lms/communication/announcements", visible: true },
-                { label: "Messaging support", href: "/lms/communication/messages", visible: true }
+                { label: "Text-based submissions", href: "/lms/assignments/text", visible: false },
+                { label: "Deadlines and late submission rules", href: "/lms/assignments/deadlines", visible: false },
+                { label: "Rubric-based grading", href: "/lms/assignments/rubric", visible: false },
+                { label: "Resubmission support", href: "/lms/assignments/resubmission", visible: false }
             ]
         },
         {
@@ -84,14 +62,12 @@ export default function LMSModuleDashboard() {
             visible: true,
             items: [
                 { label: "Live class integration", href: `/live/${id}`, visible: true },
-                { label: "Attendance tracking", href: "/lms/live/attendance", visible: true },
-                { label: "Live chat sessions", href: "/lms/live/chat", visible: true },
-                { label: "Recorded lecture access", href: "/lms/live/recordings", visible: true }
+                { label: "Attendance tracking", href: "/lms/live/attendance", visible: false },
             ]
         },
         {
             title: "Analytics",
-            visible: true,
+            visible: false,
             items: [
                 { label: "Student progress tracking", href: "/lms/analytics/progress", visible: true },
                 { label: "Performance analytics", href: "/lms/analytics/performance", visible: true },
@@ -101,7 +77,7 @@ export default function LMSModuleDashboard() {
         },
         {
             title: "Learning Flow",
-            visible: true,
+            visible: false,
             items: [
                 { label: "Module unlocking system", href: "/lms/learning/locking", visible: true },
                 { label: "Prerequisite control", href: "/lms/learning/prerequisites", visible: true },
@@ -111,7 +87,7 @@ export default function LMSModuleDashboard() {
         },
         {
             title: "Grading System",
-            visible: true,
+            visible: false,
             items: [
                 { label: "Centralized gradebook", href: "/lms/grading/gradebook", visible: true },
                 { label: "Weighted scoring system", href: "/lms/grading/weighted", visible: true },
@@ -122,7 +98,7 @@ export default function LMSModuleDashboard() {
         },
         {
             title: "Resources",
-            visible: true,
+            visible: false,
             items: [
                 { label: "Central file repository", href: "/lms/resources/repository", visible: true },
                 { label: "Downloadable materials", href: "/lms/resources/downloads", visible: true },
@@ -132,7 +108,7 @@ export default function LMSModuleDashboard() {
         },
         {
             title: "Group Activities",
-            visible: true,
+            visible: false,
             items: [
                 { label: "Group assignments", href: "/lms/groups/assignments", visible: true },
                 { label: "Peer review system", href: "/lms/groups/peer-review", visible: true },
@@ -142,7 +118,7 @@ export default function LMSModuleDashboard() {
         },
         {
             title: "Notifications",
-            visible: true,
+            visible: false,
             items: [
                 { label: "Deadline reminders", href: "/lms/notifications/deadlines", visible: true },
                 { label: "Quiz notifications", href: "/lms/notifications/quizzes", visible: true },
@@ -152,7 +128,7 @@ export default function LMSModuleDashboard() {
         },
         {
             title: "Instructor Tools",
-            visible: true,
+            visible: false,
             items: [
                 { label: "Create and manage modules", href: "/lms/instructor/modules", visible: true },
                 { label: "Duplicate course structures", href: "/lms/instructor/duplicate", visible: true },

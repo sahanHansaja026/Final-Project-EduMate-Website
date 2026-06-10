@@ -15,25 +15,15 @@ type UserProfile = {
 };
 
 export default function DashboardPage() {
-    const [role, setRole] = useState<"student" | "owner" | "channel">("owner");
+    const [role, setRole] = useState<"student" | "Module owner" | "channel">("Module owner");
     const [user, setUser] = useState<UserProfile | null>(null);
     const [isAuthenticating, setIsAuthenticating] = useState<boolean>(true);
 
-    useEffect(() => {
-        async function resolveSession() {
-            const currentUser = await getUser();
-            setUser(currentUser);
-        }
-
-        resolveSession();
-    }, []);
-
+    // Consolidate into a single useEffect to handle the session resolution cleanly
     useEffect(() => {
         async function resolveSession() {
             try {
                 setIsAuthenticating(true);
-
-                // This mirrors your original getUser implementation
                 const currentUser = await getUser();
                 setUser(currentUser);
             } catch (err) {
@@ -54,7 +44,7 @@ export default function DashboardPage() {
                 <header>
                     <h1 className="text-4xl font-black tracking-tighter">DASHBOARD</h1>
                     <p className="text-gray-500 font-medium">
-                        Managing your LMS workspace as a{" "}
+                        Managing your ModuleMate workspace as a{" "}
                         <span className="text-gray-900 underline underline-offset-4 capitalize">{role}</span>
                     </p>
                 </header>
@@ -69,25 +59,25 @@ export default function DashboardPage() {
                         {/* Dynamic Context Render Engines */}
                         {role === "student" && <StudentStats />}
 
-                        {role === "owner" && (
+                        {role === "Module owner" && (
                             <div className="space-y-8 animate-in fade-in duration-300">
-                                <ModuleAnalytics />
+                                {user?.id ? (
+                                    <>
+                                        <ModuleAnalytics ownerId={user.id} />
 
-                                <div className="border border-gray-200 rounded-xl p-6 bg-white">
-                                    <h4 className="font-bold mb-6 flex items-center gap-2 italic text-gray-900">
-                                        <span className="h-2 w-2 bg-gray-900 rounded-full animate-pulse" />
-                                        Live AI Feedback Stream (FastAPI Pipeline)
-                                    </h4>
-
-                                    {/* 2. CRITICAL FIX: Only mount the element if user profile exists */}
-                                    {user?.id ? (
-                                        <CommentSection ownerId={user.id} />
-                                    ) : (
-                                        <div className="p-4 border border-gray-100 rounded-lg bg-gray-50 text-xs font-mono text-gray-500">
-                                            Error: No authorized owner account matched to this session profile.
+                                        <div className="border border-gray-200 rounded-xl p-6 bg-white">
+                                            <h4 className="font-bold mb-6 flex items-center gap-2 italic text-gray-900">
+                                                <span className="h-2 w-2 bg-gray-900 rounded-full animate-pulse" />
+                                                Live AI Feedback Stream
+                                            </h4>
+                                            <CommentSection ownerId={user.id} />
                                         </div>
-                                    )}
-                                </div>
+                                    </>
+                                ) : (
+                                    <div className="p-4 border border-gray-100 rounded-lg bg-gray-50 text-xs font-mono text-gray-500">
+                                        Error: No authorized owner account matched to this session profile.
+                                    </div>
+                                )}
                             </div>
                         )}
 
