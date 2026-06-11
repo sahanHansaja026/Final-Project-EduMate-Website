@@ -139,9 +139,8 @@ export default function QuizBuilder() {
                 setChecking(true);
 
                 const res = await axios.get(
-                    `${API_BASE_URL}/access-control/quiz/${id}/user/${user.id}`
+                    `${API_BASE_URL}/access-control/channel-module/quiz/${id}/user/${user.id}`
                 );
-
                 setAccess(res.data.access);
             } catch (err) {
                 setAccess(false);

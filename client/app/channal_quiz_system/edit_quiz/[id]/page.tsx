@@ -36,14 +36,16 @@ export default function EditQuizForm() {
     const [shuffleQuestions, setShuffleQuestions] = useState(false);
     const [moduleId, setModuleId] = useState<number | null>(null);
     const [user, setUser] = useState<any>(null);
-    const [checkingAccess, setCheckingAccess] = useState(true);
     const [access, setAccess] = useState<boolean | null>(null);
+    const [checking, setChecking] = useState(true);
 
 
+    // ALWAYS declare hooks first
     useEffect(() => {
         const currentUser = getUser();
         setUser(currentUser);
     }, []);
+
     // ===============================
     // FETCH QUIZ (GET SINGLE QUIZ)
     // ===============================
@@ -123,37 +125,33 @@ export default function EditQuizForm() {
             alert("Error updating quiz");
         }
     };
+
+
+    // check acess
     useEffect(() => {
         if (!user?.id || !quizId) return;
 
         const checkAccess = async () => {
             try {
-                setCheckingAccess(true);
+                setChecking(true);
 
                 const res = await axios.get(
-                    `${API_BASE_URL}/access-control/quiz/${quizId}/user/${user.id}`
+                    `${API_BASE_URL}/access-control/channel-module/quiz/${quizId}/user/${user.id}`
                 );
 
                 setAccess(res.data.access);
             } catch (err) {
                 setAccess(false);
             } finally {
-                setCheckingAccess(false);
+                setChecking(false);
             }
         };
 
         checkAccess();
     }, [user?.id, quizId]);
 
-    // ===============================
-    // LOADING STATE
-    // ===============================
-    if (checkingAccess) {
-        return (
-            <div className="p-6 text-center">
-                Checking access...
-            </div>
-        );
+    if (checking) {
+        return <p className="p-6">Checking access...</p>;
     }
 
     if (access === false) {
@@ -164,10 +162,12 @@ export default function EditQuizForm() {
             </div>
         );
     }
+    // ===============================
+    // LOADING STATE
+    // ===============================
     if (loading) {
         return <p className="p-6">Loading quiz...</p>;
     }
-
     return (
         <Card className="rounded-2xl shadow-sm">
             <CardContent className="p-6 space-y-5">

@@ -315,7 +315,7 @@ export default function WeekItemInfo({ moduleId }: Props) {
                         if (item.type === "content") {
                             detailsHref = `/activity/content/${item.assignment_id}`;
                         } else if (item.type === "quiz") {
-                            detailsHref = `/quiz_system/create_questions/${item.id}?module_id=${moduleId}`;
+                            detailsHref = `/channal_quiz_system/create_questions/${item.id}?module_id=${moduleId}`;
                         } else if (item.type === "video") {
                             detailsHref = `/activity/video/${item.id}`;
                         } else if (item.type === "assignment") {
@@ -326,7 +326,7 @@ export default function WeekItemInfo({ moduleId }: Props) {
                         if (item.type === "content") {
                             editHref = `/pages/content/edit/${item.assignment_id}`;
                         } else if (item.type === "quiz") {
-                            editHref = `/quiz_system/edit_quiz/${item.id}`;
+                            editHref = `/channal_quiz_system/edit_quiz/${item.id}`;
                         } else if (item.type === "video") {
                             editHref = `/pages/video/edit/${item.id}`;
                         } else if (item.type === "assignment") {
