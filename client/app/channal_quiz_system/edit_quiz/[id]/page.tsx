@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { API_BASE_URL } from "@/app/config/api";
 import { getUser } from "@/app/services/authService";
 
@@ -149,6 +149,13 @@ export default function EditQuizForm() {
 
         checkAccess();
     }, [user?.id, quizId]);
+    const router = useRouter();
+
+    useEffect(() => {
+        if (access === false) {
+            router.push("/errors/autharization");
+        }
+    }, [access, router]);
 
     if (checking) {
         return <p className="p-6">Checking access...</p>;

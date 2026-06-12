@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { API_BASE_URL } from "@/app/config/api";
 import { getUser } from "@/app/services/authService";
 
@@ -38,6 +38,7 @@ export default function EditQuizForm() {
     const [user, setUser] = useState<any>(null);
     const [checkingAccess, setCheckingAccess] = useState(true);
     const [access, setAccess] = useState<boolean | null>(null);
+    const router = useRouter();
 
 
     useEffect(() => {
@@ -145,6 +146,12 @@ export default function EditQuizForm() {
         checkAccess();
     }, [user?.id, quizId]);
 
+    useEffect(() => {
+        if (access === false) {
+            router.push("/errors/autharization");
+        }
+    }, [access, router]);
+
     // ===============================
     // LOADING STATE
     // ===============================
@@ -156,14 +163,6 @@ export default function EditQuizForm() {
         );
     }
 
-    if (access === false) {
-        return (
-            <div className="flex flex-col items-center justify-center h-screen text-red-600">
-                <h1 className="text-2xl font-bold">Access Denied</h1>
-                <p>You are not allowed to edit this channel quiz.</p>
-            </div>
-        );
-    }
     if (loading) {
         return <p className="p-6">Loading quiz...</p>;
     }

@@ -15,6 +15,7 @@ import {
     Circle,
     FileText
 } from "lucide-react";
+import { getUser } from "@/app/services/authService";
 
 interface Option {
     id: number;
@@ -41,6 +42,7 @@ export default function StudentQuizView() {
     const [loading, setLoading] = useState(true);
     const [timeLeft, setTimeLeft] = useState(1800);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [user, setUser] = useState<{ id: number; email: string } | null>(null);
 
     useEffect(() => {
         const fetchQuestions = async () => {
@@ -75,6 +77,13 @@ export default function StudentQuizView() {
         setAnswers(prev => ({ ...prev, [questionId]: value }));
     };
 
+    useEffect(() => {
+        const u = getUser();
+        if (u?.id) {
+            setUser(u);
+        }
+    }, []);
+
     const handleFinalSubmit = async () => {
 
         if (!window.confirm("Are you sure you want to submit your assessment?")) {
@@ -85,7 +94,12 @@ export default function StudentQuizView() {
 
         try {
 
-            const student_id = 1; // logged user id
+            const student_id = user?.id;
+
+            if (!student_id) {
+                alert("User not loaded yet");
+                return;
+            }
 
             let totalMarks = 0;
             let obtainedMarks = 0;
@@ -220,7 +234,7 @@ export default function StudentQuizView() {
 
             alert("Assessment successfully submitted.");
 
-            router.push("/quiz_system/dashboard");
+            router.push(`/quiz_system/score/manual${student_id}`);
 
         } catch (err) {
 
@@ -331,8 +345,8 @@ export default function StudentQuizView() {
                                                     }
                                                 }}
                                                 className={`group flex items-center justify-between p-7 rounded-3xl border-2 transition-all text-left ${isSelected
-                                                        ? "border-gray-900 bg-gray-50 shadow-sm"
-                                                        : "border-gray-100 hover:border-gray-200 bg-white"
+                                                    ? "border-gray-900 bg-gray-50 shadow-sm"
+                                                    : "border-gray-100 hover:border-gray-200 bg-white"
                                                     }`}
                                             >
                                                 <span className={`text-lg font-semibold ${isSelected ? "text-gray-900" : "text-gray-400 group-hover:text-gray-600"}`}>
@@ -409,10 +423,10 @@ export default function StudentQuizView() {
                                 key={q.id}
                                 onClick={() => setCurrentIndex(idx)}
                                 className={`aspect-square rounded-xl flex items-center justify-center text-sm font-bold transition-all border-2 ${currentIndex === idx
-                                        ? "bg-white border-white text-gray-900 scale-110 shadow-2xl shadow-white/20"
-                                        : answers[q.id]
-                                            ? "bg-emerald-500/20 border-emerald-500 text-emerald-400"
-                                            : "bg-transparent border-white/10 text-gray-600 hover:border-white/40 hover:text-white"
+                                    ? "bg-white border-white text-gray-900 scale-110 shadow-2xl shadow-white/20"
+                                    : answers[q.id]
+                                        ? "bg-emerald-500/20 border-emerald-500 text-emerald-400"
+                                        : "bg-transparent border-white/10 text-gray-600 hover:border-white/40 hover:text-white"
                                     }`}
                             >
                                 {idx + 1}

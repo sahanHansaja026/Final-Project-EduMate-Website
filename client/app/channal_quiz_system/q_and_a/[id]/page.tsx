@@ -151,6 +151,12 @@ export default function QuizBuilder() {
 
         checkAccess();
     }, [user, id]);
+
+    useEffect(() => {
+        if (access === false) {
+            router.push("/errors/autharization");
+        }
+    }, [access, router]);
     
     if (checking) {
         return (
@@ -188,7 +194,7 @@ export default function QuizBuilder() {
                     {success && <span className="text-green-600 text-sm font-medium">✓ {success}</span>}
                     {error && <span className="text-red-600 text-sm font-medium">{error}</span>}
                     <Link
-                        href={`/quiz_system/q_and_a_view/${id}`}
+                        href={`/channal_quiz_system/q_and_a_view/${id}`}
                         className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
                     >
                         <Eye className="w-4 h-4" /> Preview

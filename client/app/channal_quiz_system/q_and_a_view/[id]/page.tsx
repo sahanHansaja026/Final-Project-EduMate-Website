@@ -21,6 +21,8 @@ import {
     FileText,
     ListChecks
 } from "lucide-react";
+import { getUser } from "@/app/services/authService";
+import Link from "next/link";
 
 // --- TYPES ---
 interface Option {
@@ -62,6 +64,9 @@ export default function QuizPreview() {
     // --- EDITING STATE ---
     const [isEditing, setIsEditing] = useState(false);
     const [editData, setEditData] = useState<Question | null>(null);
+    const [user, setUser] = useState<any>(null);
+    const [checking, setChecking] = useState(true);
+    const [access, setAccess] = useState<boolean | null>(null);
 
     // =========================
     // FETCH QUESTIONS
@@ -180,6 +185,58 @@ export default function QuizPreview() {
         }
     };
 
+    useEffect(() => {
+        const currentUser = getUser();
+        setUser(currentUser);
+    }, []);
+
+    useEffect(() => {
+        if (!user?.id) return;
+
+        const checkAccess = async () => {
+            try {
+                setChecking(true);
+
+                const res = await axios.get(
+                    `${API_BASE_URL}/access-control/channel-module/quiz/${quizId}/user/${user.id}`
+                );
+                setAccess(res.data.access);
+            } catch (err) {
+                setAccess(false);
+            } finally {
+                setChecking(false);
+            }
+        };
+
+        checkAccess();
+    }, [user?.id, quizId]);
+
+    useEffect(() => {
+        if (access === false) {
+            router.push("/errors/autharization");
+        }
+    }, [access, router]);
+
+    if (checking) {
+        return (
+            <div className="flex items-center justify-center h-screen">
+                Checking access...
+            </div>
+        );
+    }
+
+    if (access === false) {
+        return (
+            <div className="flex flex-col items-center justify-center h-screen text-red-600">
+                <h1 className="text-2xl font-bold">Access Denied</h1>
+                <p>You are not allowed to edit this quiz.</p>
+
+                <Link href="/dashboard" className="mt-4 underline">
+                    Go back
+                </Link>
+            </div>
+        );
+    }
     // =========================
     // LOADING
     // =========================
@@ -255,8 +312,8 @@ export default function QuizPreview() {
                                         key={q.id}
                                         onClick={() => setCurrentIndex(idx)}
                                         className={`w-9 h-9 rounded-md text-sm font-bold transition-all ${currentIndex === idx
-                                                ? "bg-slate-900 text-white shadow-md scale-105"
-                                                : "text-slate-500 hover:bg-white hover:text-slate-900"
+                                            ? "bg-slate-900 text-white shadow-md scale-105"
+                                            : "text-slate-500 hover:bg-white hover:text-slate-900"
                                             }`}
                                     >
                                         {idx + 1}
@@ -400,8 +457,8 @@ export default function QuizPreview() {
                                         <div
                                             key={opt.id || i}
                                             className={`p-5 rounded-xl border-2 flex items-center justify-between transition-all ${opt.is_correct
-                                                    ? "border-emerald-500 bg-emerald-50/30"
-                                                    : "border-slate-100 bg-white"
+                                                ? "border-emerald-500 bg-emerald-50/30"
+                                                : "border-slate-100 bg-white"
                                                 }`}
                                         >
 
@@ -409,8 +466,8 @@ export default function QuizPreview() {
 
                                                 <div
                                                     className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs ${opt.is_correct
-                                                            ? "bg-emerald-500 text-white"
-                                                            : "bg-slate-100 text-slate-500"
+                                                        ? "bg-emerald-500 text-white"
+                                                        : "bg-slate-100 text-slate-500"
                                                         }`}
                                                 >
                                                     {String.fromCharCode(65 + i)}
@@ -438,8 +495,8 @@ export default function QuizPreview() {
                                                 ) : (
                                                     <span
                                                         className={`text-base ${opt.is_correct
-                                                                ? "font-bold text-emerald-900"
-                                                                : "font-medium text-slate-700"
+                                                            ? "font-bold text-emerald-900"
+                                                            : "font-medium text-slate-700"
                                                             }`}
                                                     >
                                                         {opt.option_text}

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams } from "next/navigation";
 import { API_BASE_URL } from "@/app/config/api";
-import {  useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 import {
     Trophy,
@@ -14,6 +14,8 @@ import {
     XCircle,
     Clock3
 } from "lucide-react";
+import { getUser } from "@/app/services/authService";
+import Link from "next/link";
 
 interface QuizScore {
     id: number;
@@ -38,6 +40,9 @@ export default function QuizResultsPage() {
     const router = useRouter();
     const [scores, setScores] = useState<QuizScore[]>([]);
     const [loading, setLoading] = useState(true);
+    const [user, setUser] = useState<any>(null);
+    const [checking, setChecking] = useState(true);
+    const [access, setAccess] = useState<boolean | null>(null);
 
     useEffect(() => {
 
@@ -66,6 +71,59 @@ export default function QuizResultsPage() {
         }
 
     }, [quizId]);
+
+    useEffect(() => {
+        const currentUser = getUser();
+        setUser(currentUser);
+    }, []); 
+    
+    useEffect(() => {
+        if (!user?.id) return;
+
+        const checkAccess = async () => {
+            try {
+                setChecking(true);
+
+                const res = await axios.get(
+                    `${API_BASE_URL}/access-control/channel-module/quiz/${quizId}/user/${user.id}`
+                );
+                setAccess(res.data.access);
+            } catch (err) {
+                setAccess(false);
+            } finally {
+                setChecking(false);
+            }
+        };
+
+        checkAccess();
+    }, [user?.id, quizId]);
+
+    useEffect(() => {
+        if (access === false) {
+            router.push("/errors/autharization");
+        }
+    }, [access, router]);
+
+    if (checking) {
+        return (
+            <div className="flex items-center justify-center h-screen">
+                Checking access...
+            </div>
+        );
+    }
+
+    if (access === false) {
+        return (
+            <div className="flex flex-col items-center justify-center h-screen text-red-600">
+                <h1 className="text-2xl font-bold">Access Denied</h1>
+                <p>You are not allowed to edit this quiz.</p>
+
+                <Link href="/dashboard" className="mt-4 underline">
+                    Go back
+                </Link>
+            </div>
+        );
+    }
 
     if (loading) {
         return (
@@ -126,7 +184,7 @@ export default function QuizResultsPage() {
                                         Percentage
                                     </th>
 
-                                   
+
 
                                     <th className="p-5 text-sm font-semibold">
                                         Attempt
@@ -162,7 +220,7 @@ export default function QuizResultsPage() {
                                         <tr
                                             key={score.id}
                                             onClick={() =>
-                                                router.push(`/quiz_system/score/auto?quiz_id=${score.quiz_id}&student_id=${score.student_id}`)
+                                                router.push(`/channal_quiz_system/score/auto?quiz_id=${score.quiz_id}&student_id=${score.student_id}`)
                                             }
                                             className="border-b border-gray-100 hover:bg-gray-50 transition cursor-pointer"
                                         >
@@ -195,9 +253,9 @@ export default function QuizResultsPage() {
 
 
 
-                                                    <span className="text-gray-900 text-sm font-medium">
-                                                         {score.total_marks}
-                                                    </span>
+                                                <span className="text-gray-900 text-sm font-medium">
+                                                    {score.total_marks}
+                                                </span>
 
 
                                             </td>
@@ -218,7 +276,7 @@ export default function QuizResultsPage() {
                                             </td>
 
                                             {/* Correct */}
-                                            
+
 
                                             {/* Attempt */}
                                             <td className="p-5">

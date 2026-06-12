@@ -14,6 +14,8 @@ import {
     XCircle,
     Clock3
 } from "lucide-react";
+import { getUser } from "@/app/services/authService";
+import Link from "next/link";
 
 interface QuizScore {
     id: number;
@@ -38,6 +40,10 @@ export default function QuizResultsPage() {
     const router = useRouter();
     const [scores, setScores] = useState<QuizScore[]>([]);
     const [loading, setLoading] = useState(true);
+    const [user, setUser] = useState<any>(null);
+    const [checking, setChecking] = useState(true);
+    const [access, setAccess] = useState<boolean | null>(null);
+
 
     useEffect(() => {
 
@@ -66,6 +72,54 @@ export default function QuizResultsPage() {
         }
 
     }, [quizId]);
+    
+        useEffect(() => {
+            const currentUser = getUser();
+            setUser(currentUser);
+        }, []);
+    
+    useEffect(() => {
+        if (!user?.id) return;
+
+        const checkAccess = async () => {
+            try {
+                setChecking(true);
+
+                const res = await axios.get(
+                    `${API_BASE_URL}/access-control/quiz/${quizId}/user/${user.id}`
+                );
+
+                setAccess(res.data.access);
+            } catch (err) {
+                setAccess(false);
+            } finally {
+                setChecking(false);
+            }
+        };
+
+        checkAccess();
+    }, [user?.id, quizId]);
+
+    if (checking) {
+        return (
+            <div className="flex items-center justify-center h-screen">
+                Checking access...
+            </div>
+        );
+    }
+
+    if (access === false) {
+        return (
+            <div className="flex flex-col items-center justify-center h-screen text-red-600">
+                <h1 className="text-2xl font-bold">Access Denied</h1>
+                <p>You are not allowed to edit this quiz.</p>
+
+                <Link href="/dashboard" className="mt-4 underline">
+                    Go back
+                </Link>
+            </div>
+        );
+    }
 
     if (loading) {
         return (

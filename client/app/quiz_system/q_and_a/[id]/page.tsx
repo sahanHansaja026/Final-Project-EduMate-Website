@@ -152,6 +152,21 @@ export default function QuizBuilder() {
 
         checkAccess();
     }, [user, id]);
+
+    useEffect(() => {
+        if (access === false) {
+            router.push("/errors/autharization");
+        }
+    }, [access, router]);
+    
+
+    if (checking) {
+        return (
+            <div className="flex items-center justify-center h-screen">
+                Checking access...
+            </div>
+        );
+    }
     
     if (checking) {
         return (
@@ -161,18 +176,6 @@ export default function QuizBuilder() {
         );
     }
 
-    if (access === false) {
-        return (
-            <div className="flex flex-col items-center justify-center h-screen text-red-600">
-                <h1 className="text-2xl font-bold">Access Denied</h1>
-                <p>You are not allowed to edit this quiz.</p>
-
-                <Link href="/dashboard" className="mt-4 underline">
-                    Go back
-                </Link>
-            </div>
-        );
-    }
     return (
         <div className="min-h-screen bg-white text-slate-900 font-sans antialiased">
             <header className="border-b border-slate-100 px-8 py-4 flex justify-between items-center sticky top-0 bg-white z-10">

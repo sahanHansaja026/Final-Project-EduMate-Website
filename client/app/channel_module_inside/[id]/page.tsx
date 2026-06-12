@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 
 import {
     PlayCircle,
@@ -274,6 +274,10 @@ export default function CoursePage() {
         authUser.email.toLowerCase() === module.co_host.email.toLowerCase();
 
     const hasEditPermissions = isOwner || isCoHost;
+    
+    const router = useRouter();
+    
+
 
     // =========================
     // LOADING & ERROR STATES

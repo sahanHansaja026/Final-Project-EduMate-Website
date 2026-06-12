@@ -22,6 +22,7 @@ export default function CreateQuizForm() {
 
     const [user, setUser] = useState<{ id: number; email: string } | null>(null);
     const [quota, setQuota] = useState<any>(null);
+    
     // load user
     useEffect(() => {
         const currentUser = getUser();

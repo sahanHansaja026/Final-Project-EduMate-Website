@@ -45,6 +45,7 @@ export default function StudentQuizView() {
     const [moduleId, setModuleId] = useState<number | null>(null);
     const [accessAllowed, setAccessAllowed] = useState<boolean | null>(null);
     const [quiz, setQuiz] = useState<any | null>(null);
+    const [user, setUser] = useState<{ id: number; email: string } | null>(null);
 
     useEffect(() => {
         const fetchQuestions = async () => {
@@ -126,6 +127,14 @@ export default function StudentQuizView() {
         setAnswers(prev => ({ ...prev, [questionId]: value }));
     };
 
+    useEffect(() => {
+        const u = getUser();
+        if (u?.id) {
+            setUser(u);
+        }
+    }, []);
+
+
     const handleFinalSubmit = async () => {
 
         if (!window.confirm("Are you sure you want to submit your assessment?")) {
@@ -136,7 +145,12 @@ export default function StudentQuizView() {
 
         try {
 
-            const student_id = 1; // logged user id
+            const student_id = user?.id;
+
+            if (!student_id) {
+                alert("User not loaded yet");
+                return;
+            }
 
             let totalMarks = 0;
             let obtainedMarks = 0;

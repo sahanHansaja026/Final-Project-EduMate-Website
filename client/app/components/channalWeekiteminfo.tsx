@@ -337,7 +337,7 @@ export default function WeekItemInfo({ moduleId }: Props) {
                         if (item.type === "content") {
                             GradeHref = `/pages/content/edit/${item.assignment_id}`;
                         } else if (item.type === "quiz") {
-                            GradeHref = `/quiz_system/score/manual/${item.id}`;
+                            GradeHref = `/channal_quiz_system/score/manual/${item.id}`;
                         } else if (item.type === "video") {
                             GradeHref = `/activity/video/analytics/${item.id}`;
                         } else if (item.type === "assignment") {

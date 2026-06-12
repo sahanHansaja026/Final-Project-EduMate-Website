@@ -2,7 +2,7 @@
 
 import { API_BASE_URL } from "@/app/config/api";
 import { getUser } from "@/app/services/authService";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
@@ -20,9 +20,17 @@ type Quiz = {
     shuffle_questions: boolean;
 };
 
+type AttemptInfo = {
+    can_attempt: boolean;
+    attempts_used: number;
+    remaining_attempts: number | string;
+    limit: number | string;
+};
+
 export default function QuizLMSPage() {
     const params = useParams();
     const searchParams = useSearchParams();
+    const router = useRouter();
 
     const quizId = params.id as string;
     const moduleId = searchParams.get("module_id");
@@ -32,52 +40,67 @@ export default function QuizLMSPage() {
     const [quiz, setQuiz] = useState<Quiz | null>(null);
     const [hasAccess, setHasAccess] = useState(false);
     const [checkingAccess, setCheckingAccess] = useState(true);
-    
+    const [attemptInfo, setAttemptInfo] = useState<AttemptInfo | null>(null);
 
+    // 1. Initialize user profile immediately on component mount
     useEffect(() => {
-        setUser(getUser());
-        const fetchData = async () => {
-            if (!moduleId || !quizId) return;
+        const u = getUser();
+        if (u?.id) {
+            setUser(u);
+        }
+    }, []);
+
+    // 2. Fetch Module Data, Quiz Metadata, and Access Level once credentials exist
+    useEffect(() => {
+        if (!moduleId || !quizId || !user?.email) return;
+
+        const fetchCoreData = async () => {
             try {
-                const [mRes, qRes] = await Promise.all([
+                const [mRes, qRes, accessRes] = await Promise.all([
                     fetch(`${API_BASE_URL}/channel-modules/module/${moduleId}`),
                     fetch(`${API_BASE_URL}/quizzes/${quizId}`),
+                    fetch(`${API_BASE_URL}/channel-module-access/check/${moduleId}/${user.email}`),
                 ]);
-                setModule(await mRes.json());
-                setQuiz(await qRes.json());
+
+                if (mRes.ok) setModule(await mRes.json());
+                if (qRes.ok) setQuiz(await qRes.json());
+
+                setHasAccess(accessRes.ok);
             } catch (err) {
-                console.error("Error fetching data:", err);
-            }
-        };
-        fetchData();
-    }, [moduleId, quizId]);
-
-    useEffect(() => {
-        const checkAccess = async () => {
-            if (!moduleId || !user?.email) return;
-
-            try {
-                const res = await fetch(
-                    `${API_BASE_URL}/channel-module-access/check/${moduleId}/${user.email}`
-                );
-
-                if (res.ok) {
-                    setHasAccess(true);
-                } else {
-                    setHasAccess(false);
-                }
-            } catch (err) {
-                console.error("Access check failed:", err);
+                console.error("Error fetching module data or access permissions:", err);
                 setHasAccess(false);
             } finally {
                 setCheckingAccess(false);
             }
         };
 
-        checkAccess();
-    }, [moduleId, user]);
+        fetchCoreData();
+    }, [moduleId, quizId, user?.email]);
 
-    // Logic: Status & Ownership
+    // 3. Fetch specific student limits (Fires correctly as soon as user state hydrates)
+    useEffect(() => {
+        if (!quizId || !user) return;
+
+        const fetchAttempt = async () => {
+            try {
+                const res = await fetch(
+                    `${API_BASE_URL}/quiz-attempts/check/${quizId}/student/${user.id}`
+                );
+
+                const data = await res.json();
+
+                console.log("🔥 ATTEMPT API RESPONSE:", data);
+
+                setAttemptInfo(data);
+            } catch (err) {
+                console.error(err);
+            }
+        };
+
+        fetchAttempt();
+    }, [quizId, user]);
+
+    // Availability Window Calculations
     const now = new Date();
     const openDate = quiz?.open_date ? new Date(quiz.open_date) : null;
     const closeDate = quiz?.close_date ? new Date(quiz.close_date) : null;
@@ -111,24 +134,25 @@ export default function QuizLMSPage() {
                 method: "DELETE",
             });
 
-            if (!res.ok) {
-                throw new Error("Failed to delete quiz");
-            }
+            if (!res.ok) throw new Error("Failed to delete quiz");
 
             alert("Quiz deleted successfully");
-
-            // redirect after delete
-            window.location.href = `/modules/${moduleId}`;
+            router.push(`/modules/${moduleId}`);
         } catch (err) {
             console.error(err);
             alert("Error deleting quiz");
         }
     };
 
+    const isAttemptAllowed =
+        attemptInfo &&
+        attemptInfo.can_attempt === true &&
+        status === "active";
+    
     if (checkingAccess) {
         return (
             <div className="min-h-screen flex items-center justify-center">
-                <p className="text-gray-500">Checking module access...</p>
+                <p className="text-gray-500 font-medium animate-pulse">Checking module access...</p>
             </div>
         );
     }
@@ -136,11 +160,8 @@ export default function QuizLMSPage() {
     if (!canView) {
         return (
             <div className="min-h-screen flex items-center justify-center">
-                <div className="text-center max-w-md">
-                    <h1 className="text-2xl font-bold text-red-600 mb-3">
-                        Access Denied
-                    </h1>
-
+                <div className="text-center max-w-md p-6">
+                    <h1 className="text-2xl font-bold text-red-600 mb-3">Access Denied</h1>
                     <p className="text-gray-600">
                         You are not authorized to access this module.
                     </p>
@@ -200,11 +221,12 @@ export default function QuizLMSPage() {
                             <div className="flex flex-col gap-3">
                                 {isOwner ? (
                                     /* OWNER VIEW */
-                                    <><Link href={`/channal_quiz_system/q_and_a/${quizId}`}>
-                                        <button className="w-full bg-gray-900 text-white py-3 px-4 rounded font-semibold hover:bg-black transition-colors">
-                                            Create Question
-                                        </button>
-                                    </Link>
+                                    <>
+                                        <Link href={`/channal_quiz_system/q_and_a/${quizId}`}>
+                                            <button className="w-full bg-gray-900 text-white py-3 px-4 rounded font-semibold hover:bg-black transition-colors">
+                                                Create Question
+                                            </button>
+                                        </Link>
                                         <Link href={`/channal_quiz_system/edit_quiz/${quizId}`}>
                                             <button className="w-full border border-gray-300 text-gray-700 py-3 px-4 rounded font-semibold hover:bg-gray-50 transition-colors">
                                                 Edit Settings
@@ -218,24 +240,39 @@ export default function QuizLMSPage() {
                                         </button>
                                     </>
                                 ) : (
-                                        /* STUDENT VIEW */
+                                    /* STUDENT VIEW (Fixes Link routing encapsulation bug) */
+                                    isAttemptAllowed ? (
                                         <Link href={`/channal_quiz_system/student_view/${quizId}`}>
-                                    <button
-                                        disabled={status !== "active"}
-                                        className={`w-full py-4 px-6 rounded font-bold text-center transition-all ${status === "active"
-                                            ? "bg-gray-900 text-white hover:bg-black shadow-lg shadow-gray-200"
-                                            : "bg-gray-100 text-gray-400 cursor-not-allowed"
-                                            }`}
-                                    >
-                                        {status === "active" ? "Start Attempt Now" : `Access ${status}`}
-                                    </button>
+                                            <button className="w-full py-4 px-6 rounded font-bold text-center transition-all bg-gray-900 text-white hover:bg-black shadow-lg shadow-gray-200">
+                                                Start Attempt Now
+                                            </button>
                                         </Link>
+                                    ) : (
+                                        <button
+                                            disabled
+                                            className="w-full py-4 px-6 rounded font-bold text-center bg-gray-100 text-gray-400 cursor-not-allowed"
+                                        >
+                                            {attemptInfo?.can_attempt === false
+                                                ? "Attempt Limit Reached"
+                                                : `Access ${status}`}
+                                        </button>
+                                    )
                                 )}
                             </div>
 
                             <div className="pt-4 border-t border-gray-100">
                                 <p className="text-xs text-gray-500 italic">
-                                    Remaining Attempts: <span className="text-gray-900 font-semibold">{quiz?.attempts || "Unlimited"}</span>
+                                    Attempts Used:{" "}
+                                    <span className="text-gray-900 font-semibold">
+                                        {attemptInfo?.attempts_used ?? 0}
+                                    </span>
+                                </p>
+
+                                <p className="text-xs text-gray-500 italic">
+                                    Remaining Attempts:{" "}
+                                    <span className="text-gray-900 font-semibold">
+                                        {attemptInfo?.remaining_attempts ?? quiz?.attempts ?? "N/A"}
+                                    </span>
                                 </p>
                             </div>
                         </div>
@@ -247,7 +284,7 @@ export default function QuizLMSPage() {
     );
 }
 
-// Reusable Formal Component Start Attempt Now
+// Reusable Formal Component
 function InfoTile({ label, value }: { label: string; value: string }) {
     return (
         <div className="space-y-1">

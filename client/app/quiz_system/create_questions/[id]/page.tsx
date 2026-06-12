@@ -2,7 +2,7 @@
 
 import { API_BASE_URL } from "@/app/config/api";
 import { getUser } from "@/app/services/authService";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
@@ -20,6 +20,13 @@ type Quiz = {
     shuffle_questions: boolean;
 };
 
+type AttemptInfo = {
+    can_attempt: boolean;
+    attempts_used: number;
+    remaining_attempts: number | string;
+    limit: number | string;
+};
+
 export default function QuizLMSPage() {
     const params = useParams();
     const searchParams = useSearchParams();
@@ -30,6 +37,8 @@ export default function QuizLMSPage() {
     const [user, setUser] = useState<{ id: number; email: string } | null>(null);
     const [module, setModule] = useState<Module | null>(null);
     const [quiz, setQuiz] = useState<Quiz | null>(null);
+    const router = useRouter();
+    const [attemptInfo, setAttemptInfo] = useState<AttemptInfo | null>(null);
 
     useEffect(() => {
         setUser(getUser());
@@ -95,6 +104,34 @@ export default function QuizLMSPage() {
             alert("Error deleting quiz");
         }
     };
+
+    // 3. Fetch specific student limits (Fires correctly as soon as user state hydrates)
+    useEffect(() => {
+        if (!quizId || !user) return;
+
+        const fetchAttempt = async () => {
+            try {
+                const res = await fetch(
+                    `${API_BASE_URL}/quiz-attempts/check/${quizId}/student/${user.id}`
+                );
+
+                const data = await res.json();
+
+                console.log("🔥 ATTEMPT API RESPONSE:", data);
+
+                setAttemptInfo(data);
+            } catch (err) {
+                console.error(err);
+            }
+        };
+
+        fetchAttempt();
+    }, [quizId, user]);
+
+    const isAttemptAllowed =
+        attemptInfo &&
+        attemptInfo.can_attempt === true &&
+        status === "active";
 
     return (
         <div className="min-h-screen bg-white text-gray-900 font-sans antialiased">
@@ -165,24 +202,39 @@ export default function QuizLMSPage() {
                                         </button>
                                     </>
                                 ) : (
-                                        /* STUDENT VIEW */
-                                        <Link href={`/quiz_system/student_view/${quizId}`}>
-                                    <button
-                                        disabled={status !== "active"}
-                                        className={`w-full py-4 px-6 rounded font-bold text-center transition-all ${status === "active"
-                                            ? "bg-gray-900 text-white hover:bg-black shadow-lg shadow-gray-200"
-                                            : "bg-gray-100 text-gray-400 cursor-not-allowed"
-                                            }`}
-                                    >
-                                        {status === "active" ? "Start Attempt Now" : `Access ${status}`}
-                                    </button>
-                                        </Link>
+                                        /* STUDENT VIEW (Fixes Link routing encapsulation bug) */
+                                        isAttemptAllowed ? (
+                                            <Link href={`/quiz_system/student_view/${quizId}`}>
+                                                <button className="w-full py-4 px-6 rounded font-bold text-center transition-all bg-gray-900 text-white hover:bg-black shadow-lg shadow-gray-200">
+                                                    Start Attempt Now
+                                                </button>
+                                            </Link>
+                                        ) : (
+                                            <button
+                                                disabled
+                                                className="w-full py-4 px-6 rounded font-bold text-center bg-gray-100 text-gray-400 cursor-not-allowed"
+                                            >
+                                                {attemptInfo?.can_attempt === false
+                                                    ? "Attempt Limit Reached"
+                                                    : `Access ${status}`}
+                                            </button>
+                                        )
                                 )}
                             </div>
 
                             <div className="pt-4 border-t border-gray-100">
                                 <p className="text-xs text-gray-500 italic">
-                                    Remaining Attempts: <span className="text-gray-900 font-semibold">{quiz?.attempts || "Unlimited"}</span>
+                                    Attempts Used:{" "}
+                                    <span className="text-gray-900 font-semibold">
+                                        {attemptInfo?.attempts_used ?? 0}
+                                    </span>
+                                </p>
+
+                                <p className="text-xs text-gray-500 italic">
+                                    Remaining Attempts:{" "}
+                                    <span className="text-gray-900 font-semibold">
+                                        {attemptInfo?.remaining_attempts ?? quiz?.attempts ?? "N/A"}
+                                    </span>
                                 </p>
                             </div>
                         </div>

@@ -14,6 +14,9 @@ import {
 } from 'lucide-react';
 import { API_BASE_URL } from '@/app/config/api';
 import Link from 'next/link';
+import { getUser } from '@/app/services/authService';
+import axios from 'axios';
+import { useRouter } from "next/navigation";
 
 interface GradeItem {
     question_id: number;
@@ -28,12 +31,15 @@ export default function ManualGradingPage() {
 
     const quizId = searchParams.get('quiz_id');
     const studentId = searchParams.get('student_id');
-
+    const router = useRouter();
     const [data, setData] = useState<GradeItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [scores, setScores] = useState<Record<number, number>>({});
     const [isSaving, setIsSaving] = useState(false);
     const [saveStatus, setSaveStatus] = useState<{ type: 'success' | 'error', message: string } | null>(null);
+    const [user, setUser] = useState<any>(null);
+    const [checking, setChecking] = useState(true);
+    const [access, setAccess] = useState<boolean | null>(null);
 
     useEffect(() => {
         if (!quizId || !studentId) return;
@@ -103,6 +109,56 @@ export default function ManualGradingPage() {
         }
     };
 
+    useEffect(() => {
+        const currentUser = getUser();
+        setUser(currentUser);
+    }, []);
+
+    useEffect(() => {
+        if (!user?.id) return;
+
+        const checkAccess = async () => {
+            try {
+                setChecking(true);
+
+                const res = await axios.get(
+                    `${API_BASE_URL}/access-control/quiz/${quizId}/user/${user.id}`
+                );
+
+                setAccess(res.data.access);
+            } catch (err) {
+                setAccess(false);
+            } finally {
+                setChecking(false);
+            }
+        };
+
+        checkAccess();
+    }, [user?.id, quizId]);
+
+    
+    useEffect(() => {
+        if (access === false) {
+            router.push("/errors/autharization");
+        }
+    }, [access, router]);
+
+    if (checking) {
+        return (
+            <div className="flex items-center justify-center h-screen">
+                Checking access...
+            </div>
+        );
+    }
+
+    if (access === false) {
+        return (
+            <div className="flex items-center justify-center h-screen">
+                Redirecting...
+            </div>
+        );
+    }
+    
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[400px] gap-3 text-slate-500">
@@ -134,8 +190,8 @@ export default function ManualGradingPage() {
                 {/* Status Alert Notifications */}
                 {saveStatus && (
                     <div className={`mt-4 p-3 rounded-lg border flex items-center gap-2.5 text-sm font-medium ${saveStatus.type === 'success'
-                            ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                            : 'bg-rose-50 text-rose-800 border-rose-200'
+                        ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                        : 'bg-rose-50 text-rose-800 border-rose-200'
                         }`}>
                         {saveStatus.type === 'success' ? <CheckCircle className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
                         {saveStatus.message}
@@ -237,8 +293,8 @@ export default function ManualGradingPage() {
                         onClick={handleSaveAll}
                         disabled={!isDirty || isSaving}
                         className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold shadow transition-all ${isDirty && !isSaving
-                                ? 'bg-blue-600 hover:bg-blue-700 text-white cursor-pointer hover:shadow-md'
-                                : 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200 shadow-none'
+                            ? 'bg-blue-600 hover:bg-blue-700 text-white cursor-pointer hover:shadow-md'
+                            : 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200 shadow-none'
                             }`}
                     >
                         {isSaving ? (
