@@ -1,5 +1,6 @@
 "use client";
 
+import { API_BASE_URL } from "@/app/config/api";
 import { getUser } from "@/app/services/authService";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -42,7 +43,7 @@ export default function Page() {
                 setLoading(true);
 
                 const res = await fetch(
-                    `${process.env.NEXT_PUBLIC_API_BASE_URL}/grades/user/${user.id}/module/${id}`
+                    `${API_BASE_URL}/grades/user/${user.id}/module/${id}`
                 );
 
                 if (!res.ok) {
