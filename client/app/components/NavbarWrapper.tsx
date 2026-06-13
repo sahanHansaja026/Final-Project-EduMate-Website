@@ -9,7 +9,7 @@ export default function NavbarWrapper({
   children,
 }: {
   children: React.ReactNode;
-}): JSX.Element | null {
+  }): React.ReactElement | null {
   const pathname = usePathname();
 
   const hideLayout =

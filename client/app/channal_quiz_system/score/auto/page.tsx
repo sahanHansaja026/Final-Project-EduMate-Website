@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react'; // Added Suspense import
 import axios from "axios";
 import {
     Save,
@@ -25,7 +25,8 @@ interface GradeItem {
     obtained_score: number;
 }
 
-export default function ManualGradingPage() {
+// 1. Core Logic Component
+function ManualGradingContent() {
     const searchParams = useSearchParams();
 
     const quizId = searchParams.get('quiz_id');
@@ -51,7 +52,6 @@ export default function ManualGradingPage() {
                 const json = await res.json();
                 setData(json);
 
-                // Initialize internal scores state with current database scores
                 const initialScores: Record<number, number> = {};
                 json.forEach((item: GradeItem) => {
                     initialScores[item.question_id] = item.obtained_score;
@@ -67,7 +67,6 @@ export default function ManualGradingPage() {
         fetchData();
     }, [quizId, studentId]);
 
-    // Track if any local changes differ from original loaded data
     const isDirty = data.some(item => scores[item.question_id] !== item.obtained_score);
 
     const handleSaveAll = async () => {
@@ -75,7 +74,6 @@ export default function ManualGradingPage() {
         setSaveStatus(null);
 
         try {
-            // Send requests concurrently for modified scores
             const updatePromises = data
                 .filter(item => scores[item.question_id] !== item.obtained_score)
                 .map(item =>
@@ -93,7 +91,6 @@ export default function ManualGradingPage() {
 
             await Promise.all(updatePromises);
 
-            // Update base data state to match newly saved scores
             setData(prev => prev.map(item => ({
                 ...item,
                 obtained_score: scores[item.question_id] ?? item.obtained_score
@@ -119,7 +116,6 @@ export default function ManualGradingPage() {
         const checkAccess = async () => {
             try {
                 setChecking(true);
-
                 const res = await axios.get(
                     `${API_BASE_URL}/access-control/channel-module/quiz/${quizId}/user/${user.id}`
                 );
@@ -133,6 +129,7 @@ export default function ManualGradingPage() {
 
         checkAccess();
     }, [user?.id, quizId]);
+
     const router = useRouter();
     useEffect(() => {
         if (access === false) {
@@ -153,7 +150,6 @@ export default function ManualGradingPage() {
             <div className="flex flex-col items-center justify-center h-screen text-red-600">
                 <h1 className="text-2xl font-bold">Access Denied</h1>
                 <p>You are not allowed to edit this quiz.</p>
-
                 <Link href="/dashboard" className="mt-4 underline">
                     Go back
                 </Link>
@@ -172,7 +168,6 @@ export default function ManualGradingPage() {
 
     return (
         <div className="max-w-5xl mx-auto pb-24 bg-slate-50 min-h-screen">
-            {/* Header Canvas */}
             <div className="bg-white border-b border-slate-200 sticky top-0 z-10 px-6 py-4 shadow-sm">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div>
@@ -189,7 +184,6 @@ export default function ManualGradingPage() {
                     </div>
                 </div>
 
-                {/* Status Alert Notifications */}
                 {saveStatus && (
                     <div className={`mt-4 p-3 rounded-lg border flex items-center gap-2.5 text-sm font-medium ${saveStatus.type === 'success'
                         ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
@@ -201,7 +195,6 @@ export default function ManualGradingPage() {
                 )}
             </div>
 
-            {/* Grading Content */}
             <div className="p-6 space-y-6">
                 {data.map((item, index) => {
                     const isChanged = scores[item.question_id] !== item.obtained_score;
@@ -212,7 +205,6 @@ export default function ManualGradingPage() {
                             className={`bg-white rounded-xl shadow-sm border transition duration-200 ${isChanged ? 'border-amber-300 ring-1 ring-amber-100' : 'border-slate-200'
                                 }`}
                         >
-                            {/* Question Header Card */}
                             <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-start gap-4 rounded-t-xl">
                                 <div className="space-y-1">
                                     <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
@@ -235,7 +227,6 @@ export default function ManualGradingPage() {
                                 </div>
                             </div>
 
-                            {/* Response Section */}
                             <div className="p-6 space-y-4">
                                 <div className="space-y-1.5">
                                     <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
@@ -248,7 +239,6 @@ export default function ManualGradingPage() {
                                     </div>
                                 </div>
 
-                                {/* Scoring Node */}
                                 <div className="pt-2 flex items-center gap-3">
                                     <div className="space-y-1">
                                         <label htmlFor={`score-${item.question_id}`} className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
@@ -285,7 +275,6 @@ export default function ManualGradingPage() {
                 })}
             </div>
 
-            {/* Global Sticky Action Bar */}
             <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-6 py-4 shadow-lg z-20 flex justify-end items-center">
                 <div className="max-w-5xl w-full mx-auto flex items-center justify-between gap-4">
                     <p className="text-xs text-slate-500 hidden md:block">
@@ -302,7 +291,7 @@ export default function ManualGradingPage() {
                         {isSaving ? (
                             <>
                                 <Loader2 className="w-4 h-4 animate-spin" />
-                                Saving Grades...
+                                "Saving Grades..."
                             </>
                         ) : (
                             <>
@@ -314,5 +303,19 @@ export default function ManualGradingPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+// 2. High-Level Secure Export Boundary Wrapper
+export default function ManualGradingPage() {
+    return (
+        <Suspense fallback={
+            <div className="flex flex-col items-center justify-center min-h-screen gap-3 text-slate-500 bg-slate-50">
+                <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+                <p className="text-sm font-medium">Mounting manual grading layout elements...</p>
+            </div>
+        }>
+            <ManualGradingContent />
+        </Suspense>
     );
 }

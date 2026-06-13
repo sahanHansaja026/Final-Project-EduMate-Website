@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-const Footer: React.FC = (): JSX.Element => {
+const Footer = () => {
   const [comment, setComment] = useState("");
   const [commentsList, setCommentsList] = useState([
     { user: "Guest_3012", text: "Are the advanced backend courses completely up to date for 2026?" },

@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { JSX, useEffect } from "react";
 import Navbar from "./Navbar";
 import Footer from "./footer";
 import ChatBot from "./chatbot";
@@ -13,7 +13,7 @@ type LayoutWrapperProps = {
 
 export default function LayoutWrapper({
   position,
-}: LayoutWrapperProps): JSX.Element | null {
+}: LayoutWrapperProps): React.ReactElement | null {
   const pathname = usePathname();
   const router = useRouter();
 

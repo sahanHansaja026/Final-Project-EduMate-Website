@@ -1,7 +1,7 @@
 'use client';
 
-import { useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { useEffect, useState, Suspense } from 'react'; // Added Suspense import
 import {
     Save,
     ArrowLeft,
@@ -16,7 +16,6 @@ import { API_BASE_URL } from '@/app/config/api';
 import Link from 'next/link';
 import { getUser } from '@/app/services/authService';
 import axios from 'axios';
-import { useRouter } from "next/navigation";
 
 interface GradeItem {
     question_id: number;
@@ -26,7 +25,8 @@ interface GradeItem {
     obtained_score: number;
 }
 
-export default function ManualGradingPage() {
+// 1. Core Logic Sub-Component
+function ManualGradingContent() {
     const searchParams = useSearchParams();
 
     const quizId = searchParams.get('quiz_id');
@@ -136,7 +136,6 @@ export default function ManualGradingPage() {
         checkAccess();
     }, [user?.id, quizId]);
 
-    
     useEffect(() => {
         if (access === false) {
             router.push("/errors/autharization");
@@ -158,7 +157,7 @@ export default function ManualGradingPage() {
             </div>
         );
     }
-    
+
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[400px] gap-3 text-slate-500">
@@ -312,5 +311,19 @@ export default function ManualGradingPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+// 2. High-Level Secure Export Boundary Wrapper
+export default function ManualGradingPage() {
+    return (
+        <Suspense fallback={
+            <div className="flex flex-col items-center justify-center min-h-screen gap-3 text-slate-500 bg-slate-50">
+                <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+                <p className="text-sm font-medium">Mounting automated grading layout elements...</p>
+            </div>
+        }>
+            <ManualGradingContent />
+        </Suspense>
     );
 }

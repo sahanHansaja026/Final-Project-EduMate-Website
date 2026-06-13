@@ -2,10 +2,11 @@
 
 import { useSearchParams, useRouter } from "next/navigation";
 import { ChevronLeft, User, FileText, Download, AlertCircle, Loader2, CheckCircle } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react"; // Added Suspense import
 import { API_BASE_URL } from "@/app/config/api";
 
-export default function SimpleScorePage() {
+// 1. Rename your main logic to a sub-component
+function ScorePageContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
 
@@ -18,7 +19,6 @@ export default function SimpleScorePage() {
     const [error, setError] = useState<string | null>(null);
     const [marks, setMarks] = useState<number | "">("");
 
-    // Safe asset parsing configurations
     const [fileBlobUrl, setFileBlobUrl] = useState<string | null>(null);
     const [isPdf, setIsPdf] = useState(false);
     const [fileName, setFileName] = useState("submission_document");
@@ -31,7 +31,6 @@ export default function SimpleScorePage() {
                 setLoading(true);
                 setError(null);
 
-                // 1. Fetch text metadata records
                 const metaRes = await fetch(
                     `${API_BASE_URL}/submissions/assignment/${assignmentId}/student/${studentId}`
                 );
@@ -41,18 +40,14 @@ export default function SimpleScorePage() {
                 setSubmission(data);
                 setMarks(data.marks ?? "");
 
-                // 2. Map file targets cleanly
                 const inferredName = data.fileName || data.filename || "Submission_Asset";
                 setFileName(inferredName);
                 const extension = inferredName.split('.').pop()?.toLowerCase() || "";
 
-                // 3. Fetch data stream object directly from API
                 const fileRes = await fetch(`${API_BASE_URL}/submissions/file/${data.id}`);
                 if (!fileRes.ok) throw new Error("Could not construct binary preview link from storage.");
 
                 const blob = await fileRes.blob();
-
-                // Content detection checks
                 const isBlobPdf = blob.type === "application/pdf" || extension === "pdf";
                 setIsPdf(isBlobPdf);
 
@@ -68,7 +63,6 @@ export default function SimpleScorePage() {
 
         fetchSubmissionAndFile();
 
-        // Object reference tracking disposal cleanup
         return () => {
             if (fileBlobUrl) URL.revokeObjectURL(fileBlobUrl);
         };
@@ -104,7 +98,6 @@ export default function SimpleScorePage() {
         }
     };
 
-    // Safe system browser download bridge execution 
     const triggerDownload = () => {
         if (!fileBlobUrl) return;
         const linkElement = document.createElement("a");
@@ -147,23 +140,15 @@ export default function SimpleScorePage() {
 
     return (
         <div className="min-h-screen bg-white text-gray-900 antialiased">
-
-            {/* STICKY HEADER NAVIGATION */}
             <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100 px-4 py-4 md:px-8">
                 <div className="max-w-7xl mx-auto flex justify-between items-center">
-                    <button
-                        onClick={() => router.back()}
-                        className="flex items-center gap-2 text-sm font-medium hover:text-gray-600 transition group"
-                    >
+                    <button onClick={() => router.back()} className="flex items-center gap-2 text-sm font-medium hover:text-gray-600 transition group">
                         <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition" />
                         BACK TO SUBMISSIONS
                     </button>
                     <div className="hidden md:flex gap-4">
                         {fileBlobUrl && (
-                            <button
-                                onClick={triggerDownload}
-                                className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest border border-gray-900 px-4 py-2 hover:bg-gray-900 hover:text-white transition"
-                            >
+                            <button onClick={triggerDownload} className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest border border-gray-900 px-4 py-2 hover:bg-gray-900 hover:text-white transition">
                                 <Download className="w-3 h-3" /> Download Submission File
                             </button>
                         )}
@@ -171,20 +156,13 @@ export default function SimpleScorePage() {
                 </div>
             </nav>
 
-            {/* MAIN APP GRID LAYOUT FRAME */}
             <main className="max-w-7xl mx-auto px-4 py-8 md:px-8 grid grid-cols-1 lg:grid-cols-12 gap-12">
-
-                {/* LEFT COLUMN: ATTACHED WORK FILE INTERACTIVE DISPLAY */}
                 <div className="lg:col-span-8 space-y-6">
                     <section>
                         <div className="flex items-center gap-4 mb-2">
-                            <span className="text-xs font-bold tracking-[0.2em] text-gray-400 uppercase">
-                                Student Deliverable
-                            </span>
+                            <span className="text-xs font-bold tracking-[0.2em] text-gray-400 uppercase">Student Deliverable</span>
                         </div>
-                        <h1 className="text-3xl md:text-4xl font-serif font-medium leading-tight text-gray-900 break-all">
-                            {fileName}
-                        </h1>
+                        <h1 className="text-3xl md:text-4xl font-serif font-medium leading-tight text-gray-900 break-all">{fileName}</h1>
                     </section>
 
                     <section className="relative">
@@ -195,26 +173,14 @@ export default function SimpleScorePage() {
                                         <span className="text-[10px] font-bold tracking-widest uppercase">Embedded File Frame Preview</span>
                                         <FileText className="w-4 h-4 opacity-50" />
                                     </div>
-                                    <iframe
-                                        src={`${fileBlobUrl}#toolbar=0`}
-                                        className="w-full h-[600px] md:h-[850px] bg-white border-0"
-                                        title="Assignment Document Viewer"
-                                    />
+                                    <iframe src={`${fileBlobUrl}#toolbar=0`} className="w-full h-[600px] md:h-[850px] bg-white border-0" title="Assignment Document Viewer" />
                                 </div>
                             ) : (
-                                /* Alternate non-viewable asset fallback container code block */
                                 <div className="bg-gray-900 text-white p-16 text-center border border-gray-800">
                                     <FileText className="w-12 h-12 mx-auto mb-6 opacity-20" />
                                     <h3 className="text-xl mb-3 font-serif">Office Document Asset</h3>
-                                    <p className="text-gray-400 mb-8 max-w-xs mx-auto text-sm">
-                                        This file extension format must be evaluated via external workstation software packages.
-                                    </p>
-                                    <button
-                                        onClick={triggerDownload}
-                                        className="inline-block bg-white text-gray-900 px-8 py-3 text-sm font-bold uppercase tracking-tighter hover:bg-gray-200 transition"
-                                    >
-                                        Extract Document File
-                                    </button>
+                                    <p className="text-gray-400 mb-8 max-w-xs mx-auto text-sm">This file extension format must be evaluated via external workstation software packages.</p>
+                                    <button onClick={triggerDownload} className="inline-block bg-white text-gray-900 px-8 py-3 text-sm font-bold uppercase tracking-tighter hover:bg-gray-200 transition">Extract Document File</button>
                                 </div>
                             )
                         ) : (
@@ -226,14 +192,10 @@ export default function SimpleScorePage() {
                     </section>
                 </div>
 
-                {/* RIGHT COLUMN: CORE SCORING & LOGISTICS SIDEBAR PANEL */}
                 <div className="lg:col-span-4 space-y-6">
                     <div className="border border-gray-100 bg-gray-50 p-6 sticky top-28 space-y-6">
-
                         <div>
-                            <h4 className="text-xs font-bold uppercase tracking-widest mb-4 border-b border-gray-200 pb-2 text-gray-400">
-                                Candidate Identification
-                            </h4>
+                            <h4 className="text-xs font-bold uppercase tracking-widest mb-4 border-b border-gray-200 pb-2 text-gray-400">Candidate Identification</h4>
                             <div className="flex gap-4 items-center">
                                 <div className="p-2 bg-white border border-gray-200 h-fit">
                                     <User className="w-4 h-4 text-gray-500" />
@@ -246,68 +208,55 @@ export default function SimpleScorePage() {
                         </div>
 
                         <div>
-                            <h4 className="text-xs font-bold uppercase tracking-widest mb-4 border-b border-gray-200 pb-2 text-gray-400">
-                                Evaluation Performance
-                            </h4>
+                            <h4 className="text-xs font-bold uppercase tracking-widest mb-4 border-b border-gray-200 pb-2 text-gray-400">Evaluation Performance</h4>
                             <div className="space-y-4">
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">
-                                        Assigned Score Input
-                                    </label>
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Assigned Score Input</label>
                                     <input
                                         type="number"
                                         value={marks}
-                                        onChange={(e) =>
-                                            setMarks(
-                                                e.target.value === ""
-                                                    ? ""
-                                                    : Number(e.target.value)
-                                            )
-                                        }
+                                        onChange={(e) => setMarks(e.target.value === "" ? "" : Number(e.target.value))}
                                         className="w-full bg-white p-3 border border-gray-200 focus:outline-none focus:border-gray-900 text-sm font-semibold transition font-mono"
                                         placeholder="Add numeric point marks..."
                                     />
                                 </div>
-
-                                <button
-                                    onClick={handleSaveGrade}
-                                    disabled={saving || marks === ""}
-                                    className="w-full bg-gray-900 hover:bg-black text-white font-bold text-xs uppercase tracking-widest py-3.5 transition disabled:bg-gray-300 disabled:text-gray-500 shadow-sm"
-                                >
+                                <button onClick={handleSaveGrade} disabled={saving || marks === ""} className="w-full bg-gray-900 hover:bg-black text-white font-bold text-xs uppercase tracking-widest py-3.5 transition disabled:bg-gray-300 disabled:text-gray-500 shadow-sm">
                                     {saving ? "Updating Record Ledger..." : "Commit Grade Parameter"}
                                 </button>
                             </div>
                         </div>
 
-                        {/* STATUS RECONCILIATION SUMMARY FOOTER METADATA */}
                         <div className="pt-4 border-t border-gray-200 space-y-3">
                             <div className="flex justify-between items-center">
                                 <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Grading Status</span>
-                                <span className={`text-[10px] font-bold px-2 py-0.5 border uppercase ${submission?.marks !== null && submission?.marks !== undefined
-                                        ? "border-green-600 text-green-600 bg-white"
-                                        : "border-amber-600 text-amber-600 bg-white"
-                                    }`}>
+                                <span className={`text-[10px] font-bold px-2 py-0.5 border uppercase ${submission?.marks !== null && submission?.marks !== undefined ? "border-green-600 text-green-600 bg-white" : "border-amber-600 text-amber-600 bg-white"}`}>
                                     {submission?.marks !== null && submission?.marks !== undefined ? "Evaluated" : "Pending Action"}
                                 </span>
                             </div>
                         </div>
 
-                        {/* MOBILE ONLY FALLBACK ACTION BAR CONTROLS */}
                         <div className="mt-4 flex flex-col gap-2 md:hidden">
                             {fileBlobUrl && (
-                                <button
-                                    onClick={triggerDownload}
-                                    className="w-full bg-gray-900 text-white text-center py-3 text-xs font-bold uppercase tracking-widest"
-                                >
-                                    Download Attachment File
-                                </button>
+                                <button onClick={triggerDownload} className="w-full bg-gray-900 text-white text-center py-3 text-xs font-bold uppercase tracking-widest">Download Attachment File</button>
                             )}
                         </div>
-
                     </div>
                 </div>
-
             </main>
         </div>
+    );
+}
+
+// 2. Export the component wrapped in a Suspense boundary
+export default function SimpleScorePage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-white p-6 flex flex-col items-center justify-center">
+                <Loader2 className="w-8 h-8 animate-spin text-gray-900" />
+                <p className="text-sm text-gray-500 mt-2">Loading scoring screen system assets...</p>
+            </div>
+        }>
+            <ScorePageContent />
+        </Suspense>
     );
 }
