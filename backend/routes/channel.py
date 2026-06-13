@@ -1,21 +1,15 @@
 import os
 import json
-import shutil
 from typing import List
-import uuid
-from services.s3_service import delete_file, upload_file
-from models.profile import Profile
 from fastapi import APIRouter, UploadFile, File, Form, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from database import get_db
 from models.channel import Channel, ChannelVisibilityEnum
 from schemas.channel import ChannelResponse
+from services.s3_service import upload_file, delete_file
 
 router = APIRouter(prefix="/channels", tags=["Channels"])
-
-UPLOAD_DIR = "uploads/channel"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 
 # -------------------------
@@ -43,20 +37,26 @@ async def create_channel(
 
     db: Session = Depends(get_db),
 ):
-    faculty_list = json.loads(co_hosts_and_faculty_members)
+    try:
+        faculty_list = json.loads(co_hosts_and_faculty_members)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid faculty members JSON format")
 
     cover_path = None
     logo_path = None
 
-    # Save cover image
-    cover_path = None
-    logo_path = None
-
+    # Stream directly to S3 if files are provided
     if cover_image:
-        cover_path = upload_file(cover_image, folder="channels/covers")
+        try:
+            cover_path = upload_file(cover_image, folder="channels/covers")
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Cover image upload failed: {str(e)}")
 
     if logo_image:
-        logo_path = upload_file(logo_image, folder="channels/logos")
+        try:
+            logo_path = upload_file(logo_image, folder="channels/logos")
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Logo image upload failed: {str(e)}")
 
     channel = Channel(
         user_id=user_id,
@@ -77,7 +77,15 @@ async def create_channel(
     db.commit()
     db.refresh(channel)
 
-    return ChannelResponse.from_orm(channel)
+    return channel
+
+
+# -------------------------
+# GET ALL CHANNELS
+# -------------------------
+@router.get("/", response_model=List[ChannelResponse])
+def get_all_channels(db: Session = Depends(get_db)):
+    return db.query(Channel).all()
 
 
 # -------------------------
@@ -119,24 +127,17 @@ def get_channel(channel_id: int, db: Session = Depends(get_db)):
 @router.put("/{channel_id}", response_model=ChannelResponse)
 async def update_channel(
     channel_id: int,
-
     channel_name: str = Form(None),
     description: str = Form(None),
-
     institute_legal_name: str = Form(None),
     institute_owner_full_name: str = Form(None),
     physical_corporate_address: str = Form(None),
-
     co_hosts_and_faculty_members: str = Form(None),
-
     visibility: ChannelVisibilityEnum = Form(None),
-
     official_website_link: str = Form(None),
     facebook_portal_link: str = Form(None),
-
     cover_image: UploadFile = File(None),
     logo_image: UploadFile = File(None),
-
     db: Session = Depends(get_db),
 ):
     channel = db.query(Channel).filter(
@@ -146,9 +147,7 @@ async def update_channel(
     if not channel:
         raise HTTPException(status_code=404, detail="Channel not found")
 
-    # =========================
-    # UPDATE TEXT FIELDS
-    # =========================
+    # Update fields
     if channel_name is not None:
         channel.channel_name = channel_name
 
@@ -165,7 +164,10 @@ async def update_channel(
         channel.physical_corporate_address = physical_corporate_address
 
     if co_hosts_and_faculty_members is not None:
-        channel.co_hosts_and_faculty_members = json.loads(co_hosts_and_faculty_members)
+        try:
+            channel.co_hosts_and_faculty_members = json.loads(co_hosts_and_faculty_members)
+        except Exception:
+            raise HTTPException(status_code=400, detail="Invalid faculty members JSON format")
 
     if visibility is not None:
         channel.visibility = visibility
@@ -176,70 +178,41 @@ async def update_channel(
     if facebook_portal_link is not None:
         channel.facebook_portal_link = facebook_portal_link
 
-    # =========================
-    # COVER IMAGE (S3 UPDATE)
-    # =========================
+    # Handle Cover Image updates via S3
     if cover_image and cover_image.filename:
-
-        # delete old S3 file if exists
         if channel.cover_image and "amazonaws.com" in channel.cover_image:
             try:
                 delete_file(channel.cover_image)
             except Exception as e:
                 print(f"Failed to delete old cover: {e}")
 
-        # upload new file
         try:
-            channel.cover_image = upload_file(
-                cover_image,
-                folder="channels/covers"
-            )
+            channel.cover_image = upload_file(cover_image, folder="channels/covers")
         except Exception as e:
-            raise HTTPException(
-                status_code=500,
-                detail=f"Failed to upload cover image: {str(e)}"
-            )
+            raise HTTPException(status_code=500, detail=f"Failed to upload new cover image: {str(e)}")
 
-    # =========================
-    # LOGO IMAGE (S3 UPDATE)
-    # =========================
+    # Handle Logo Image updates via S3
     if logo_image and logo_image.filename:
-
-        # delete old S3 file if exists
         if channel.logo_image and "amazonaws.com" in channel.logo_image:
             try:
                 delete_file(channel.logo_image)
             except Exception as e:
                 print(f"Failed to delete old logo: {e}")
 
-        # upload new file
         try:
-            channel.logo_image = upload_file(
-                logo_image,
-                folder="channels/logos"
-            )
+            channel.logo_image = upload_file(logo_image, folder="channels/logos")
         except Exception as e:
-            raise HTTPException(
-                status_code=500,
-                detail=f"Failed to upload logo image: {str(e)}"
-            )
+            raise HTTPException(status_code=500, detail=f"Failed to upload new logo image: {str(e)}")
 
-    # =========================
-    # SAVE
-    # =========================
     db.commit()
     db.refresh(channel)
 
     return channel
 
-# get all 
-@router.get("/", response_model=List[ChannelResponse])
-def get_all_channels(db: Session = Depends(get_db)):
-    channels = db.query(Channel).all()
-    return channels
 
-
-# autarization check
+# -------------------------
+# AUTHORIZATION CHECK
+# -------------------------
 @router.get("/{channel_id}/authorize")
 def authorize_channel_access(
     channel_id: int,
@@ -247,17 +220,10 @@ def authorize_channel_access(
     current_email: str,
     db: Session = Depends(get_db)
 ):
-    channel = (
-        db.query(Channel)
-        .filter(Channel.channel_id == channel_id)
-        .first()
-    )
+    channel = db.query(Channel).filter(Channel.channel_id == channel_id).first()
 
     if not channel:
-        raise HTTPException(
-            status_code=404,
-            detail="Channel not found"
-        )
+        raise HTTPException(status_code=404, detail="Channel not found")
 
     # Owner check
     if channel.user_id == current_user_id:
@@ -272,8 +238,7 @@ def authorize_channel_access(
     for member in co_hosts:
         if (
             isinstance(member, dict)
-            and member.get("email", "").lower()
-            == current_email.lower()
+            and member.get("email", "").lower() == current_email.lower()
         ):
             return {
                 "authorized": True,
@@ -284,3 +249,26 @@ def authorize_channel_access(
         "authorized": False,
         "role": None
     }
+
+
+# -------------------------
+# DELETE CHANNEL
+# -------------------------
+@router.delete("/{channel_id}")
+def delete_channel(channel_id: int, db: Session = Depends(get_db)):
+    channel = db.query(Channel).filter(Channel.channel_id == channel_id).first()
+
+    if not channel:
+        raise HTTPException(status_code=404, detail="Channel not found")
+
+    # Clean assets from S3 bucket before structural database drops
+    if channel.cover_image and "amazonaws.com" in channel.cover_image:
+        delete_file(channel.cover_image)
+
+    if channel.logo_image and "amazonaws.com" in channel.logo_image:
+        delete_file(channel.logo_image)
+
+    db.delete(channel)
+    db.commit()
+
+    return {"message": "Channel and its linked cloud assets deleted successfully"}
