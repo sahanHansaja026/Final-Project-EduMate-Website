@@ -1,0 +1,4 @@
+DATABASE_URL=postgresql://postgres:12345678@baniyascode.c5m0i6yoq11b.ap-south-1.rds.amazonaws.com:5432/postgres?sslmode=require
+
+
+pass  6WhhOVIHLbV3ltBhUmRQ29K41v/JbVof1I6fQCr2

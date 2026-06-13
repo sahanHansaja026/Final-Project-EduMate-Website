@@ -1,9 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+import axios from "axios";
 import { Card, CardContent } from "@/components/ui/card";
+import { getUser } from "@/app/services/authService";
+import { API_BASE_URL } from "@/app/config/api";
 
 type ModuleItem = {
     label: string;
@@ -17,9 +20,52 @@ type Module = {
     items: ModuleItem[];
 };
 
+type User = {
+    id: number;
+    name?: string;
+    email?: string;
+};
+
 export default function LMSModuleDashboard() {
     const [openIndex, setOpenIndex] = useState<number>(0);
     const { id } = useParams<{ id: string }>();
+    const router = useRouter();
+    const [checking, setChecking] = useState(true);
+    const [user, setUser] = useState<User | null>(null);
+
+    useEffect(() => {
+        const currentUser = getUser();
+        setUser(currentUser);
+    }, []);
+
+    useEffect(() => {
+        const currentUser = getUser();
+        setUser(currentUser);
+
+        const checkAccess = async () => {
+            try {
+                if (!currentUser?.id || !id) {
+                    router.push("/errors/autharization");
+                    return;
+                }
+
+                const res = await axios.get(
+                    `${API_BASE_URL}/modules/access/${id}/${currentUser.id}`
+                );
+
+                if (!res.data.has_access) {
+                    router.push("/errors/autharization");
+                }
+
+            } catch (error) {
+                router.push("/errors/autharization");
+            } finally {
+                setChecking(false);
+            }
+        };
+
+        checkAccess();
+    }, [id]);
 
     const modules: Module[] = [
         {

@@ -2,6 +2,8 @@ import os
 import json
 import shutil
 from typing import List
+import uuid
+from services.s3_service import delete_file, upload_file
 from models.profile import Profile
 from fastapi import APIRouter, UploadFile, File, Form, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -47,22 +49,14 @@ async def create_channel(
     logo_path = None
 
     # Save cover image
-    if cover_image:
-        cover_path = os.path.join(
-            UPLOAD_DIR,
-            f"cover_{cover_image.filename}"
-        )
-        with open(cover_path, "wb") as buffer:
-            shutil.copyfileobj(cover_image.file, buffer)
+    cover_path = None
+    logo_path = None
 
-    # Save logo image
+    if cover_image:
+        cover_path = upload_file(cover_image, folder="channels/covers")
+
     if logo_image:
-        logo_path = os.path.join(
-            UPLOAD_DIR,
-            f"logo_{logo_image.filename}"
-        )
-        with open(logo_path, "wb") as buffer:
-            shutil.copyfileobj(logo_image.file, buffer)
+        logo_path = upload_file(logo_image, folder="channels/logos")
 
     channel = Channel(
         user_id=user_id,
@@ -152,6 +146,9 @@ async def update_channel(
     if not channel:
         raise HTTPException(status_code=404, detail="Channel not found")
 
+    # =========================
+    # UPDATE TEXT FIELDS
+    # =========================
     if channel_name is not None:
         channel.channel_name = channel_name
 
@@ -179,26 +176,57 @@ async def update_channel(
     if facebook_portal_link is not None:
         channel.facebook_portal_link = facebook_portal_link
 
-    # update cover image
-    if cover_image:
-        cover_path = os.path.join(
-            UPLOAD_DIR,
-            f"cover_{cover_image.filename}"
-        )
-        with open(cover_path, "wb") as buffer:
-            shutil.copyfileobj(cover_image.file, buffer)
-        channel.cover_image = cover_path
+    # =========================
+    # COVER IMAGE (S3 UPDATE)
+    # =========================
+    if cover_image and cover_image.filename:
 
-    # update logo image
-    if logo_image:
-        logo_path = os.path.join(
-            UPLOAD_DIR,
-            f"logo_{logo_image.filename}"
-        )
-        with open(logo_path, "wb") as buffer:
-            shutil.copyfileobj(logo_image.file, buffer)
-        channel.logo_image = logo_path
+        # delete old S3 file if exists
+        if channel.cover_image and "amazonaws.com" in channel.cover_image:
+            try:
+                delete_file(channel.cover_image)
+            except Exception as e:
+                print(f"Failed to delete old cover: {e}")
 
+        # upload new file
+        try:
+            channel.cover_image = upload_file(
+                cover_image,
+                folder="channels/covers"
+            )
+        except Exception as e:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to upload cover image: {str(e)}"
+            )
+
+    # =========================
+    # LOGO IMAGE (S3 UPDATE)
+    # =========================
+    if logo_image and logo_image.filename:
+
+        # delete old S3 file if exists
+        if channel.logo_image and "amazonaws.com" in channel.logo_image:
+            try:
+                delete_file(channel.logo_image)
+            except Exception as e:
+                print(f"Failed to delete old logo: {e}")
+
+        # upload new file
+        try:
+            channel.logo_image = upload_file(
+                logo_image,
+                folder="channels/logos"
+            )
+        except Exception as e:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to upload logo image: {str(e)}"
+            )
+
+    # =========================
+    # SAVE
+    # =========================
     db.commit()
     db.refresh(channel)
 

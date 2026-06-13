@@ -1,115 +1,84 @@
 import os
-import shutil
-
-from fastapi import (
-    APIRouter,
-    UploadFile,
-    File,
-    Form,
-    Depends,
-    HTTPException
-)
-
-from sqlalchemy.orm import Session
-from typing import Optional
 from datetime import date
+from typing import Optional
 
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from sqlalchemy.orm import Session
+
+from services.s3_service import delete_file, upload_file
 from database import get_db
 from models.video import Video
 from schemas.video import VideoResponse
+
+# Import your working S3 helper functions
 
 
 router = APIRouter(prefix="/videos", tags=["Videos"])
 
 
 # =========================
-# FOLDERS
-# =========================
-
-VIDEO_DIR = "uploads/videos"
-THUMBNAIL_DIR = "uploads/thumbnails"
-
-os.makedirs(VIDEO_DIR, exist_ok=True)
-os.makedirs(THUMBNAIL_DIR, exist_ok=True)
-
-
-# =========================
 # CREATE VIDEO
 # =========================
-
 @router.post("/", response_model=VideoResponse)
 async def create_video(
     module_id: int = Form(...),
-
     title: str = Form(...),
     description: Optional[str] = Form(None),
-
     source_type: str = Form(...),
-
     video_url: Optional[str] = Form(None),
-
     video_file: UploadFile = File(None),
     thumbnail: UploadFile = File(None),
-
     open_date: Optional[date] = Form(None),
     close_date: Optional[date] = Form(None),
-
     db: Session = Depends(get_db),
 ):
-
     saved_video_path = None
     saved_thumbnail_path = None
 
     # =========================
-    # SAVE VIDEO FILE
+    # SAVE VIDEO FILE (S3 OR URL)
     # =========================
-
     if source_type == "Upload":
-
         if not video_file:
             raise HTTPException(
                 status_code=400,
-                detail="Video file is required"
+                detail="Video file is required when source type is 'Upload'",
             )
-
-        video_path = f"{VIDEO_DIR}/{video_file.filename}"
-
-        with open(video_path, "wb") as buffer:
-            shutil.copyfileobj(video_file.file, buffer)
-
-        saved_video_path = video_path
-
+        try:
+            # Stream directly to the S3 bucket under the "videos" folder
+            saved_video_path = upload_file(video_file, folder="videos")
+        except Exception as e:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to upload video to S3 cloud storage: {str(e)}",
+            )
     else:
+        # Fall back to incoming external text link (e.g., YouTube, Vimeo)
         saved_video_path = video_url
 
     # =========================
-    # SAVE THUMBNAIL
+    # SAVE THUMBNAIL TO S3
     # =========================
-
     if thumbnail:
-
-        thumb_path = f"{THUMBNAIL_DIR}/{thumbnail.filename}"
-
-        with open(thumb_path, "wb") as buffer:
-            shutil.copyfileobj(thumbnail.file, buffer)
-
-        saved_thumbnail_path = thumb_path
+        try:
+            # Stream directly to the S3 bucket under the "thumbnails" folder
+            saved_thumbnail_path = upload_file(thumbnail, folder="thumbnails")
+        except Exception as e:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to upload thumbnail to S3 cloud storage: {str(e)}",
+            )
 
     # =========================
-    # SAVE DB
+    # SAVE DB RECORD
     # =========================
-
     new_video = Video(
         module_id=module_id,
-
         title=title,
         description=description,
-
         source_type=source_type,
-
-        video_url=saved_video_path,
-        thumbnail_url=saved_thumbnail_path,
-
+        video_url=saved_video_path,  # Stores final S3 video URL or raw text link
+        thumbnail_url=saved_thumbnail_path,  # Stores final S3 thumbnail URL
         open_date=open_date,
         close_date=close_date,
     )
@@ -124,31 +93,18 @@ async def create_video(
 # =========================
 # GET VIDEOS BY MODULE
 # =========================
-
 @router.get("/module/{module_id}", response_model=list[VideoResponse])
 def get_videos(module_id: int, db: Session = Depends(get_db)):
-
-    videos = (
-        db.query(Video)
-        .filter(Video.module_id == module_id)
-        .all()
-    )
-
+    videos = db.query(Video).filter(Video.module_id == module_id).all()
     return videos
 
 
 # =========================
 # GET SINGLE VIDEO
 # =========================
-
 @router.get("/{video_id}", response_model=VideoResponse)
 def get_video(video_id: int, db: Session = Depends(get_db)):
-
-    video = (
-        db.query(Video)
-        .filter(Video.id == video_id)
-        .first()
-    )
+    video = db.query(Video).filter(Video.id == video_id).first()
 
     if not video:
         raise HTTPException(404, "Video not found")
@@ -159,43 +115,33 @@ def get_video(video_id: int, db: Session = Depends(get_db)):
 # =========================
 # DELETE VIDEO
 # =========================
-
 @router.delete("/{video_id}")
-def delete_video(video_id: int, db: Session = Depends(get_db)):
-
-    video = (
-        db.query(Video)
-        .filter(Video.id == video_id)
-        .first()
-    )
+def delete_video(
+    video_id: int,
+    db: Session = Depends(get_db),
+):
+    video = db.query(Video).filter(Video.id == video_id).first()
 
     if not video:
-        raise HTTPException(404, "Video not found")
+        raise HTTPException(status_code=404, detail="Video not found")
 
-    # delete uploaded files
-    if video.video_url and os.path.exists(video.video_url):
-        try:
-            os.remove(video.video_url)
-        except:
-            pass
+    # 1. Clear out upload-based files from your S3 bucket
+    if video.source_type == "Upload" and video.video_url:
+        delete_file(video.video_url)
 
-    if video.thumbnail_url and os.path.exists(video.thumbnail_url):
-        try:
-            os.remove(video.thumbnail_url)
-        except:
-            pass
+    # 2. Clear out thumbnails from your S3 bucket
+    if video.thumbnail_url:
+        delete_file(video.thumbnail_url)
 
     db.delete(video)
     db.commit()
 
-    return {
-        "message": "Video deleted successfully"
-    }
-    
+    return {"message": "Video deleted successfully"}
+
+
 # =========================
 # UPDATE VIDEO (PUT)
 # =========================
-
 @router.put("/{video_id}", response_model=VideoResponse)
 async def update_video(
     video_id: int,
@@ -209,44 +155,51 @@ async def update_video(
     close_date: Optional[date] = Form(None),
     db: Session = Depends(get_db),
 ):
-    # 1. Fetch the existing record
     video = db.query(Video).filter(Video.id == video_id).first()
+
     if not video:
-        raise HTTPException(status_code=404, detail="Video resource not found")
+        raise HTTPException(
+            status_code=404, detail="Video resource not found"
+        )
 
-    # 2. Handle Video Source Modifications
+    # Handle conditional video source alterations
     if source_type == "Upload":
-        # If a brand new file is uploaded, process it and delete the old one if it exists
         if video_file:
-            if video.source_type == "Upload" and video.video_url and os.path.exists(video.video_url):
-                try: os.remove(video.video_url)
-                except: pass
+            # Drop previous S3 video resource if it exists
+            if video.source_type == "Upload" and video.video_url:
+                delete_file(video.video_url)
 
-            new_video_path = f"{VIDEO_DIR}/{video_file.filename}"
-            with open(new_video_path, "wb") as buffer:
-                shutil.copyfileobj(video_file.file, buffer)
-            video.video_url = new_video_path
-        # If source_type is "Upload" but no new file is sent, keep the existing path
+            # Upload new asset stream straight into S3
+            try:
+                video.video_url = upload_file(video_file, folder="videos")
+            except Exception as e:
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Failed to upload new video file to S3: {str(e)}",
+                )
     else:
-        # If changing to YouTube/Vimeo, clean up any old local video file
-        if video.source_type == "Upload" and video.video_url and os.path.exists(video.video_url):
-            try: os.remove(video.video_url)
-            except: pass
+        # If toggling from 'Upload' -> an external web link, clear old S3 asset first
+        if video.source_type == "Upload" and video.video_url:
+            delete_file(video.video_url)
+
         video.video_url = video_url
 
-    # 3. Handle Thumbnail Update
+    # Handle structural thumbnail swaps
     if thumbnail:
-        # Wipe out old thumbnail from server storage
-        if video.thumbnail_url and os.path.exists(video.thumbnail_url):
-            try: os.remove(video.thumbnail_url)
-            except: pass
+        # Drop previous S3 thumbnail out of the bucket
+        if video.thumbnail_url:
+            delete_file(video.thumbnail_url)
 
-        new_thumb_path = f"{THUMBNAIL_DIR}/{thumbnail.filename}"
-        with open(new_thumb_path, "wb") as buffer:
-            shutil.copyfileobj(thumbnail.file, buffer)
-        video.thumbnail_url = new_thumb_path
+        # Upload new graphic resource directly to S3
+        try:
+            video.thumbnail_url = upload_file(thumbnail, folder="thumbnails")
+        except Exception as e:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to upload new thumbnail file to S3: {str(e)}",
+            )
 
-    # 4. Bind remaining data payloads
+    # Commit metadata fields down to database
     video.title = title
     video.description = description
     video.source_type = source_type
@@ -255,5 +208,5 @@ async def update_video(
 
     db.commit()
     db.refresh(video)
-    
+
     return video

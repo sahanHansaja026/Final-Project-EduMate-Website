@@ -1,20 +1,18 @@
 import os
 import shutil
 from typing import List
+import uuid
 from fastapi import APIRouter, UploadFile, File, Form, Depends, HTTPException
 from sqlalchemy.orm import Session
 from datetime import date
 from typing import Optional
+from services.s3_service import delete_file, upload_file
 from database import get_db
 from models.content import Content
 from schemas.content import ContentResponse
 
 router = APIRouter(prefix="/contents", tags=["Contents"])
 
-UPLOAD_DIR = "uploads"
-
-# ✅ ensure folder exists
-os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 
 # ✅ CREATE CONTENT
@@ -39,12 +37,10 @@ async def create_content(
 
     # ✅ Save uploaded file
     if file:
-        file_location = f"{UPLOAD_DIR}/{file.filename}"
-
-        with open(file_location, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
-
-        file_path = file_location
+        try:
+            file_path = upload_file(file, folder="contents")
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
 
     # ✅ If external URL
     elif external_url:
@@ -79,38 +75,52 @@ def get_contents_by_module(module_id: int, db: Session = Depends(get_db)):
 @router.put("/{content_id}", response_model=ContentResponse)
 async def update_content(
     content_id: int,
-    title: str = Form(None),
-    week: int = Form(None),
-    description: str = Form(None),
 
-    external_url: str = Form(None),
+    title: Optional[str] = Form(None),
+    week: Optional[int] = Form(None),
+    description: Optional[str] = Form(None),
+
+    external_url: Optional[str] = Form(None),
     file: UploadFile = File(None),
 
-    open_date: date = Form(None),
-    close_date: date = Form(None),
-
-    allow_download: bool = Form(None),
+    open_date: Optional[date] = Form(None),
+    close_date: Optional[date] = Form(None),
+    allow_download: Optional[bool] = Form(None),
 
     db: Session = Depends(get_db),
 ):
-    content = db.query(Content).filter(Content.id == content_id).first()
+    content = db.query(Content).filter(Content.assignment_id == content_id).first()
 
     if not content:
         raise HTTPException(status_code=404, detail="Content not found")
 
-    # ✅ Handle file update
-    if file:
-        file_location = f"{UPLOAD_DIR}/{file.filename}"
+    # =========================
+    # FILE UPLOAD
+    # =========================
+    if file is not None and file.filename:
+        # delete old S3 file
+        if content.file_path and ".amazonaws.com/" in content.file_path:
+            delete_file(content.file_path)
 
-        with open(file_location, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
+        content.file_path = upload_file(file, folder="contents")
 
-        content.file_path = file_location
+    # =========================
+    # EXTERNAL URL
+    # =========================
+    elif external_url is not None:
 
-    elif external_url:
+        if content.file_path and content.file_path.startswith("uploads"):
+            if os.path.exists(content.file_path):
+                try:
+                    os.remove(content.file_path)
+                except Exception as e:
+                    print(f"Delete error: {e}")
+
         content.file_path = external_url
 
-    # ✅ Update fields only if provided
+    # =========================
+    # FIELDS UPDATE
+    # =========================
     if title is not None:
         content.title = title
 
@@ -132,29 +142,42 @@ async def update_content(
     db.commit()
     db.refresh(content)
 
-    return ContentResponse.from_orm(content)
+    return content
+
 
 @router.delete("/{content_id}")
-def delete_content(content_id: int, db: Session = Depends(get_db)):
+def delete_content(
+    content_id: int,
+    db: Session = Depends(get_db)
+):
+
+    # ✅ KEEP CONSISTENT KEY
     content = db.query(Content).filter(Content.assignment_id == content_id).first()
 
     if not content:
         raise HTTPException(status_code=404, detail="Content not found")
 
-    # delete file if exists
+    # =========================
+    # DELETE FILE (if uploaded file exists)
+    # =========================
     if content.file_path and os.path.exists(content.file_path):
         try:
             os.remove(content.file_path)
-        except:
-            pass
+        except Exception as e:
+            print(f"Failed to delete file: {e}")
 
+    # =========================
+    # DELETE DB RECORD
+    # =========================
     db.delete(content)
     db.commit()
 
     return {"message": "Content deleted successfully"}
 
+
+
 @router.put("/update/{content_id}")
-def update_content(
+async def update_content(
     content_id: int,
 
     title: Optional[str] = Form(None),
@@ -162,6 +185,7 @@ def update_content(
     description: Optional[str] = Form(None),
 
     external_url: Optional[str] = Form(None),
+    file: UploadFile = File(None),
 
     open_date: Optional[date] = Form(None),
     close_date: Optional[date] = Form(None),
@@ -175,7 +199,44 @@ def update_content(
     if not content:
         raise HTTPException(status_code=404, detail="Content not found")
 
-    # ✅ update only provided fields (PATCH-style behavior)
+    # =========================
+    # FILE UPDATE (S3)
+    # =========================
+    if file is not None and file.filename:
+
+        # delete old S3 file if exists
+        if content.file_path and "amazonaws.com" in content.file_path:
+            try:
+                delete_file(content.file_path)
+            except Exception as e:
+                print(f"Failed to delete old S3 file: {e}")
+
+        # upload new file to S3
+        try:
+            content.file_path = upload_file(file, folder="contents")
+        except Exception as e:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to upload file to S3: {str(e)}"
+            )
+
+    # =========================
+    # EXTERNAL URL UPDATE
+    # =========================
+    elif external_url is not None:
+
+        # delete old S3 file if switching from upload → URL
+        if content.file_path and "amazonaws.com" in content.file_path:
+            try:
+                delete_file(content.file_path)
+            except Exception as e:
+                print(f"Failed to delete old S3 file: {e}")
+
+        content.file_path = external_url
+
+    # =========================
+    # FIELD UPDATES
+    # =========================
     if title is not None:
         content.title = title
 
@@ -194,10 +255,6 @@ def update_content(
     if allow_download is not None:
         content.allow_download = allow_download
 
-    # (optional field — only if your model supports it)
-    if external_url is not None:
-        content.file_path = external_url
-
     db.commit()
     db.refresh(content)
 
@@ -205,7 +262,7 @@ def update_content(
         "message": "Content updated successfully",
         "data": content
     }
-
+    
 @router.get("/view/{content_id}")
 def get_content(content_id: int, db: Session = Depends(get_db)):
     content = db.query(Content).filter(Content.assignment_id == content_id).first()

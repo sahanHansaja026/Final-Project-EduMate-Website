@@ -12,6 +12,7 @@ import {
     EyeOff
 } from "lucide-react";
 import { API_BASE_URL } from "@/app/config/api";
+import { getUser } from "@/app/services/authService";
 
 export default function EditAssignmentPage() {
     const params = useParams();
@@ -35,14 +36,47 @@ export default function EditAssignmentPage() {
     // Asset Tracking
     const [existingFilePath, setExistingFilePath] = useState<string | null>(null);
     const [file, setFile] = useState<File | null>(null);
-
+    const [userId, setUserId] = useState<number | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // =========================
     // DATA HYDRATION (GET)
     // =========================
+    const checkAccess = async () => {
+        try {
+            const user = getUser();
+            const currentUserId = user?.id;
+
+            if (!currentUserId) {
+                router.push("/errors/autharization");
+                return;
+            }
+
+            const res = await axios.get(
+                `${API_BASE_URL}/assignment-access/can-edit`,
+                {
+                    params: {
+                        assignment_id: assignmentId,
+                        current_user_id: currentUserId,
+                    },
+                }
+            );
+
+            if (!res.data.access) {
+                router.push("/errors/autharization");
+                return;
+            }
+
+            // allowed → now fetch assignment
+            fetchAssignment();
+        } catch (err) {
+            console.error(err);
+            router.push("/errors/autharization");
+        }
+    };
+    
     useEffect(() => {
-        fetchAssignment();
+        checkAccess();
     }, []);
 
     const fetchAssignment = async () => {

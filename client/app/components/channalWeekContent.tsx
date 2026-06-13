@@ -71,7 +71,7 @@ export default function WeekContent({
                                         <p className="text-xs text-gray-500">Add new activities or content to this week.</p>
                                     </div>
 
-                                    <a href={`/pages/create_activities/${moduleId}`}>
+                                    <a href={`/pages/channal_create_activities/${moduleId}`}>
                                         <button
                                             onClick={() => setActiveItem(`create-week-${w}`)}
                                             className="px-6 py-2.5 rounded-xl text-sm font-bold bg-blue-600 text-white hover:bg-blue-700 shadow-md shadow-blue-100 transition-all active:scale-95"

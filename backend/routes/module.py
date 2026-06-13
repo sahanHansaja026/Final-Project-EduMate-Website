@@ -5,6 +5,7 @@ import json
 from database import get_db
 from models.module import Module, VisibilityEnum
 from schemas.module import ModuleResponse
+from fastapi import Path
 
 router = APIRouter(prefix="/modules", tags=["Modules"])
 
@@ -108,3 +109,30 @@ async def update_module(
     db.refresh(module)
 
     return ModuleResponse.from_orm(module)
+
+
+
+@router.get("/access/{module_id}/{user_id}")
+def check_module_access(
+    module_id: int = Path(...),
+    user_id: int = Path(...),
+    db: Session = Depends(get_db),
+):
+    module = db.query(Module).filter(Module.module_id == module_id).first()
+
+    if not module:
+        raise HTTPException(status_code=404, detail="Module not found")
+
+    # ownership check
+    is_owner = module.user_id == user_id
+
+    # optional rule: public modules are accessible to everyone
+    is_public = module.visibility == VisibilityEnum.public
+
+    return {
+        "module_id": module_id,
+        "user_id": user_id,
+        "is_owner": is_owner,
+        "is_public": is_public,
+        "has_access": is_owner or is_public
+    }
