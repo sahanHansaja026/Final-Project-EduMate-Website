@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from database import Base, engine
 from fastapi.staticfiles import StaticFiles
-from routes import auth,profile,module,content,meeting,quiz,question,video,quiz_score,student_answer,subscription_routes,module_quota,video_quota,quiz_quota,enrollment,submission,assignment,assignemnt_quota,channel,channel_quota,channel_modules,usercomments, grade, manual_grading,sentiment,assignment_grading,enrollment_analytics,authorized_students,channel_module_access_controller,module_quiz_access_controller,quiz_attempt_controller,assignment_edit_access
+from routes import auth,profile,module,content,meeting,quiz,question,video,quiz_score,student_answer,subscription_routes,module_quota,video_quota,quiz_quota,enrollment,submission,assignment,assignemnt_quota,channel,channel_quota,channel_modules,usercomments, grade, manual_grading,sentiment,assignment_grading,enrollment_analytics,authorized_students,channel_module_access_controller,module_quiz_access_controller,quiz_attempt_controller,assignment_edit_access,channel_content_access_controller,video_acess_contolle, assignment_view_access
 from chatbot import chatbot
 Base.metadata.create_all(bind=engine)
 
@@ -53,6 +53,9 @@ app.include_router(channel_module_access_controller.router)
 app.include_router(module_quiz_access_controller.router)
 app.include_router(quiz_attempt_controller.router)
 app.include_router(assignment_edit_access.router)
+app.include_router(channel_content_access_controller.router)
+app.include_router(video_acess_contolle.router)
+app.include_router(assignment_view_access.router)
 
 @app.get("/")
 def root():

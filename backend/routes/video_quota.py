@@ -9,25 +9,24 @@ from models.video import Video
 router = APIRouter(prefix="/quota", tags=["Video Quota"])
 
 
-# =========================
-# VIDEO QUOTA CHECK (FREE = 1 VIDEO)
-# =========================
-
 @router.get("/video/{user_id}")
 def check_video_quota(user_id: int, db: Session = Depends(get_db)):
 
     # 1. Get subscription
     sub = db.query(Subscription).filter(
-        Subscription.user_id == user_id
+        Subscription.user_id == user_id,
+        Subscription.status == "active"
     ).first()
 
+    # default = free
     plan = "free"
+
     if sub:
-        plan = getattr(sub, "plan", None) or getattr(sub, "plan_type", None) or "free"
+        plan = sub.plan_name.value  # IMPORTANT FIX
 
-    is_free = plan.lower() == "free"
+    is_free = plan == "free"
 
-    # 2. Count videos via MODULE -> USER relationship
+    # 2. Count videos created by this user via Module relation
     video_count = (
         db.query(Video)
         .join(Module, Video.module_id == Module.module_id)
@@ -35,12 +34,15 @@ def check_video_quota(user_id: int, db: Session = Depends(get_db)):
         .count()
     )
 
-    # 3. Rule
-    limit = 1 if is_free else None
-    can_create = True
-
+    # 3. Quota rules
     if is_free:
-        can_create = video_count < 1
+        limit = 1
+        can_create = video_count < limit
+        remaining = max(0, limit - video_count)
+    else:
+        limit = None
+        can_create = True
+        remaining = "unlimited"
 
     return {
         "user_id": user_id,
@@ -48,5 +50,5 @@ def check_video_quota(user_id: int, db: Session = Depends(get_db)):
         "used_videos": video_count,
         "limit": limit,
         "can_create": can_create,
-        "remaining": 0 if is_free and video_count >= 1 else "unlimited"
+        "remaining": remaining
     }
