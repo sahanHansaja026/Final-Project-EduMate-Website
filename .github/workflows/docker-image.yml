@@ -10,10 +10,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Deploy to EC2
+      - name: Deploy to EC2 via SSH
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -21,10 +21,13 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
 
           script: |
-            cd ~/Final-Project-EduMate-Website
+            set -e
 
+            echo "🚀 Pulling latest code..."
+            cd ~/Final-Project-EduMate-Website
             git pull origin main
 
+            echo "🐳 Building Docker image..."
             cd backend
 
             docker stop fastapi-backend || true
@@ -32,8 +35,19 @@ jobs:
 
             docker build -t fastapi-app .
 
+            echo "🚀 Running container with GitHub Secrets..."
+
             docker run -d \
               --name fastapi-backend \
               -p 8000:8000 \
-              --env-file .env \
+              -e DATABASE_URL='${{ secrets.DATABASE_URL }}' \
+              -e AWS_ACCESS_KEY_ID='${{ secrets.AWS_ACCESS_KEY_ID }}' \
+              -e AWS_SECRET_ACCESS_KEY='${{ secrets.AWS_SECRET_ACCESS_KEY }}' \
+              -e AWS_BUCKET_NAME='${{ secrets.AWS_BUCKET_NAME }}' \
+              -e AWS_REGION='${{ secrets.AWS_REGION }}' \
+              -e GOOGLE_API_KEY='${{ secrets.GOOGLE_API_KEY }}' \
+              -e GOOGLE_CSE_ID='${{ secrets.GOOGLE_CSE_ID }}' \
+              -e OPENROUTER_API_KEY='${{ secrets.OPENROUTER_API_KEY }}' \
               fastapi-app
+
+            echo "✅ Deployment successful"
