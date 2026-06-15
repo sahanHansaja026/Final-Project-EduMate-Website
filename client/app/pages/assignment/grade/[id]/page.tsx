@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 
 interface StudentGrading {
-    user_id: string;
+    user_id: string | number;
     status: string;
     submitted_at: string | null;
     marks: number | null;
@@ -39,13 +39,12 @@ export default function Page() {
         setLoading(true);
         setError(null);
 
-        const url = `${API_BASE_URL}/assignment_grading/${assignmentId}`;
-
         try {
-            const res = await fetch(url);
+            const res = await fetch(`${API_BASE_URL}/assignment_grading/${assignmentId}`);
 
             if (!res.ok) {
-                throw new Error(`HTTP error! status: ${res.status}`);
+                const errData = await res.json().catch(() => ({}));
+                throw new Error(errData?.detail || `HTTP error! status: ${res.status}`);
             }
 
             const result = await res.json();
@@ -58,17 +57,31 @@ export default function Page() {
     };
 
     useEffect(() => {
-        loadData();
+        if (assignmentId) {
+            loadData();
+        }
     }, [assignmentId]);
+
+    // Helper function to safely render dates without breaking the render engine
+    const formatDate = (dateStr: string | null) => {
+        if (!dateStr) return "—";
+        try {
+            // If it contains a timestamp, take just the date portion cleanly split
+            if (dateStr.includes("T")) {
+                return dateStr.split("T")[0];
+            }
+            return dateStr;
+        } catch (e) {
+            return String(dateStr);
+        }
+    };
 
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-50">
                 <div className="flex flex-col items-center gap-4">
                     <div className="w-10 h-10 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin"></div>
-                    <p className="text-sm font-semibold text-gray-600">
-                        Loading Grading Data...
-                    </p>
+                    <p className="text-sm font-semibold text-gray-600">Loading Grading Data...</p>
                 </div>
             </div>
         );
@@ -78,26 +91,20 @@ export default function Page() {
         <div className="min-h-screen bg-gray-50 p-6">
             <div className="max-w-7xl mx-auto">
 
-                {/* Error Banner */}
                 {error && (
                     <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-2xl font-medium">
-                        ❌ {error}
+                        ❌ Error: {error}
                     </div>
                 )}
 
-                {/* Header */}
                 <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
                         <div className="p-4 bg-gray-900 rounded-2xl">
                             <GraduationCap className="text-white w-7 h-7" />
                         </div>
                         <div>
-                            <h1 className="text-3xl font-bold text-gray-900">
-                                Assignment Grading
-                            </h1>
-                            <p className="text-gray-500 mt-1">
-                                Assignment ID: {assignmentId}
-                            </p>
+                            <h1 className="text-3xl font-bold text-gray-900">Assignment Grading</h1>
+                            <p className="text-gray-500 mt-1">Assignment ID: {assignmentId}</p>
                         </div>
                     </div>
 
@@ -106,15 +113,12 @@ export default function Page() {
                             <Trophy className="text-amber-500 w-5 h-5" />
                             <div>
                                 <p className="text-xs text-gray-400 font-medium uppercase tracking-wider">Full Marks</p>
-                                <p className="text-lg font-bold text-gray-900">
-                                    {data.full_marks}
-                                </p>
+                                <p className="text-lg font-bold text-gray-900">{data.full_marks}</p>
                             </div>
                         </div>
                     )}
                 </div>
 
-                {/* Table Container */}
                 {data && (
                     <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
                         <div className="overflow-x-auto">
@@ -147,7 +151,6 @@ export default function Page() {
                                                     }
                                                     className="border-b border-gray-100 hover:bg-gray-50 transition cursor-pointer"
                                                 >
-                                                    {/* Student Info */}
                                                     <td className="p-5">
                                                         <div className="flex items-center gap-3">
                                                             <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center border border-gray-200">
@@ -161,25 +164,22 @@ export default function Page() {
                                                         </div>
                                                     </td>
 
-                                                    {/* Status Badge */}
                                                     <td className="p-5">
                                                         <span className={`inline-flex px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${isSubmitted
-                                                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                                                            : "bg-rose-50 text-rose-700 border border-rose-200"
+                                                                ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                                                : "bg-rose-50 text-rose-700 border border-rose-200"
                                                             }`}>
                                                             {student.status}
                                                         </span>
                                                     </td>
 
-                                                    {/* Submitted At */}
                                                     <td className="p-5">
                                                         <div className="flex items-center gap-2 text-sm text-gray-600">
                                                             <Clock3 className="w-4 h-4 text-gray-400" />
-                                                            {student.submitted_at || "—"}
+                                                            {formatDate(student.submitted_at)}
                                                         </div>
                                                     </td>
 
-                                                    {/* Marks / Full Marks */}
                                                     <td className="p-5">
                                                         <span className="text-gray-900 text-sm font-semibold">
                                                             {student.marks ?? "—"}
@@ -189,7 +189,6 @@ export default function Page() {
                                                         </span>
                                                     </td>
 
-                                                    {/* Percentage */}
                                                     <td className="p-5">
                                                         <div className="flex items-center gap-1.5">
                                                             <Percent className="w-4 h-4 text-gray-400" />
@@ -207,7 +206,6 @@ export default function Page() {
                         </div>
                     </div>
                 )}
-
             </div>
         </div>
     );

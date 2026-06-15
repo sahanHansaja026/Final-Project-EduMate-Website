@@ -17,8 +17,11 @@ def get_assignment_grading(
     assignment_id: int,
     db: Session = Depends(get_db)
 ):
+    print("\n" + "="*50)
+    print(f"📥 NEW REQUEST RECEIVED FOR ASSIGNMENT ID: {assignment_id}")
+    print("="*50)
 
-    # check assignment exists
+    # 1. Fetch assignment configuration details
     assignment = db.query(Assignment).filter(
         Assignment.id == assignment_id
     ).first()
@@ -26,56 +29,39 @@ def get_assignment_grading(
     if not assignment:
         raise HTTPException(status_code=404, detail="Assignment not found")
 
-    module_id = assignment.module_id
-    full_marks = assignment.full_marks  # ✅ FIX: use real max marks
+    full_marks = assignment.full_marks 
 
-    # enrolled students
-    enrollments = db.query(Enrollment).filter(
-        Enrollment.module_id == module_id
+    # 2. Query the submissions table directly for this assignment
+    submissions = db.query(AssignmentSubmission).filter(
+        AssignmentSubmission.assignment_id == assignment_id
     ).all()
+    
+    print(f"📦 SUBMISSION CHECK: Found {len(submissions)} total submissions in database.")
 
     results = []
 
-    for enrollment in enrollments:
+    # 3. Process the records found directly in assignment_submissions
+    for sub in submissions:
+        student_marks = sub.marks if sub.marks is not None else 0
+        percentage = round((student_marks / full_marks) * 100, 2) if full_marks > 0 else 0
 
-        submission = db.query(AssignmentSubmission).filter(
-            AssignmentSubmission.assignment_id == assignment_id,
-            AssignmentSubmission.student_id == enrollment.user_id
-        ).first()
+        results.append({
+            "user_id": sub.student_id,  # Pulling student_id directly from submission record
+            "status": "Submitted",
+            "submitted_at": sub.submitted_at.isoformat() if hasattr(sub.submitted_at, 'isoformat') else str(sub.submitted_at),
+            "marks": sub.marks,
+            "percentage": percentage
+        })
 
-        if submission and submission.marks is not None and full_marks > 0:
-
-            percentage = round((submission.marks / full_marks) * 100, 2)
-
-            results.append({
-                "user_id": enrollment.user_id,
-                "status": "Submitted",
-                "submitted_at": submission.submitted_at,
-                "marks": submission.marks,
-                "percentage": percentage
-            })
-
-        elif submission:
-
-            results.append({
-                "user_id": enrollment.user_id,
-                "status": "Submitted",
-                "submitted_at": submission.submitted_at,
-                "marks": submission.marks,
-                "percentage": 0
-            })
-
-        else:
-            results.append({
-                "user_id": enrollment.user_id,
-                "status": "Not Submitted",
-                "submitted_at": None,
-                "marks": None,
-                "percentage": 0
-            })
-
-    return {
+    payload_response = {
         "assignment_id": assignment_id,
-        "full_marks": full_marks,   # ✅ FIX: better naming
+        "full_marks": full_marks,
         "students": results
     }
+
+    print("\n📤 OUTGOING PAYLOAD TO FRONTEND:")
+    import json
+    print(json.dumps(payload_response, indent=4, default=str))
+    print("="*50 + "\n")
+
+    return payload_response

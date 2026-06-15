@@ -1,11 +1,10 @@
 "use client";
 
 import { useSearchParams, useRouter } from "next/navigation";
-import { ChevronLeft, User, FileText, Download, AlertCircle, Loader2, CheckCircle } from "lucide-react";
-import { useEffect, useState, Suspense } from "react"; // Added Suspense import
+import { ChevronLeft, User, FileText, Download, AlertCircle, Loader2 } from "lucide-react";
+import { useEffect, useState, Suspense } from "react";
 import { API_BASE_URL } from "@/app/config/api";
 
-// 1. Rename your main logic to a sub-component
 function ScorePageContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
@@ -19,22 +18,28 @@ function ScorePageContent() {
     const [error, setError] = useState<string | null>(null);
     const [marks, setMarks] = useState<number | "">("");
 
-    const [fileBlobUrl, setFileBlobUrl] = useState<string | null>(null);
     const [isPdf, setIsPdf] = useState(false);
     const [fileName, setFileName] = useState("submission_document");
+
+    // Construct the backend file link directly
+    const directFileUrl = submission ? `${API_BASE_URL}/submissions/file/${submission.id}` : null;
 
     useEffect(() => {
         if (!assignmentId || !studentId) return;
 
-        const fetchSubmissionAndFile = async () => {
+        const fetchSubmissionMetadata = async () => {
             try {
                 setLoading(true);
                 setError(null);
 
+                // Fetch metadata only. We skip fetching the file body via JS to bypass CORS restrictions.
                 const metaRes = await fetch(
                     `${API_BASE_URL}/submissions/assignment/${assignmentId}/student/${studentId}`
                 );
-                if (!metaRes.ok) throw new Error("The specified candidate assignment record was not found.");
+
+                if (!metaRes.ok) {
+                    throw new Error("The specified candidate assignment record was not found.");
+                }
 
                 const data = await metaRes.json();
                 setSubmission(data);
@@ -42,17 +47,9 @@ function ScorePageContent() {
 
                 const inferredName = data.fileName || data.filename || "Submission_Asset";
                 setFileName(inferredName);
-                const extension = inferredName.split('.').pop()?.toLowerCase() || "";
 
-                const fileRes = await fetch(`${API_BASE_URL}/submissions/file/${data.id}`);
-                if (!fileRes.ok) throw new Error("Could not construct binary preview link from storage.");
-
-                const blob = await fileRes.blob();
-                const isBlobPdf = blob.type === "application/pdf" || extension === "pdf";
-                setIsPdf(isBlobPdf);
-
-                const localUrl = URL.createObjectURL(blob);
-                setFileBlobUrl(localUrl);
+                const extension = inferredName.split(".").pop()?.toLowerCase() || "";
+                setIsPdf(extension === "pdf");
 
             } catch (err: any) {
                 setError(err.message || "An unexpected integration failure occurred.");
@@ -61,11 +58,7 @@ function ScorePageContent() {
             }
         };
 
-        fetchSubmissionAndFile();
-
-        return () => {
-            if (fileBlobUrl) URL.revokeObjectURL(fileBlobUrl);
-        };
+        fetchSubmissionMetadata();
     }, [assignmentId, studentId]);
 
     const handleSaveGrade = async () => {
@@ -73,16 +66,25 @@ function ScorePageContent() {
 
         try {
             setSaving(true);
+
+            // 1. Initialize a FormData instance instead of a raw JSON object
+            const formData = new FormData();
+
+            if (marks !== "") {
+                formData.append("marks", String(marks));
+            }
+
+            // Note: If you add an input field for a file replacement later, 
+            // you would append it here: formData.append("file", yourFileObject);
+
             const res = await fetch(
                 `${API_BASE_URL}/submissions/grade/${submission.id}`,
                 {
                     method: "PUT",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        marks: marks === "" ? null : Number(marks),
-                    }),
+                    // ⚠️ CRITICAL: Do NOT explicitly set 'Content-Type' header here.
+                    // Leaving it blank allows the browser to automatically set it to
+                    // 'multipart/form-data' along with the correct boundary string.
+                    body: formData,
                 }
             );
 
@@ -97,17 +99,7 @@ function ScorePageContent() {
             setSaving(false);
         }
     };
-
-    const triggerDownload = () => {
-        if (!fileBlobUrl) return;
-        const linkElement = document.createElement("a");
-        linkElement.href = fileBlobUrl;
-        linkElement.download = fileName;
-        document.body.appendChild(linkElement);
-        linkElement.click();
-        document.body.removeChild(linkElement);
-    };
-
+    
     if (loading) {
         return (
             <div className="min-h-screen bg-white p-6 flex flex-col items-center justify-center">
@@ -147,10 +139,14 @@ function ScorePageContent() {
                         BACK TO SUBMISSIONS
                     </button>
                     <div className="hidden md:flex gap-4">
-                        {fileBlobUrl && (
-                            <button onClick={triggerDownload} className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest border border-gray-900 px-4 py-2 hover:bg-gray-900 hover:text-white transition">
+                        {directFileUrl && (
+                            <a
+                                href={`${API_BASE_URL}/submissions/file/${submission.id}`}
+                                download={fileName}
+                                className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest border border-gray-900 px-4 py-2 hover:bg-gray-900 hover:text-white transition"
+                            >
                                 <Download className="w-3 h-3" /> Download Submission File
-                            </button>
+                            </a>
                         )}
                     </div>
                 </div>
@@ -166,27 +162,28 @@ function ScorePageContent() {
                     </section>
 
                     <section className="relative">
-                        {fileBlobUrl ? (
+                        {directFileUrl ? (
                             isPdf ? (
                                 <div className="border border-gray-200 bg-gray-50 p-1 md:p-2 shadow-2xl">
                                     <div className="bg-gray-900 text-white px-4 py-2 flex justify-between items-center">
                                         <span className="text-[10px] font-bold tracking-widest uppercase">Embedded File Frame Preview</span>
                                         <FileText className="w-4 h-4 opacity-50" />
                                     </div>
-                                    <iframe src={`${fileBlobUrl}#toolbar=0`} className="w-full h-[600px] md:h-[850px] bg-white border-0" title="Assignment Document Viewer" />
+                                    {/* The iframe handles the redirect fallback organically */}
+                                    <iframe src={`${directFileUrl}#toolbar=0`} className="w-full h-[600px] md:h-[850px] bg-white border-0" title="Assignment Document Viewer" />
                                 </div>
                             ) : (
                                 <div className="bg-gray-900 text-white p-16 text-center border border-gray-800">
                                     <FileText className="w-12 h-12 mx-auto mb-6 opacity-20" />
                                     <h3 className="text-xl mb-3 font-serif">Office Document Asset</h3>
                                     <p className="text-gray-400 mb-8 max-w-xs mx-auto text-sm">This file extension format must be evaluated via external workstation software packages.</p>
-                                    <button onClick={triggerDownload} className="inline-block bg-white text-gray-900 px-8 py-3 text-sm font-bold uppercase tracking-tighter hover:bg-gray-200 transition">Extract Document File</button>
+                                    <a href={directFileUrl} download={fileName} className="inline-block bg-white text-gray-900 px-8 py-3 text-sm font-bold uppercase tracking-tighter hover:bg-gray-200 transition">Extract Document File</a>
                                 </div>
                             )
                         ) : (
                             <div className="bg-gray-50 border-2 border-dashed border-gray-200 p-20 text-center">
                                 <Loader2 className="w-8 h-8 animate-spin mx-auto text-gray-300 mb-4" />
-                                <p className="text-sm text-gray-500">Initializing document buffer array context streams...</p>
+                                <p className="text-sm text-gray-500">Initializing document connection streams...</p>
                             </div>
                         )}
                     </section>
@@ -236,8 +233,8 @@ function ScorePageContent() {
                         </div>
 
                         <div className="mt-4 flex flex-col gap-2 md:hidden">
-                            {fileBlobUrl && (
-                                <button onClick={triggerDownload} className="w-full bg-gray-900 text-white text-center py-3 text-xs font-bold uppercase tracking-widest">Download Attachment File</button>
+                            {directFileUrl && (
+                                <a href={directFileUrl} download={fileName} className="w-full bg-gray-900 text-white text-center py-3 text-xs font-bold uppercase tracking-widest">Download Attachment File</a>
                             )}
                         </div>
                     </div>
@@ -247,7 +244,6 @@ function ScorePageContent() {
     );
 }
 
-// 2. Export the component wrapped in a Suspense boundary
 export default function SimpleScorePage() {
     return (
         <Suspense fallback={

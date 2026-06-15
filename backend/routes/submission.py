@@ -1,5 +1,6 @@
 import os
 from datetime import datetime
+import traceback
 from typing import Optional
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
@@ -20,7 +21,7 @@ router = APIRouter(prefix="/submissions", tags=["Submissions"])
 # ==========================================
 # STUDENT SUBMIT ASSIGNMENT
 # ==========================================
-@router.post("/", response_model=SubmissionResponse)
+@router.post("/")
 async def submit_assignment(
     assignment_id: int = Form(...),
     student_id: int = Form(...),
@@ -28,27 +29,53 @@ async def submit_assignment(
     db: Session = Depends(get_db),
 ):
     try:
-        # Stream directly to the S3 bucket under the "submissions" folder
-        saved_file_path = upload_file(file, folder="submissions")
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to upload submission file to S3 cloud storage: {str(e)}",
+        print("\n===== SUBMISSION DEBUG START =====")
+        print("assignment_id:", assignment_id)
+        print("student_id:", student_id)
+        print("file name:", file.filename)
+
+        # Wrap S3 upload securely to catch credentials/network issues cleanly
+        try:
+            file_url = upload_file(file, folder="submissions")
+            print("S3 file_url:", file_url)
+        except Exception as s3_err:
+            print(f"S3 UPLOAD FAILED: {str(s3_err)}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Cloud storage upload failed. Verify AWS credentials. Dev Error: {str(s3_err)}"
+            )
+
+        submission = AssignmentSubmission(
+            assignment_id=assignment_id,
+            student_id=student_id,
+            file_path=file_url,
+            submitted_at=datetime.utcnow(),
         )
 
-    submission = AssignmentSubmission(
-        assignment_id=assignment_id,
-        student_id=student_id,
-        file_path=saved_file_path,  # Stores the final cloud S3 asset URL
-        submitted_at=datetime.utcnow(),
-    )
+        db.add(submission)
+        db.commit()
+        db.refresh(submission)
 
-    db.add(submission)
-    db.commit()
-    db.refresh(submission)
+        print("DB SAVE SUCCESS")
+        print("===== SUBMISSION DEBUG END =====\n")
 
-    return submission
+        return submission
 
+    except HTTPException:
+        # Re-raise the clean HTTPExceptions we generated intentionally
+        db.rollback()
+        raise
+    except Exception as e:
+        db.rollback()
+        print("\n===== SUBMISSION ERROR =====")
+        traceback.print_exc()
+        print("ERROR MESSAGE:", str(e))
+        print("===== END ERROR =====\n")
+
+        raise HTTPException(
+            status_code=500,
+            detail=f"Internal Server Error: {str(e)}"
+        )
 
 # ==========================================
 # GET SUBMISSIONS BY ASSIGNMENT ID
@@ -173,6 +200,8 @@ def get_file(submission_id: int, db: Session = Depends(get_db)):
     if not submission or not submission.file_path:
         raise HTTPException(status_code=404, detail="Submission or file link not found")
 
-    # Instead of reading local disk files via FileResponse,
-    # redirect the client directly to your secure S3 resource link
+    # ❌ OLD WAY (DO NOT DO THIS):
+    # return {"file_url": submission.file_path}
+
+    #  NEW WAY (This triggers the direct file stream download):
     return RedirectResponse(url=submission.file_path)
