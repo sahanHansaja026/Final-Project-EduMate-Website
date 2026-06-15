@@ -2,7 +2,7 @@ import os
 from fastapi import APIRouter, UploadFile, File, Form, Depends, HTTPException
 from sqlalchemy.orm import Session
 from datetime import date
-from services.s3_service import upload_file
+from services.s3_service import delete_file, upload_file
 from database import get_db
 from models.assignment import Assignment
 from schemas.assignment import AssignmentResponse

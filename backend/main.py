@@ -3,9 +3,10 @@ from multiprocessing import AuthenticationError
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+
 from database import Base, engine
 from fastapi.staticfiles import StaticFiles
-from routes import auth,profile,module,content,meeting,quiz,question,video,quiz_score,student_answer,subscription_routes,module_quota,video_quota,quiz_quota,enrollment,submission,assignment,assignemnt_quota,channel,channel_quota,channel_modules,usercomments, grade, manual_grading,sentiment,assignment_grading,enrollment_analytics,authorized_students,channel_module_access_controller,module_quiz_access_controller,quiz_attempt_controller,assignment_edit_access,channel_content_access_controller,video_acess_contolle, assignment_view_access,student_enrolle_count_channal,student_score_management
+from routes import auth,profile,module,content,meeting,quiz,question,video,quiz_score,student_answer,subscription_routes,module_quota,video_quota,quiz_quota,enrollment,submission,assignment,assignemnt_quota,channel,channel_quota,channel_modules,usercomments, grade, manual_grading,sentiment,assignment_grading,enrollment_analytics,authorized_students,channel_module_access_controller,module_quiz_access_controller,quiz_attempt_controller,assignment_edit_access,channel_content_access_controller,video_acess_contolle, assignment_view_access,student_enrolle_count_channal,student_score_management,channel_analytic,assignment_grade_access,assignement_module_grade
 from chatbot import chatbot
 Base.metadata.create_all(bind=engine)
 
@@ -58,6 +59,9 @@ app.include_router(video_acess_contolle.router)
 app.include_router(assignment_view_access.router)
 app.include_router(student_enrolle_count_channal.router)
 app.include_router(student_score_management.router)
+app.include_router(channel_analytic.router)
+app.include_router(assignment_grade_access.router)
+app.include_router(assignement_module_grade.router)
 
 @app.get("/")
 def root():
