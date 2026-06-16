@@ -1,429 +1,296 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
-import { getUser } from "../../services/authService";
+import React, { useState, useEffect } from "react";
+import { Search, X, Compass, Tag, Layers, User, ExternalLink, SlidersHorizontal } from "lucide-react";
 import { API_BASE_URL } from "@/app/config/api";
 
-type Module = {
+interface Owner {
+    email: string;
+    first_name: string | null;
+    last_name: string | null;
+}
+
+interface Module {
     module_id: number;
+    channel_id?: number;
+    user_id: number;
     name: string;
-    description?: string;
+    description?: string | null;
     skills: string[];
-    cover_image?: string;
-    cover_image_name?: string;
-};
+    visibility: "public" | "private";
+    type: "module" | "channel_module";
+    owner?: Owner;
+}
 
-const HomePage = () => {
-    const [user, setUser] = useState<{ id: number; email: string } | null>(null);
+export default function ModuleSearchPage() {
     const [modules, setModules] = useState<Module[]>([]);
-    const [publicModules, setPublicModules] = useState<Module[]>([]);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [selectedTags, setSelectedTags] = useState<string[]>([]);
     const [loading, setLoading] = useState(false);
-    const [showAllPublic, setShowAllPublic] = useState(false);
+    const [allTags, setAllTags] = useState<string[]>([]);
 
-    const PUBLIC_LIMIT = 8;
-
+    // -----------------------------
+    // FETCH MODULES & STATIC TAGS
+    // -----------------------------
     useEffect(() => {
-        const currentUser = getUser();
-        setUser(currentUser);
-    }, []);
-
-    useEffect(() => {
-        if (!user) return;
         const fetchModules = async () => {
             setLoading(true);
+
             try {
-                const res = await fetch(`${API_BASE_URL}/modules/user/${user.id}`);
-                if (!res.ok) throw new Error("Failed to fetch modules");
+                const params = new URLSearchParams();
+                if (searchQuery) params.append("search", searchQuery);
+                selectedTags.forEach(tag => params.append("tag", tag));
+
+                const res = await fetch(
+                    `http://localhost:8000/modules?${params.toString()}`
+                );
+
                 const data = await res.json();
-                setModules(data);
-            } catch (error) {
-                console.error("Your modules fetch error:", error);
+                const list = data.data || [];
+                setModules(list);
+
+                // Populate initial tags only if they haven't been loaded yet 
+                // to prevent sidebar filters from disappearing during filtering
+                if (allTags.length === 0 && list.length > 0) {
+                    const tags = new Set<string>();
+                    list.forEach((m: Module) => {
+                        m.skills?.forEach(skill => tags.add(skill));
+                    });
+                    setAllTags(Array.from(tags));
+                }
+            } catch (err) {
+                console.error(err);
+                setModules([]);
             } finally {
                 setLoading(false);
             }
         };
-        fetchModules();
-    }, [user]);
 
-    useEffect(() => {
-        const fetchPublicModules = async () => {
-            try {
-                const res = await fetch(`${API_BASE_URL}/modules/public`);
-                if (!res.ok) throw new Error("Failed to fetch public modules");
-                const data = await res.json();
-                setPublicModules(data);
-            } catch (error) {
-                console.error("Public modules fetch error:", error);
-            }
-        };
-        fetchPublicModules();
-    }, []);
+        const timer = setTimeout(fetchModules, 300);
+        return () => clearTimeout(timer);
+    }, [searchQuery, selectedTags, allTags.length]);
 
-    const displayedPublicModules = showAllPublic
-        ? publicModules
-        : publicModules.slice(0, PUBLIC_LIMIT);
+    // -----------------------------
+    // TOGGLE TAG CHECKBOX
+    // -----------------------------
+    const toggleTag = (tag: string) => {
+        setSelectedTags(prev =>
+            prev.includes(tag)
+                ? prev.filter(t => t !== tag)
+                : [...prev, tag]
+        );
+    };
+
+    const clearFilters = () => {
+        setSearchQuery("");
+        setSelectedTags([]);
+    };
 
     return (
-        <div className="bg-white text-slate-900 min-h-screen font-sans antialiased">
+        <div className="min-h-screen bg-white text-zinc-900 antialiased selection:bg-zinc-100">
+            {/* TOP HEADER CONTROLS */}
+            <header className="border-b border-zinc-100 sticky top-0 bg-white/80 backdrop-blur-md z-10">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+                        <div>
+                            <h1 className="text-xl font-semibold tracking-tight text-zinc-900">Explore Modules</h1>
+                            <p className="text-xs text-zinc-500 mt-0.5">Discover skills, channels, and learning tracks</p>
+                        </div>
 
-            {/* ── NAV STRIP ─────────────────────────────────────────────── */}
-            <header className="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-slate-100">
-                <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
-                    <span className="font-extrabold text-lg tracking-tight text-slate-900">
-                        Edu<span className="text-indigo-600">Mate</span>
-                    </span>
-                    <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-500">
-                        <Link href="#explore-section" className="hover:text-slate-900 transition-colors">Explore</Link>
-                        <Link href="/pages/create_chanel" className="hover:text-slate-900 transition-colors">Create</Link>
-                    </nav>
-                    <Link
-                        href="/pages/create_chanel"
-                        className="text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded-lg transition-colors"
-                    >
-                        Get Started
-                    </Link>
+                        {/* SEARCH BAR */}
+                        <div className="relative flex-1 max-w-md w-full">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" size={16} />
+                            <input
+                                className="w-full pl-9 pr-9 py-2 text-sm bg-zinc-50 hover:bg-zinc-100/70 focus:bg-white border border-zinc-200 focus:border-zinc-400 rounded-lg outline-none transition-all"
+                                placeholder="Search by name, owner, or topic..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                            {searchQuery && (
+                                <button
+                                    onClick={() => setSearchQuery("")}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 transition"
+                                >
+                                    <X size={14} />
+                                </button>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* MOBILE TAGS ROLL (Visible only on mobile/tablet) */}
+                    {allTags.length > 0 && (
+                        <div className="flex md:hidden items-center gap-2 overflow-x-auto pt-3 pb-1 no-scrollbar mask-image">
+                            <span className="text-xs font-medium text-zinc-400 flex items-center gap-1 shrink-0">
+                                <SlidersHorizontal size={12} /> Filters:
+                            </span>
+                            {allTags.map(tag => {
+                                const isSelected = selectedTags.includes(tag);
+                                return (
+                                    <button
+                                        key={tag}
+                                        onClick={() => toggleTag(tag)}
+                                        className={`text-xs px-2.5 py-1 rounded-full border transition shrink-0 ${isSelected
+                                                ? "bg-zinc-900 border-zinc-900 text-white"
+                                                : "bg-white border-zinc-200 text-zinc-600 hover:border-zinc-300"
+                                            }`}
+                                    >
+                                        {tag}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    )}
                 </div>
             </header>
 
-            {/* ── HERO ──────────────────────────────────────────────────── */}
-            <section className="relative overflow-hidden bg-white">
-                {/* Large indigo geometric accent — the signature element */}
-                <div
-                    aria-hidden
-                    className="absolute right-0 top-0 w-[55%] h-full bg-indigo-50 [clip-path:polygon(12%_0%,100%_0%,100%_100%,0%_100%)] pointer-events-none"
-                />
-                {/* Dot-grid texture on the indigo panel */}
-                <div
-                    aria-hidden
-                    className="absolute right-0 top-0 w-[55%] h-full opacity-30 pointer-events-none"
-                    style={{
-                        backgroundImage:
-                            "radial-gradient(circle, #818cf8 1px, transparent 1px)",
-                        backgroundSize: "28px 28px",
-                        clipPath: "polygon(12% 0%, 100% 0%, 100% 100%, 0% 100%)",
-                    }}
-                />
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div className="flex gap-8 items-start">
 
-                <div className="relative max-w-7xl mx-auto px-6 py-24 lg:py-36 grid lg:grid-cols-2 gap-16 items-center">
-                    {/* LEFT — copy */}
-                    <div>
-                        <span className="inline-block text-[11px] font-bold tracking-[0.18em] uppercase text-indigo-600 mb-5">
-                            Learning Management System
-                        </span>
-                        <h1 className="text-5xl lg:text-6xl font-extrabold leading-[1.05] tracking-tight text-slate-900 mb-6">
-                            Smart paths for{" "}
-                            <em className="not-italic text-indigo-600">every</em>{" "}
-                            learner.
-                        </h1>
-                        <p className="text-base text-slate-500 leading-relaxed max-w-md mb-10">
-                            EduMate unifies digital assessments, structured curricula, and AI-powered insights so students and educators move forward together.
-                        </p>
-                        <div className="flex flex-wrap gap-3">
-                            <Link
-                                href="#explore-section"
-                                className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl shadow-md shadow-indigo-200 transition-all"
-                            >
-                                Browse Modules
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                                </svg>
-                            </Link>
-                            <Link
-                                href="/pages/create_chanel"
-                                className="inline-flex items-center gap-2 px-6 py-3 bg-white hover:bg-slate-50 text-slate-700 text-sm font-semibold rounded-xl border border-slate-200 transition-all"
-                            >
-                                Create a Hub
-                            </Link>
-                        </div>
-                    </div>
-
-                    {/* RIGHT — floating stats card */}
-                    <div className="relative flex justify-center lg:justify-end">
-                        <div className="relative bg-white rounded-3xl shadow-2xl shadow-slate-200 p-8 w-full max-w-sm border border-slate-100">
-                            {/* accent corner */}
-                            <div className="absolute -top-4 -right-4 w-16 h-16 bg-indigo-600 rounded-2xl rotate-12" />
-
-                            <p className="text-[11px] font-bold tracking-widest uppercase text-slate-400 mb-6">
-                                Platform at a glance
-                            </p>
-
-                            <div className="space-y-5">
-                                {[
-                                    { label: "AI-Driven Study Paths", icon: "✦", color: "text-indigo-600" },
-                                    { label: "Centralized Syllabi Portals", icon: "◈", color: "text-violet-500" },
-                                    { label: "Interactive Assessments", icon: "◉", color: "text-sky-500" },
-                                    { label: "Real-Time Progress Tracking", icon: "▲", color: "text-emerald-500" },
-                                ].map((item) => (
-                                    <div key={item.label} className="flex items-center gap-4">
-                                        <span className={`text-lg font-bold ${item.color} w-6 flex-shrink-0`}>
-                                            {item.icon}
-                                        </span>
-                                        <span className="text-sm font-medium text-slate-700">{item.label}</span>
-                                    </div>
-                                ))}
-                            </div>
-
-                            <div className="mt-8 pt-6 border-t border-slate-100 flex items-center justify-between">
-                                <span className="text-xs text-slate-400">Trusted by educators worldwide</span>
-                                <div className="flex -space-x-2">
-                                    {["bg-indigo-400", "bg-violet-400", "bg-sky-400", "bg-emerald-400"].map((c, i) => (
-                                        <div key={i} className={`w-7 h-7 rounded-full border-2 border-white ${c}`} />
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            {/* ── ANNOUNCEMENT STRIP ───────────────────────────────────── */}
-            <div className="bg-indigo-600 py-2.5 text-center">
-                <Link href="#" className="inline-flex items-center gap-2 text-sm text-indigo-100 hover:text-white transition-colors">
-                    <span className="text-[10px] font-bold tracking-wider uppercase bg-white text-indigo-600 px-2 py-0.5 rounded-full">
-                        New
-                    </span>
-                    EduMate v2.0 — AI-powered analytics paths are live
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                    </svg>
-                </Link>
-            </div>
-
-            {/* ── USER WORKSPACE ───────────────────────────────────────── */}
-            {user && (
-                <section className="max-w-7xl mx-auto px-6 pt-20 pb-6">
-                    <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10">
-                        <div>
-                            <span className="text-[11px] font-bold tracking-[0.18em] uppercase text-indigo-500">
-                                Your Account
-                            </span>
-                            <h2 className="text-2xl font-extrabold text-slate-900 mt-1 tracking-tight">
-                                Learning Workspace
+                    {/* ================= DESKTOP SIDEBAR ================= */}
+                    <aside className="w-60 shrink-0 hidden md:block sticky top-24">
+                        <div className="flex items-center justify-between mb-4 pb-2 border-b border-zinc-100">
+                            <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-400 flex items-center gap-1.5">
+                                <Tag size={12} /> Filter by Tags
                             </h2>
-                            <p className="text-sm text-slate-400 mt-1">
-                                Modules you own or are actively enrolled in.
-                            </p>
+                            {selectedTags.length > 0 && (
+                                <button
+                                    onClick={() => setSelectedTags([])}
+                                    className="text-xs text-zinc-500 hover:text-zinc-900 transition underline underline-offset-2"
+                                >
+                                    Clear all
+                                </button>
+                            )}
                         </div>
-                        <Link
-                            href="/pages/create_chanel"
-                            className="mt-4 sm:mt-0 inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-800 border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 px-4 py-2 rounded-lg transition-all self-start"
-                        >
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-                            </svg>
-                            New Module
-                        </Link>
-                    </div>
 
-                    {loading ? (
-                        <div className="py-16 text-center">
-                            <div className="inline-flex gap-1.5">
-                                {[0, 0.15, 0.3].map((d, i) => (
-                                    <div
-                                        key={i}
-                                        className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce"
-                                        style={{ animationDelay: `${d}s` }}
-                                    />
+                        <div className="space-y-1.5 max-h-[calc(100vh-12rem)] overflow-y-auto pr-2">
+                            {allTags.map(tag => {
+                                const isChecked = selectedTags.includes(tag);
+                                return (
+                                    <label
+                                        key={tag}
+                                        className={`flex items-center justify-between gap-2 text-sm px-2 py-1.5 rounded-md cursor-pointer transition ${isChecked ? "bg-zinc-50 font-medium text-zinc-900" : "text-zinc-600 hover:bg-zinc-50/50 hover:text-zinc-900"
+                                            }`}
+                                    >
+                                        <div className="flex items-center gap-2.5 min-w-0">
+                                            <input
+                                                type="checkbox"
+                                                className="accent-zinc-900 rounded border-zinc-300 focus:ring-zinc-500 h-3.5 w-3.5"
+                                                checked={isChecked}
+                                                onChange={() => toggleTag(tag)}
+                                            />
+                                            <span className="truncate">{tag}</span>
+                                        </div>
+                                    </label>
+                                );
+                            })}
+                            {allTags.length === 0 && (
+                                <p className="text-xs text-zinc-400 italic">No tags available</p>
+                            )}
+                        </div>
+                    </aside>
+
+                    {/* ================= MAIN CONTENT AREA ================= */}
+                    <main className="flex-1 min-w-0">
+                        {loading ? (
+                            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {[...Array(6)].map((_, i) => (
+                                    <div key={i} className="border border-zinc-100 rounded-xl p-5 space-y-3 animate-pulse">
+                                        <div className="h-4 bg-zinc-100 rounded w-2/3"></div>
+                                        <div className="h-3 bg-zinc-100 rounded w-1/3"></div>
+                                        <div className="space-y-1.5 pt-2">
+                                            <div className="h-3 bg-zinc-100 rounded w-full"></div>
+                                            <div className="h-3 bg-zinc-100 rounded w-4/5"></div>
+                                        </div>
+                                    </div>
                                 ))}
                             </div>
-                            <p className="text-sm text-slate-400 mt-3">Loading your workspace…</p>
-                        </div>
-                    ) : modules.length === 0 ? (
-                        <div className="border-2 border-dashed border-slate-200 rounded-2xl p-14 text-center bg-slate-50">
-                            <div className="w-12 h-12 bg-indigo-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                                <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                </svg>
+                        ) : modules.length === 0 ? (
+                            <div className="text-center py-16 border border-dashed border-zinc-200 rounded-xl bg-zinc-50/50">
+                                <Compass className="mx-auto text-zinc-300 stroke-[1.5]" size={36} />
+                                <h3 className="mt-4 text-sm font-medium text-zinc-900">No modules found</h3>
+                                <p className="mt-1 text-xs text-zinc-500 max-w-xs mx-auto">
+                                    We couldn't find anything matching your requirements. Try adjusting your scope.
+                                </p>
+                                {(searchQuery || selectedTags.length > 0) && (
+                                    <button
+                                        onClick={clearFilters}
+                                        className="mt-4 text-xs font-medium inline-flex items-center justify-center px-3 py-1.5 bg-white border border-zinc-200 hover:border-zinc-300 rounded-lg transition"
+                                    >
+                                        Reset Filters
+                                    </button>
+                                )}
                             </div>
-                            <p className="text-sm font-semibold text-slate-600">No modules yet</p>
-                            <p className="text-xs text-slate-400 mt-1">Create one or enroll in a public path below.</p>
-                        </div>
-                    ) : (
-                        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                            {modules.map((module, idx) => (
-                                <div
-                                    key={module.module_id}
-                                    className="group relative bg-white border border-slate-200 rounded-2xl overflow-hidden hover:shadow-xl hover:shadow-slate-200/70 hover:-translate-y-1 transition-all duration-300 flex flex-col"
-                                >
-                                    {/* Colored top accent bar per card */}
+                        ) : (
+                            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {modules.map((m) => (
                                     <div
-                                        className="absolute top-0 left-0 right-0 h-1 rounded-t-2xl"
-                                        style={{ background: ["#6366f1", "#8b5cf6", "#3b82f6", "#10b981"][idx % 4] }}
-                                    />
+                                        key={`${m.type}-${m.module_id}`}
+                                        className="group relative flex flex-col justify-between p-5 bg-white border border-zinc-200 hover:border-zinc-400 rounded-xl shadow-[0_1px_2px_rgba(0,0,0,0.02)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.03)] transition-all duration-200"
+                                    >
+                                        <div>
+                                            {/* TYPE ICON & UPPER ROW */}
+                                            <div className="flex items-center justify-between gap-2 mb-3">
+                                                <span className={`inline-flex items-center gap-1 text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-md ${m.type === "channel_module"
+                                                        ? "bg-zinc-100 text-zinc-800"
+                                                        : "bg-zinc-50 text-zinc-600 border border-zinc-200/60"
+                                                    }`}>
+                                                    <Layers size={10} />
+                                                    {m.type === "channel_module" ? "Channel" : "Standard"}
+                                                </span>
+                                                <ExternalLink size={14} className="text-zinc-300 group-hover:text-zinc-500 transition-colors" />
+                                            </div>
 
-                                    <div className="overflow-hidden relative h-36 w-full bg-slate-100 mt-1">
-                                        <img
-                                            className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                            src={
-                                                module.cover_image
-                                                    ? `data:image/png;base64,${module.cover_image}`
-                                                    : "/images/Tree life-rafiki.png"
-                                            }
-                                            alt={module.name}
-                                        />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-white/20 to-transparent" />
-                                    </div>
+                                            {/* TITLE */}
+                                            <h3 className="font-medium text-sm text-zinc-900 group-hover:text-black tracking-tight line-clamp-1 mb-1">
+                                                {m.name}
+                                            </h3>
 
-                                    <div className="p-5 flex flex-col flex-grow">
-                                        <span className="text-[10px] font-bold tracking-widest uppercase text-indigo-500 mb-1">
-                                            Workspace
-                                        </span>
-                                        <h3 className="text-sm font-bold text-slate-900 line-clamp-1 group-hover:text-indigo-600 transition-colors">
-                                            {module.name}
-                                        </h3>
-                                        <p className="text-xs text-slate-400 mt-2 line-clamp-2 leading-relaxed flex-grow">
-                                            {module.description || "No description available for this module."}
-                                        </p>
-                                        <div className="pt-4 mt-4 border-t border-slate-100">
-                                            <Link
-                                                href={`/enrolle/${module.module_id}`}
-                                                className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition-colors"
-                                            >
-                                                Enter Workspace
-                                                <svg className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                                                </svg>
-                                            </Link>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </section>
-            )}
+                                            {/* OWNER */}
+                                            {m.owner && (
+                                                <div className="flex items-center gap-1.5 text-xs text-zinc-400 mb-3">
+                                                    <User size={12} className="shrink-0" />
+                                                    <span className="truncate">
+                                                        {m.owner.first_name || m.owner.last_name
+                                                            ? `${m.owner.first_name || ""} ${m.owner.last_name || ""}`.trim()
+                                                            : m.owner.email
+                                                        }
+                                                    </span>
+                                                </div>
+                                            )}
 
-            {/* ── DIVIDER ──────────────────────────────────────────────── */}
-            <div className="max-w-7xl mx-auto px-6 py-8">
-                <div className="h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent" />
-            </div>
-
-            {/* ── PUBLIC MODULES ───────────────────────────────────────── */}
-            <section id="explore-section" className="max-w-7xl mx-auto px-6 pb-24">
-                <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10">
-                    <div>
-                        <span className="text-[11px] font-bold tracking-[0.18em] uppercase text-emerald-600">
-                            Open Access
-                        </span>
-                        <h2 className="text-2xl font-extrabold text-slate-900 mt-1 tracking-tight">
-                            Global Knowledge Exchange
-                        </h2>
-                        <p className="text-sm text-slate-400 mt-1">
-                            Open-access curricula published by certified EduMate creators.
-                        </p>
-                    </div>
-                    <span className="text-xs text-slate-400 mt-2 sm:mt-0 font-medium">
-                        {displayedPublicModules.length} / {publicModules.length} modules
-                    </span>
-                </div>
-
-                {publicModules.length === 0 ? (
-                    <div className="py-16 text-center text-slate-400 text-sm">
-                        No public modules available yet. Check back soon.
-                    </div>
-                ) : (
-                    <>
-                        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                            {displayedPublicModules.map((module, idx) => (
-                                <div
-                                    key={module.module_id}
-                                    className="group bg-white border border-slate-200 rounded-2xl overflow-hidden hover:shadow-lg hover:shadow-slate-200/60 hover:-translate-y-0.5 transition-all duration-300 flex flex-col"
-                                >
-                                    <div className="overflow-hidden relative h-36 w-full bg-slate-100">
-                                        <img
-                                            className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                            src={
-                                                module.cover_image
-                                                    ? `data:image/png;base64,${module.cover_image}`
-                                                    : "/images/Tree life-rafiki.png"
-                                            }
-                                            alt={module.name}
-                                        />
-                                        {/* Emerald badge */}
-                                        <div className="absolute top-3 left-3 bg-white text-emerald-600 border border-emerald-200 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full shadow-sm">
-                                            Public
-                                        </div>
-                                    </div>
-
-                                    <div className="p-5 flex flex-col flex-grow">
-                                        {/* mini progress bar — purely decorative, indicates "completeness" variety */}
-                                        <div className="h-0.5 w-full bg-slate-100 rounded-full mb-3 overflow-hidden">
-                                            <div
-                                                className="h-full bg-emerald-400 rounded-full"
-                                                style={{ width: `${25 + (idx % 4) * 18}%` }}
-                                            />
+                                            {/* DESCRIPTION */}
+                                            {m.description && (
+                                                <p className="text-xs text-zinc-500 line-clamp-2 leading-relaxed mb-4">
+                                                    {m.description}
+                                                </p>
+                                            )}
                                         </div>
 
-                                        <h3 className="text-sm font-bold text-slate-900 line-clamp-1">
-                                            {module.name}
-                                        </h3>
-                                        <p className="text-xs text-slate-400 mt-2 line-clamp-2 leading-relaxed flex-grow">
-                                            {module.description || "No overview documentation structured."}
-                                        </p>
-
-                                        <div className="pt-4 mt-4 border-t border-slate-100">
-                                            <Link
-                                                href={`/enrolle/${module.module_id}`}
-                                                className="inline-flex justify-center items-center w-full py-2.5 px-4 text-xs font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-xl transition-colors group-hover:shadow-sm"
-                                            >
-                                                Explore Curriculum
-                                                <svg className="w-3.5 h-3.5 ml-1.5 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                                                </svg>
-                                            </Link>
-                                        </div>
+                                        {/* TAGS FOOTER */}
+                                        {m.skills && m.skills.length > 0 && (
+                                            <div className="flex flex-wrap gap-1 pt-3 border-t border-zinc-100/80">
+                                                {m.skills.slice(0, 3).map((skill, idx) => (
+                                                    <span
+                                                        key={idx}
+                                                        className="text-[11px] bg-zinc-50 text-zinc-600 px-2 py-0.5 rounded-md border border-zinc-100"
+                                                    >
+                                                        {skill}
+                                                    </span>
+                                                ))}
+                                                {m.skills.length > 3 && (
+                                                    <span className="text-[10px] text-zinc-400 self-center font-medium pl-1">
+                                                        +{m.skills.length - 3} more
+                                                    </span>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
-                                </div>
-                            ))}
-                        </div>
-
-                        {publicModules.length > PUBLIC_LIMIT && (
-                            <div className="mt-12 text-center">
-                                <button
-                                    onClick={() => setShowAllPublic(!showAllPublic)}
-                                    className="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold text-slate-700 bg-white border border-slate-200 hover:border-slate-300 hover:shadow-md rounded-xl transition-all"
-                                >
-                                    {showAllPublic ? (
-                                        <>
-                                            Show fewer modules
-                                            <svg className="w-4 h-4 rotate-180" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                                            </svg>
-                                        </>
-                                    ) : (
-                                        <>
-                                            View all {publicModules.length - PUBLIC_LIMIT} more paths
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                                            </svg>
-                                        </>
-                                    )}
-                                </button>
+                                ))}
                             </div>
                         )}
-                    </>
-                )}
-            </section>
-
-            {/* ── FOOTER ───────────────────────────────────────────────── */}
-            <footer className="border-t border-slate-100 bg-slate-50 py-8">
-                <div className="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <span className="font-extrabold text-base tracking-tight text-slate-800">
-                        Edu<span className="text-indigo-600">Mate</span>
-                    </span>
-                    <p className="text-xs text-slate-400 text-center">
-                        © {new Date().getFullYear()} EduMate Platforms Inc. Adaptive digital learning tools.
-                    </p>
-                    <div className="flex gap-4 text-xs text-slate-400">
-                        <Link href="#" className="hover:text-slate-700 transition-colors">Privacy</Link>
-                        <Link href="#" className="hover:text-slate-700 transition-colors">Terms</Link>
-                        <Link href="#" className="hover:text-slate-700 transition-colors">Support</Link>
-                    </div>
+                    </main>
                 </div>
-            </footer>
+            </div>
         </div>
     );
-};
-
-export default HomePage;
+}

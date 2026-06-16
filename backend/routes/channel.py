@@ -124,6 +124,8 @@ def get_channel(channel_id: int, db: Session = Depends(get_db)):
 # -------------------------
 # UPDATE CHANNEL
 # -------------------------
+from sqlalchemy.orm.attributes import flag_modified
+
 @router.put("/{channel_id}", response_model=ChannelResponse)
 async def update_channel(
     channel_id: int,
@@ -140,14 +142,14 @@ async def update_channel(
     logo_image: UploadFile = File(None),
     db: Session = Depends(get_db),
 ):
-    channel = db.query(Channel).filter(
-        Channel.channel_id == channel_id
-    ).first()
+    channel = db.query(Channel).filter(Channel.channel_id == channel_id).first()
 
     if not channel:
         raise HTTPException(status_code=404, detail="Channel not found")
 
-    # Update fields
+    # -------------------------
+    # TEXT FIELDS
+    # -------------------------
     if channel_name is not None:
         channel.channel_name = channel_name
 
@@ -163,12 +165,6 @@ async def update_channel(
     if physical_corporate_address is not None:
         channel.physical_corporate_address = physical_corporate_address
 
-    if co_hosts_and_faculty_members is not None:
-        try:
-            channel.co_hosts_and_faculty_members = json.loads(co_hosts_and_faculty_members)
-        except Exception:
-            raise HTTPException(status_code=400, detail="Invalid faculty members JSON format")
-
     if visibility is not None:
         channel.visibility = visibility
 
@@ -178,7 +174,33 @@ async def update_channel(
     if facebook_portal_link is not None:
         channel.facebook_portal_link = facebook_portal_link
 
-    # Handle Cover Image updates via S3
+    # -------------------------
+    # FIXED ARRAY UPDATE (IMPORTANT)
+    # -------------------------
+    if co_hosts_and_faculty_members is not None:
+        try:
+            parsed = json.loads(co_hosts_and_faculty_members)
+
+            if not isinstance(parsed, list):
+                raise ValueError()
+
+            cleaned = [str(email).strip().lower() for email in parsed if email]
+
+            # IMPORTANT: reassign new list
+            channel.co_hosts_and_faculty_members = cleaned
+
+            # FORCE SQLAlchemy to detect ARRAY change
+            flag_modified(channel, "co_hosts_and_faculty_members")
+
+        except Exception:
+            raise HTTPException(
+                status_code=400,
+                detail="co_hosts_and_faculty_members must be a JSON array of emails"
+            )
+
+    # -------------------------
+    # COVER IMAGE
+    # -------------------------
     if cover_image and cover_image.filename:
         if channel.cover_image and "amazonaws.com" in channel.cover_image:
             try:
@@ -189,9 +211,11 @@ async def update_channel(
         try:
             channel.cover_image = upload_file(cover_image, folder="channels/covers")
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Failed to upload new cover image: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Cover upload failed: {str(e)}")
 
-    # Handle Logo Image updates via S3
+    # -------------------------
+    # LOGO IMAGE
+    # -------------------------
     if logo_image and logo_image.filename:
         if channel.logo_image and "amazonaws.com" in channel.logo_image:
             try:
@@ -202,13 +226,15 @@ async def update_channel(
         try:
             channel.logo_image = upload_file(logo_image, folder="channels/logos")
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Failed to upload new logo image: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Logo upload failed: {str(e)}")
 
+    # -------------------------
+    # COMMIT
+    # -------------------------
     db.commit()
     db.refresh(channel)
 
     return channel
-
 
 # -------------------------
 # AUTHORIZATION CHECK
