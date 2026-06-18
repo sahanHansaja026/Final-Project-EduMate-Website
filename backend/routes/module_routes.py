@@ -8,7 +8,7 @@ from models.chaneel_modules import ChannelModule
 from models.user import User
 from models.profile import Profile
 
-router = APIRouter(prefix="/modules", tags=["Modules"])
+router = APIRouter(prefix="/modules_search", tags=["Modules"])
 
 
 # -----------------------------
