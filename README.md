@@ -60,7 +60,7 @@ The system streamlines attendance management, course administration, announcemen
 # 🏗️ System Architecture
 
 
-[![Architecture diagram](https://gitdiagram.com/diagram-badge.svg)](https://gitdiagram.com/sahanhansaja026/final-project-edumate-website?utm_source=readme&utm_medium=badge)
+[![Architecture diagram of sahanhansaja026/final-project-edumate-website](https://gitdiagram.com/sahanhansaja026/final-project-edumate-website/diagram.png)](https://gitdiagram.com/sahanhansaja026/final-project-edumate-website?utm_source=readme&utm_medium=picture)
 
 
 ---
