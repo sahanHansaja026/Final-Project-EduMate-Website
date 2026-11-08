@@ -35,7 +35,15 @@ export default function EditStudentPage() {
     const [remark, setRemark] = useState("");
 
     // Read-only reference context
-    const [student, setStudent] = useState<any>(null);
+    interface Student {
+        id: number;
+        name: string;
+        email: string;
+        admission_date: string;
+        status: string;
+        remark?: string;
+    }
+    const [student, setStudent] = useState<Student | null>(null);
 
     // Pull database record on initial lifecycle paint
     useEffect(() => {

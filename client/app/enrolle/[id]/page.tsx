@@ -22,7 +22,7 @@ export default function Enrolle() {
   const id = params.id as string;
 
   const [module, setModule] = useState<ModuleType | null>(null);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<{ id: number; email: string } | null>(getUser());
   const [loading, setLoading] = useState(true);
   const [isEnrolled, setIsEnrolled] = useState(false);
 

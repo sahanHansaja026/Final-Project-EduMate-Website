@@ -1,28 +1,10 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { Plus, Trash2, Settings2, ChevronLeft, ChevronRight, Eye, BarChart3, AlertCircle, Sigma, ArrowLeft, Loader2, Save, X, FileText, ListChecks } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
 import axios from "axios";
 import { API_BASE_URL } from "@/app/config/api";
-import { useParams, useRouter } from "next/navigation";
-import {
-    Pencil,
-    Trash2,
-    ChevronLeft,
-    ChevronRight,
-    Eye,
-    BarChart3,
-    CheckCircle2,
-    AlertCircle,
-    Sigma,
-    ArrowLeft,
-    Loader2,
-    Save,
-    X,
-    FileText,
-    ListChecks
-} from "lucide-react";
 import { getUser } from "@/app/services/authService";
-import Link from "next/link";
 
 // --- TYPES ---
 interface Option {
@@ -65,7 +47,8 @@ export default function QuizPreview() {
     const [isEditing, setIsEditing] = useState(false);
     const [editData, setEditData] = useState<Question | null>(null);
 
-    const [user, setUser] = useState<any>(null);
+    // Initialize user from getUser() to avoid setState in effect
+    const [user, setUser] = useState<{ id: number; email: string } | null>(getUser());
     const [checking, setChecking] = useState(true);
     const [access, setAccess] = useState<boolean | null>(null);
 
@@ -74,7 +57,7 @@ export default function QuizPreview() {
     // FETCH QUESTIONS
     // =========================
 
-    const fetchQuestions = useCallback(async () => {
+    const fetchQuestions = async () => {
         try {
             setLoading(true);
 
@@ -94,20 +77,15 @@ export default function QuizPreview() {
         } finally {
             setLoading(false);
         }
-    }, [quizId]);
+    };
 
     useEffect(() => {
         if (quizId) fetchQuestions();
-    }, [quizId, fetchQuestions]);
+    }, [quizId]);
 
     // =========================
     // SYNC QUESTION
     // =========================
-
-    useEffect(() => {
-        const currentUser = getUser();
-        setUser(currentUser);
-    }, []);
 
     useEffect(() => {
         if (questions[currentIndex]) {
@@ -195,6 +173,7 @@ export default function QuizPreview() {
     // =========================
     // LOADING
     // =========================
+
     useEffect(() => {
         if (!user?.id) return;
 
@@ -231,24 +210,6 @@ export default function QuizPreview() {
         );
     }
 
-    if (checking) {
-        return (
-            <div className="flex items-center justify-center h-screen">
-                Checking access...
-            </div>
-        );
-    }
-
-
-
-    if (checking || access === false) {
-        return (
-            <div className="flex items-center justify-center h-screen">
-                Loading...
-            </div>
-        );
-    }
-
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center min-h-screen space-y-4 bg-white">
@@ -261,9 +222,13 @@ export default function QuizPreview() {
         );
     }
 
-    // =========================
-    // EMPTY
-    // =========================
+    if (checking || access === false) {
+        return (
+            <div className="flex items-center justify-center h-screen">
+                Loading...
+            </div>
+        );
+    }
 
     if (!editData) {
         return (
@@ -466,7 +431,7 @@ export default function QuizPreview() {
                                             key={opt.id || i}
                                             className={`p-5 rounded-xl border-2 flex items-center justify-between transition-all ${opt.is_correct
                                                 ? "border-emerald-500 bg-emerald-50/30"
-                                                : "border-slate-100 bg-white"
+                                                : "border-slate-100 bg-white"`
                                                 }`}
                                         >
 
@@ -475,7 +440,7 @@ export default function QuizPreview() {
                                                 <div
                                                     className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs ${opt.is_correct
                                                         ? "bg-emerald-500 text-white"
-                                                        : "bg-slate-100 text-slate-500"
+                                                        : "bg-slate-100 text-slate-500"`
                                                         }`}
                                                 >
                                                     {String.fromCharCode(65 + i)}
@@ -504,7 +469,7 @@ export default function QuizPreview() {
                                                     <span
                                                         className={`text-base ${opt.is_correct
                                                             ? "font-bold text-emerald-900"
-                                                            : "font-medium text-slate-700"
+                                                            : "font-medium text-slate-700"`
                                                             }`}
                                                     >
                                                         {opt.option_text}
@@ -565,7 +530,6 @@ export default function QuizPreview() {
                                             )}
                                         </div>
                                     ))
-
                                 ) : (
 
                                     /* NON MCQ */
@@ -625,38 +589,6 @@ export default function QuizPreview() {
                             </div>
                         </div>
                     </div>
-
-                    {/* NAVIGATION */}
-                    <div className="flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-
-                        <button
-                            disabled={currentIndex === 0}
-                            onClick={() =>
-                                setCurrentIndex((p) => p - 1)
-                            }
-                            className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-600 hover:text-slate-900 disabled:opacity-30 transition-all"
-                        >
-                            <ChevronLeft className="w-5 h-5" />
-                            Previous
-                        </button>
-
-                        <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-                            {currentIndex + 1} / {questions.length}
-                        </div>
-
-                        <button
-                            disabled={
-                                currentIndex === questions.length - 1
-                            }
-                            onClick={() =>
-                                setCurrentIndex((p) => p + 1)
-                            }
-                            className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-600 hover:text-slate-900 disabled:opacity-30 transition-all"
-                        >
-                            Next
-                            <ChevronRight className="w-5 h-5" />
-                        </button>
-                    </div>
                 </div>
 
                 {/* SIDEBAR */}
@@ -689,7 +621,6 @@ export default function QuizPreview() {
                                                 ...editData,
                                                 marks: e.target.value
                                             })
-                                        }
                                     />
                                 ) : (
                                     <span className="text-sm font-bold uppercase">
@@ -715,7 +646,7 @@ export default function QuizPreview() {
                                                 ...editData,
                                                 difficulty: e.target.value
                                             })
-                                        }
+                                    }
                                     >
                                         <option value="Easy">Easy</option>
                                         <option value="Medium">Medium</option>

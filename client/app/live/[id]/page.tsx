@@ -479,7 +479,7 @@ export default function MeetingRoom() {
       isCameraOff: camOff ?? isCameraOff,
       isHandRaised: hand ?? isHandRaised,
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [broadcastSignal, myId, isMuted, isCameraOff, isHandRaised]);
 
   /** Send a data-channel message to one peer */
@@ -553,7 +553,7 @@ export default function MeetingRoom() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [broadcastSignal, myId, isMuted, isCameraOff, isHandRaised]);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   const handleDCMessage = useCallback((fromPeerId: string, raw: string) => {
     try {
       const msg = JSON.parse(raw);

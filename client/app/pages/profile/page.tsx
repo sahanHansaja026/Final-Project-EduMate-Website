@@ -29,7 +29,6 @@ type FormData = {
 export default function ProfileForm() {
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
-  const [user, setUser] = useState<{ id: number; email: string } | null>(null);
   const [loading, setLoading] = useState(true);
 
   const [formData, setFormData] = useState<FormData>({
@@ -51,16 +50,17 @@ export default function ProfileForm() {
   });
 
   /* --- Load current user and profile --- */
-  useEffect(() => {
-    const currentUser = getUser();
-    setUser(currentUser);
+  // Initialize user from getUser() to avoid setState in effect
+  const [user, setUser] = useState<{ id: number; email: string } | null>(getUser());
+  const [loading, setLoading] = useState(true);
 
-    if (!currentUser) {
+  useEffect(() => {
+    if (!user) {
       setLoading(false);
       return;
     }
 
-    fetch(`${API_BASE_URL}/profiles/?email=${currentUser.email}`)
+    fetch(`${API_BASE_URL}/profiles/?email=${user.email}`)
       .then((res) => {
         if (!res.ok) throw new Error("Profile not found");
         return res.json();

@@ -16,10 +16,9 @@ type User = {
     email: string;
 };
 export default function Navbar({ currentRole, onRoleChange }: NavbarProps) {
-    const [user, setUser] = useState<{ email: string } | null>(null);
+    const [user, setUser] = useState<{ email: string } | null>(getUser());
 
-
-      useEffect(() => {
+    useEffect(() => {
         const currentUser = getUser();
         setUser(currentUser);
       }, []);

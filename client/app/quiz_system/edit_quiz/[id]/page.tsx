@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import axios from "axios";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { API_BASE_URL } from "@/app/config/api";
 import { getUser } from "@/app/services/authService";
 
@@ -35,19 +34,13 @@ export default function EditQuizForm() {
     const [isGraded, setIsGraded] = useState(true);
     const [shuffleQuestions, setShuffleQuestions] = useState(false);
     const [moduleId, setModuleId] = useState<number | null>(null);
-    const [user, setUser] = useState<any>(null);
+    // Initialize user from getUser() to avoid setState in effect
+    const [user, setUser] = useState<{ id: number; email: string } | null>(getUser());
     const [checkingAccess, setCheckingAccess] = useState(true);
     const [access, setAccess] = useState<boolean | null>(null);
     const router = useRouter();
 
 
-    useEffect(() => {
-        const currentUser = getUser();
-        setUser(currentUser);
-    }, []);
-    // ===============================
-    // FETCH QUIZ (GET SINGLE QUIZ)
-    // ===============================
     useEffect(() => {
         const fetchQuiz = async () => {
             try {
@@ -69,7 +62,6 @@ export default function EditQuizForm() {
                 // FIX datetime format for input
                 setOpenDate(data.open_date ? data.open_date.slice(0, 16) : "");
                 setCloseDate(data.close_date ? data.close_date.slice(0, 16) : "");
-
             } catch (err) {
                 console.error(err);
                 alert("Failed to load quiz");
@@ -151,6 +143,7 @@ export default function EditQuizForm() {
             router.push("/errors/autharization");
         }
     }, [access, router]);
+
 
     // ===============================
     // LOADING STATE
