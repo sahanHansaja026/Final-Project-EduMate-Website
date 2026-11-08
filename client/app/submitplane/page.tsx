@@ -74,9 +74,9 @@ function SubmitPlaneForm() {
 
             alert("Your receipt has been submitted successfully! Our backend team will verify your payment shortly.");
             router.push("/dashboard");
-        } catch (err: any) {
-            console.error(err);
-            alert(`Submission Error: ${err.message}`);
+        } catch (error: Error) {
+            console.error(error);
+            alert(`Submission Error: ${error.message}`);
         } finally {
             setIsSubmitting(false);
         }
