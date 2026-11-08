@@ -12,6 +12,11 @@ Describe the purpose of this change in 1-3 sentences.
 
 Explain the problem this PR solves and the reason for the change.
 
+## Related issue(s)
+
+Use a closing keyword to link issue(s) this PR resolves, for example `Closes #123`.
+For multiple issues, add one closing reference per issue. Remove this section if no issue applies.
+
 ## Testing
 
 - [ ] Local validation performed
