@@ -1,6 +1,6 @@
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
-from models.subscription_payment import PlanEnum
+from app.models.subscription_payment import PlanEnum
 
 
 class SubscriptionPaymentResponse(BaseModel):

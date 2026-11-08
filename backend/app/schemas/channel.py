@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from typing import List, Optional
-from models.channel import ChannelVisibilityEnum
+from app.models.channel import ChannelVisibilityEnum
 
 
 class ChannelResponse(BaseModel):
