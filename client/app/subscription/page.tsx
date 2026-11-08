@@ -1,58 +1,29 @@
 "use client";
 
 import { useSearchParams, useRouter } from "next/navigation"; // Added useRouter
-import { useEffect, useState, Suspense } from "react";
+import { useState, Suspense } from "react";
 import { getUser } from "@/app/services/authService";
-import { API_BASE_URL } from "@/app/config/api";
-
-type Subscription = {
-    plan_name: "free" | "premium" | "edu";
-    video_limit: number | "unlimited";
-    module_limit: number | "unlimited";
-    quiz_limit: number | "unlimited";
-    channel_limit: number | "unlimited";
-};
 
 function SubscriptionContent() {
     const searchParams = useSearchParams();
     const router = useRouter(); // Initialize router
     const reason = searchParams.get("reason");
 
-    const [user, setUser] = useState<{ id: number; email: string } | null>(null);
-    const [subscription, setSubscription] = useState<Subscription | null>(null);
+    const [user, setUser] = useState<{ id: number; email: string } | null>(
+        typeof window !== "undefined" ? getUser() : null
+    );
 
     // Toggle state to switch between 1 Month and 6 Months for the Pro Plan
     const [proBillingCycle, setProBillingCycle] = useState<"1m" | "6m">("1m");
 
-    const currentPlan = subscription?.plan_name ?? "free";
-
-    useEffect(() => {
-        setUser(getUser());
-    }, []);
-
-    const fetchSubscription = async (userId: number) => {
-        try {
-            const res = await fetch(`${API_BASE_URL}/subscription/${userId}`);
-            if (!res.ok) throw new Error("Failed to load subscription details");
-            const data = await res.json();
-            setSubscription(data);
-        } catch (err) {
-            console.error("Error fetching subscription:", err);
-        }
-    };
-
-    useEffect(() => {
-        if (user) {
-            fetchSubscription(user.id);
-        }
-    }, [user]);
+    const currentPlan = "free";
 
     // HANDLES FORWARDING INSTEAD OF DIRECT MUTATION
     const handlePlanSelect = (targetPlan: "free" | "premium" | "edu") => {
         if (!user) return alert("Please log in to continue with your EduMate plan.");
 
         const startDate = new Date();
-        let expireDate = new Date();
+        const expireDate = new Date();
         let validPeriod = "Lifetime";
 
         // Generate dates and periods context based on target selection

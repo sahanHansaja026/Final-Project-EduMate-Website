@@ -18,7 +18,7 @@ export interface User {
   
     try {
       return JSON.parse(user);
-    } catch (error) {
+    } catch {
       console.error("Invalid user data in localStorage");
       return null;
     }
