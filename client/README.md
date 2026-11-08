@@ -1,36 +1,204 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🎓 EduMate Website Client
 
-## Getting Started
+EduMate Website Client is the frontend application for the EduMate platform, built with **Next.js**, **TypeScript**, and **Tailwind CSS**. It provides a modern, responsive interface for students, lecturers, and administrators to interact with the EduMate ecosystem.
 
-First, run the development server:
+## 🚀 Features
+
+- 🔐 User Authentication
+- 📱 Fully Responsive Design
+- 🎨 Modern UI with Tailwind CSS
+- ⚡ Fast Performance with Next.js
+- 📚 Course Management Interface
+- 👨‍🏫 Lecturer Dashboard
+- 🎓 Student Dashboard
+- 📊 Interactive Analytics
+- 🔍 Search Functionality
+- 🌙 Clean and Intuitive User Experience
+
+---
+
+## 🛠️ Tech Stack
+
+| Technology | Purpose |
+|------------|---------|
+| Next.js | React Framework |
+| React | Frontend Library |
+| TypeScript | Type Safety |
+| Tailwind CSS | Styling |
+| Axios | API Requests |
+| React Icons | Icons |
+| ESLint | Code Quality |
+
+---
+
+## 📁 Project Structure
+
+```
+src/
+├── app/            # App Router pages
+├── components/     # Reusable UI components
+├── hooks/          # Custom React Hooks
+├── lib/            # Utility functions
+├── services/       # API services
+├── types/          # TypeScript interfaces
+├── utils/          # Helper functions
+└── styles/         # Global styles
+```
+
+---
+
+## ⚙️ Installation
+
+### Clone the repository
+
+```bash
+git clone https://github.com/YOUR_USERNAME/Edumate-website-client.git
+```
+
+### Navigate to the project
+
+```bash
+cd Edumate-website-client
+```
+
+### Install dependencies
+
+```bash
+npm install
+```
+
+### Configure Environment Variables
+
+Create a `.env.local` file.
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:8000
+```
+
+---
+
+## ▶️ Run the Development Server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open your browser at
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+http://localhost:3000
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## 📦 Build for Production
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run build
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Start the production server
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npm start
+```
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 📸 Screenshots
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Add screenshots of:
+
+- Home Page
+- Login Page
+- Dashboard
+- Course Management
+- Profile Page
+
+Example:
+
+```
+docs/
+├── home.png
+├── login.png
+├── dashboard.png
+└── courses.png
+```
+
+Then include them:
+
+```markdown
+## Home
+
+![Home](docs/home.png)
+
+## Dashboard
+
+![Dashboard](docs/dashboard.png)
+```
+
+---
+
+## 🔗 Backend Repository
+
+This project works together with the EduMate backend.
+
+Backend Repository:
+```
+https://github.com/YOUR_USERNAME/Edumate-backend
+```
+
+---
+
+## 📄 Environment Variables
+
+| Variable | Description |
+|----------|-------------|
+| NEXT_PUBLIC_API_URL | Backend API URL |
+
+---
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a new feature branch
+
+```bash
+git checkout -b feature/new-feature
+```
+
+3. Commit your changes
+
+```bash
+git commit -m "Add new feature"
+```
+
+4. Push to GitHub
+
+```bash
+git push origin feature/new-feature
+```
+
+5. Open a Pull Request
+
+---
+
+## 📜 License
+
+This project is licensed under the MIT License.
+
+---
+
+## 👨‍💻 Author
+
+**Sahan Hansaja**
+
+- GitHub: https://github.com/sahanHansaja026
+- LinkedIn: *(Add your LinkedIn URL)*
+- Email: *(Add your email)*
+
+---
+
+## ⭐ Support
+
+If you found this project useful, consider giving it a ⭐ on GitHub.
