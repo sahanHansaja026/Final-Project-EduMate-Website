@@ -40,7 +40,7 @@ export default function QuizResultsPage() {
     const router = useRouter();
     const [scores, setScores] = useState<QuizScore[]>([]);
     const [loading, setLoading] = useState(true);
-    const [user, setUser] = useState<any>(null);
+    const [user, setUser] = useState<{ id: number; email: string } | null>(getUser());
     const [checking, setChecking] = useState(true);
     const [access, setAccess] = useState<boolean | null>(null);
 

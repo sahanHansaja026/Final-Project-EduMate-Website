@@ -1,22 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
+import { Plus, Trash2, Settings2, Eye, Type, CheckSquare, AlignLeft, CheckCircle2, Sigma } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
 import axios from "axios";
 import { API_BASE_URL } from "@/app/config/api";
-import {
-    Plus,
-    Trash2,
-    Settings2,
-    Eye,
-    Type,
-    ListOrdered,
-    CheckSquare,
-    AlignLeft,
-    CheckCircle2,
-    Sigma,
-} from "lucide-react";
-import { useParams, useRouter } from "next/navigation";
 import { getUser } from "@/app/services/authService";
 
 type QuestionType = "mcq" | "multiple" | "short" | "essay" | "true_false";
@@ -24,6 +11,11 @@ type QuestionType = "mcq" | "multiple" | "short" | "essay" | "true_false";
 interface Option {
     text: string;
     correct: boolean;
+}
+
+interface FinalOption {
+    option_text: string;
+    is_correct: boolean;
 }
 
 export default function QuizBuilder() {
@@ -45,7 +37,8 @@ export default function QuizBuilder() {
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
     const router = useRouter();
-    const [user, setUser] = useState<any>(null);
+    // Initialize user from getUser() to avoid setState in effect
+    const [user, setUser] = useState<{ id: number; email: string } | null>(getUser());
     const [checking, setChecking] = useState(true);
     const [access, setAccess] = useState<boolean | null>(null);
 
@@ -58,10 +51,12 @@ export default function QuizBuilder() {
     };
 
     useEffect(() => {
-        const currentUser = getUser();
-        setUser(currentUser);
+        const fetchData = async () => {
+            // User already initialized via getUser() above
+        };
+        fetchData();
     }, []);
-    
+
     const updateOption = (index: number, field: keyof Option, value: string | boolean) => {
         const updated = options.map((opt, i) => {
             if (i !== index) {
@@ -82,7 +77,7 @@ export default function QuizBuilder() {
             setSuccess("");
 
             // Logic to determine what 'options' to send based on type
-            let finalOptions: any[] = [];
+            let finalOptions: FinalOption[] = [];
 
             if (questionType === "mcq" || questionType === "multiple") {
                 finalOptions = options.map((opt) => ({
@@ -158,16 +153,7 @@ export default function QuizBuilder() {
             router.push("/errors/autharization");
         }
     }, [access, router]);
-    
 
-    if (checking) {
-        return (
-            <div className="flex items-center justify-center h-screen">
-                Checking access...
-            </div>
-        );
-    }
-    
     if (checking) {
         return (
             <div className="flex items-center justify-center h-screen">
@@ -302,9 +288,9 @@ export default function QuizBuilder() {
                                         key={val}
                                         onClick={() => setAnswerText(val)}
                                         className={`flex-1 py-4 border-2 rounded-xl font-bold transition-all ${answerText === val
-                                                ? "bg-slate-900 text-white border-slate-900"
-                                                : "bg-white border-slate-100 text-slate-600 hover:border-slate-300"
-                                            }`}
+                                            ? "bg-slate-900 text-white border-slate-900"
+                                            : "bg-white border-slate-100 text-slate-600 hover:border-slate-300"
+                                        }`}
                                     >
                                         {val}
                                     </button>
@@ -337,9 +323,9 @@ export default function QuizBuilder() {
                                             setAnswerText(""); // Clear text answer when switching types
                                         }}
                                         className={`flex items-center gap-3 p-3 rounded-lg text-sm font-medium transition-all ${questionType === type.id
-                                                ? "bg-slate-900 text-white shadow-md"
-                                                : "bg-white border border-slate-200 text-slate-600 hover:border-slate-400"
-                                            }`}
+                                            ? "bg-slate-900 text-white shadow-md"
+                                            : "bg-white border border-slate-200 text-slate-600 hover:border-slate-400"
+                                        }`}
                                     >
                                         <type.icon className="w-4 h-4" />
                                         {type.label}

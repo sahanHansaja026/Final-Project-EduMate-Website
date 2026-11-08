@@ -37,7 +37,7 @@ function ManualGradingContent() {
     const [scores, setScores] = useState<Record<number, number>>({});
     const [isSaving, setIsSaving] = useState(false);
     const [saveStatus, setSaveStatus] = useState<{ type: 'success' | 'error', message: string } | null>(null);
-    const [user, setUser] = useState<any>(null);
+    const [user, setUser] = useState<{ id: number; email: string } | null>(getUser());
     const [checking, setChecking] = useState(true);
     const [access, setAccess] = useState<boolean | null>(null);
 

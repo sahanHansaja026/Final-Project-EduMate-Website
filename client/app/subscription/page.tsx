@@ -9,7 +9,7 @@ function SubscriptionContent() {
     const router = useRouter(); // Initialize router
     const reason = searchParams.get("reason");
 
-    const [user, setUser] = useState<{ id: number; email: string } | null>(
+    const [user] = useState<{ id: number; email: string } | null>(
         typeof window !== "undefined" ? getUser() : null
     );
 

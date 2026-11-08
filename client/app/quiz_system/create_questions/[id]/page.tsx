@@ -34,14 +34,14 @@ export default function QuizLMSPage() {
     const quizId = params.id as string;
     const moduleId = searchParams.get("module_id");
 
-    const [user, setUser] = useState<{ id: number; email: string } | null>(null);
+    // Initialize user from getUser() to avoid setState in effect
+    const [user, setUser] = useState<{ id: number; email: string } | null>(getUser());
     const [module, setModule] = useState<Module | null>(null);
     const [quiz, setQuiz] = useState<Quiz | null>(null);
     const router = useRouter();
     const [attemptInfo, setAttemptInfo] = useState<AttemptInfo | null>(null);
 
     useEffect(() => {
-        setUser(getUser());
         const fetchData = async () => {
             if (!moduleId || !quizId) return;
             try {
@@ -105,7 +105,7 @@ export default function QuizLMSPage() {
         }
     };
 
-    // 3. Fetch specific student limits (Fires correctly as soon as user state hydrates)
+    // Fetch specific student limits (Fires correctly as soon as user state hydrates)
     useEffect(() => {
         if (!quizId || !user) return;
 
@@ -184,11 +184,12 @@ export default function QuizLMSPage() {
                             <div className="flex flex-col gap-3">
                                 {isOwner ? (
                                     /* OWNER VIEW */
-                                    <><Link href={`/quiz_system/q_and_a/${quizId}`}>
-                                        <button className="w-full bg-gray-900 text-white py-3 px-4 rounded font-semibold hover:bg-black transition-colors">
-                                            Create Question
-                                        </button>
-                                    </Link>
+                                    <>&
+                                        <Link href={`/quiz_system/q_and_a/${quizId}`}>
+                                            <button className="w-full bg-gray-900 text-white py-3 px-4 rounded font-semibold hover:bg-black transition-colors">
+                                                Create Question
+                                            </button>
+                                        </Link>
                                         <Link href={`/quiz_system/edit_quiz/${quizId}`}>
                                             <button className="w-full border border-gray-300 text-gray-700 py-3 px-4 rounded font-semibold hover:bg-gray-50 transition-colors">
                                                 Edit Settings
@@ -239,7 +240,6 @@ export default function QuizLMSPage() {
                             </div>
                         </div>
                     </div>
-
                 </div>
             </main>
         </div>

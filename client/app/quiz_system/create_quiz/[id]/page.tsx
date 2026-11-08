@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+// ✅ State Variables
 export default function CreateQuizPage() {
     const params = useParams();
     const router = useRouter();
@@ -36,14 +37,7 @@ export default function CreateQuizPage() {
     const [isGraded, setIsGraded] = useState(true);
     const [shuffleQuestions, setShuffleQuestions] = useState(false);
 
-    const [user, setUser] = useState<{ id: number; email: string } | null>(null);
-    const [quota, setQuota] = useState<any>(null);
-
-    // load user
-    useEffect(() => {
-        const currentUser = getUser();
-        setUser(currentUser);
-    }, []);
+    const [user, setUser] = useState<{ id: number; email: string } | null>(getUser());
 
     // load quota
     useEffect(() => {
@@ -344,12 +338,11 @@ export default function CreateQuizPage() {
                         </Button>
                         <Button
                             onClick={handleSubmit}
-                            className="w-full bg-gray-900 text-white hover:bg-gray-800 h-11 text-sm font-semibold shadow-sm"
+                            className="w-full bg-gray-900 text-white hover:bg-gray-800 h-11 text-sm font-medium shadow-sm"
                         >
                             <Save className="w-4 h-4 mr-2" /> Initialize Quiz
                         </Button>
                     </div>
-
                 </section>
             </main>
         </div>

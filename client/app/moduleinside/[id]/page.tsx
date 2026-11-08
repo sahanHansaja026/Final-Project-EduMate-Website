@@ -54,16 +54,16 @@ export default function CoursePage() {
     // =========================
     // STATES
     // =========================
-    const [authUser, setAuthUser] = useState<any>(null);
-    const [profile, setProfile] = useState<any>(null);
+    const [authUser, setAuthUser] = useState<{ id: number; email: string } | null>(getUser());
+    const [profile, setProfile] = useState<{ id: number; name: string; email: string } | null>(null);
     const [module, setModule] = useState<Module | null>(null);
     const [videos, setVideos] = useState<Video[]>([]);
     const [loading, setLoading] = useState(true);
     const [videoLoading, setVideoLoading] = useState(true);
-    const [selectedItem, setSelectedItem] = useState<any>(null);
+    const [selectedItem, setSelectedItem] = useState<{ id: number; title: string } | null>(null);
     const [activeWeek, setActiveWeek] = useState<number>(1);
     const [showMore, setShowMore] = useState(false);
-    const [moduleItems, setModuleItems] = useState<any[]>([]);
+    const [moduleItems, setModuleItems] = useState<{ id: number; name: string }[]>([]);
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [showComments, setShowComments] = useState(false); // Controls the Right Chatbot Drawer
 
