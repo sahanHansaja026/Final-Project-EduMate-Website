@@ -34,7 +34,7 @@ interface ModuleBreakdownResponse {
 }
 
 export default function StudentStats() {
-    const [user, setUser] = useState<{ email: string } | null>(null);
+    const [user, setUser] = useState<{ email: string } | null>(getUser());
     const [realUserId, setRealUserId] = useState<number | null>(null);
 
     // API States
@@ -46,11 +46,6 @@ export default function StudentStats() {
     const [isLoadingCount, setIsLoadingCount] = useState<boolean>(false);
     const [isLoadingChannels, setIsLoadingChannels] = useState<boolean>(false);
     const [isLoadingBreakdown, setIsLoadingBreakdown] = useState<boolean>(false);
-
-    useEffect(() => {
-        const currentUser = getUser();
-        setUser(currentUser);
-    }, []);
 
     // Phase 1: Fetch Channel data using the user's email
     useEffect(() => {
