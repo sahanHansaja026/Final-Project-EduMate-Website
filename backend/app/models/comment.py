@@ -1,15 +1,12 @@
-from sqlalchemy import Column, Integer, Text, DateTime, ForeignKey, func
-from database import Base
+"""Compatibility alias for the user comment model.
 
+This module used to declare a second ``user_comments`` table, which made
+SQLAlchemy raise ``Table 'user_comments' is already defined`` as soon as both
+this module and ``app.models.user_comments`` were imported. ``UserComment`` is
+the canonical definition, so re-export it under the historical ``Comment``
+name instead of redefining the table.
+"""
 
-class Comment(Base):
-    __tablename__ = "user_comments"
+from app.models.user_comments import UserComment as Comment
 
-    id = Column(Integer, primary_key=True, index=True)
-
-    user_id = Column(Integer, nullable=False, index=True)
-    module_id = Column(Integer, nullable=False,index=True)
-
-    text = Column(Text, nullable=False)
-
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+__all__ = ["Comment"]

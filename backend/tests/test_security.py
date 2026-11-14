@@ -61,3 +61,13 @@ def test_token_signed_with_another_key_is_rejected():
 
     with pytest.raises(Exception):
         jwt.decode(token, security.SECRET_KEY, algorithms=[security.ALGORITHM])
+
+
+def test_decode_access_token_returns_payload():
+    token = security.create_access_token({"sub": "student@example.com"}, days=1)
+
+    assert security.decode_access_token(token)["sub"] == "student@example.com"
+
+
+def test_decode_access_token_returns_none_for_invalid_token():
+    assert security.decode_access_token("not-a-jwt") is None

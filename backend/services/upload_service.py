@@ -2,7 +2,7 @@ import uuid
 
 
 
-from backend.services.s3_service import BUCKET_NAME,s3
+from backend.services.s3_service import AWS_BUCKET, s3
 
 
 def upload_file_to_s3(file, folder: str):
@@ -11,9 +11,9 @@ def upload_file_to_s3(file, folder: str):
 
     s3.upload_fileobj(
         file.file,
-        BUCKET_NAME,
+        AWS_BUCKET,
         file_key,
         ExtraArgs={"ContentType": file.content_type}
     )
 
-    return f"https://{BUCKET_NAME}.s3.ap-south-1.amazonaws.com/{file_key}"
+    return f"https://{AWS_BUCKET}.s3.ap-south-1.amazonaws.com/{file_key}"

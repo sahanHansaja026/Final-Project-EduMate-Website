@@ -1,6 +1,6 @@
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
-from jose import jwt
+from jose import jwt, JWTError
 
 SECRET_KEY = "SUPER_SECRET_KEY"
 ALGORITHM = "HS256"
@@ -34,3 +34,11 @@ def create_refresh_token(data: dict, days: int = 60):
     expire = datetime.utcnow() + timedelta(days=days)
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+
+def decode_access_token(token: str):
+    """Decode a JWT and return its payload, or ``None`` if it is invalid."""
+    try:
+        return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    except JWTError:
+        return None
