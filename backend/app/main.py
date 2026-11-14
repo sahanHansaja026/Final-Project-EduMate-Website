@@ -19,8 +19,6 @@ from app.routes import auth, profile, module, content, meeting, quiz, question, 
     channel_analytic, assignment_grade_access, assignement_module_grade, module_routes, \
     subscription_payment, chatbot
 
-from app.controllers import *
-
 app = FastAPI()
 
 
