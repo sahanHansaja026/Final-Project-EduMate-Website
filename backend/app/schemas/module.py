@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from typing import List, Optional
-from models.module import VisibilityEnum
+from app.models.module import VisibilityEnum
 import base64
 
 class ModuleCreate(BaseModel):

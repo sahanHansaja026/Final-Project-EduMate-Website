@@ -2,7 +2,7 @@
 
 from pydantic import BaseModel, Field
 from typing import List, Optional
-from models.chaneel_modules import VisibilityEnum
+from app.models.chaneel_modules import VisibilityEnum
 
 
 class ChannelModuleCreate(BaseModel):
