@@ -11,7 +11,7 @@ When creating a pull request, use the [pull request template](https://github.com
 ### Prerequisites
 
 - [Python 3.11+](https://www.python.org/downloads/)
-- [Node.js 18+](https://nodejs.org/)
+- [Node.js 22+](https://nodejs.org/)
 - [Docker](https://www.docker.com/) (for backend deployment)
 
 ### Local Development
@@ -39,6 +39,7 @@ When creating a pull request, use the [pull request template](https://github.com
    ```bash
    cd client
    npm install
+   npm test
    npm run dev
    # Runs on http://localhost:3000
    ```
