@@ -28,6 +28,7 @@ EduMate Website Client is the frontend application for the EduMate platform, bui
 | Axios | API Requests |
 | React Icons | Icons |
 | ESLint | Code Quality |
+| Vitest | Unit Testing |
 
 ---
 
@@ -102,6 +103,24 @@ Start the production server
 ```bash
 npm start
 ```
+
+---
+
+## 🧪 Testing
+
+Frontend unit tests run with [Vitest](https://vitest.dev/).
+
+```bash
+# Run the test suite once (used by CI)
+npm test
+
+# Re-run tests while editing
+npm run test:watch
+```
+
+Tests live next to the code they cover and use the `*.test.ts` / `*.test.tsx`
+suffix (`vitest.config.mts` defines the include/exclude patterns). Add new tests
+in the same folder as the module under test.
 
 ---
 
