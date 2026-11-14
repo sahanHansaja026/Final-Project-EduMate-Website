@@ -207,6 +207,22 @@ http://localhost:8000
 
 ---
 
+# ✅ Testing
+
+Backend tests live in `backend/tests/` and run in CI on every push and pull request.
+
+```bash
+pip install -r backend/requirements-dev.txt
+python -m pytest -v
+```
+
+`pytest.ini` only collects `backend/tests/`, so the helper scripts at the repository root (`test_db.py`, `test_conn.py`, `test_env.py`) are not treated as tests.
+
+- Unit and smoke tests use an isolated SQLite database, so no PostgreSQL server is needed locally.
+- CI separately validates real PostgreSQL connectivity by running `test_db.py` and `test_conn.py` in the Backend job.
+
+---
+
 # 🐳 Docker
 
 Build Docker image
