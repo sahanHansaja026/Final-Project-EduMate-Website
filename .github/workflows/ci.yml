@@ -58,9 +58,12 @@ jobs:
           pip install -r backend/requirements.txt
 
       - name: Byte-compile backend sources
+        # Keep the exclusion pattern in single quotes: inside double quotes
+        # Bash collapses "\\" to "\", which leaves Python with an invalid
+        # character class ("unterminated character set").
         run: >
           python -m compileall -q
-          -x "(^|[/\\])(venv|__pycache__)([/\\]|$)"
+          -x '(^|[/\\])(\.venv|venv|__pycache__)([/\\]|$)'
           backend
 
       - name: Verify PostgreSQL connectivity
