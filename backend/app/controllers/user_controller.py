@@ -6,6 +6,7 @@ from fastapi import HTTPException, UploadFile
 from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
+from app.models.user import User
 from app.schemas.profile import ProfileResponse, PushNotifications
 from app.schemas.user import LoginSchema, SignupSchema, TokenSchema
 from app.services import user_service
@@ -26,19 +27,19 @@ def logout(refresh_token: str, db: Session) -> dict:
     return user_service.logout(refresh_token, db)
 
 
-def get_profile(email: str, db: Session) -> ProfileResponse:
-    """Retrieve a user profile by email."""
-    return user_service.get_profile(db, email)
+def get_profile(email: str, current_user: User, db: Session) -> ProfileResponse:
+    """Retrieve a user profile by email, enforcing ownership."""
+    return user_service.get_profile(db, email, current_user)
 
 
-def get_user_name_by_email(email: str, db: Session) -> dict:
-    """Retrieve the display names of a user by email."""
-    return user_service.get_user_name_by_email(db, email)
+def get_user_name_by_email(email: str, current_user: User, db: Session) -> dict:
+    """Retrieve the display names of a user by email, enforcing ownership."""
+    return user_service.get_user_name_by_email(db, email, current_user)
 
 
-def get_profile_photo(email: str, db: Session) -> Response:
-    """Serve the raw profile photo bytes."""
-    photo = user_service.get_profile_photo(db, email)
+def get_profile_photo(email: str, current_user: User, db: Session) -> Response:
+    """Serve the raw profile photo bytes, enforcing ownership."""
+    photo = user_service.get_profile_photo(db, email, current_user)
 
     if photo is None:
         raise HTTPException(status_code=404, detail="Profile photo not found")
@@ -48,6 +49,7 @@ def get_profile_photo(email: str, db: Session) -> Response:
 
 async def create_or_update_profile(
     db: Session,
+    current_user: User,
     username: str,
     about: Optional[str],
     first_name: str,
@@ -64,6 +66,7 @@ async def create_or_update_profile(
     push: PushNotifications,
     photo: Optional[UploadFile],
     coverPhoto: Optional[UploadFile],
+    profile_id: Optional[int] = None,
 ) -> ProfileResponse:
     """Create or update a user profile (HTTP layer: multipart form + file uploads)."""
     photo_bytes = await photo.read() if photo else None
@@ -72,6 +75,7 @@ async def create_or_update_profile(
     try:
         return user_service.create_or_update_profile(
             db,
+            current_user=current_user,
             username=username,
             about=about,
             first_name=first_name,
@@ -88,7 +92,10 @@ async def create_or_update_profile(
             push_notifications=push,
             photo=photo_bytes,
             cover_photo=cover_bytes,
+            profile_id=profile_id,
         )
+    except HTTPException:
+        raise
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Error saving profile: {e}")

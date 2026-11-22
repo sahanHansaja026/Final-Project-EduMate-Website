@@ -5,7 +5,15 @@ from app.models.subscription import Subscription
 from app.models.user import User
 
 
-# ---------------- USER ACCOUNT: CREATE / AUTHENTICATE / SESSION ----------------
+def _register_and_authenticate(client, email, password="strong-password"):
+    """Register a user and return the headers for a valid access token."""
+    client.post("/auth/signup", json={"email": email, "password": password})
+    response = client.post("/auth/login", json={"email": email, "password": password})
+
+    token = response.json()["access_token"]
+    return {"Authorization": f"Bearer {token}"}
+
+
 def test_signup_creates_user_and_provisions_free_subscription(client, db_session):
     response = client.post(
         "/auth/signup",
@@ -131,6 +139,8 @@ def test_logout_with_unknown_refresh_token_returns_401(client):
 
 # ---------------- USER PROFILE: RETRIEVE / UPDATE ----------------
 def test_create_profile_returns_created_profile(client):
+    auth = _register_and_authenticate(client, "profile@example.com")
+
     response = client.post(
         "/profiles/",
         data={
@@ -149,6 +159,7 @@ def test_create_profile_returns_created_profile(client):
             "offers": False,
             "push": "everything",
         },
+        headers=auth,
     )
 
     assert response.status_code == 201
@@ -162,13 +173,17 @@ def test_create_profile_returns_created_profile(client):
 
 
 def test_get_profile_by_email_returns_names(client):
-    response = client.get("/profiles/by-email", params={"email": "profile@example.com"})
+    auth = _register_and_authenticate(client, "profile@example.com")
+
+    response = client.get("/profiles/by-email", params={"email": "profile@example.com"}, headers=auth)
 
     assert response.status_code == 404
     assert response.json()["detail"] == "User not found"
 
 
 def test_get_profile_returns_profile_or_404(client):
+    auth = _register_and_authenticate(client, "profile@example.com")
+
     created = client.post(
         "/profiles/",
         data={
@@ -187,21 +202,25 @@ def test_get_profile_returns_profile_or_404(client):
             "offers": False,
             "push": "everything",
         },
+        headers=auth,
     )
     assert created.status_code == 201
 
-    found = client.get("/profiles/", params={"email": "profile@example.com"})
+    found = client.get("/profiles/", params={"email": "profile@example.com"}, headers=auth)
 
     assert found.status_code == 200
     assert found.json()["email"] == "profile@example.com"
 
-    missing = client.get("/profiles/", params={"email": "ghost@example.com"})
+    stranger_auth = _register_and_authenticate(client, "student@example.com")
+    missing = client.get("/profiles/", params={"email": "student@example.com"}, headers=stranger_auth)
 
     assert missing.status_code == 404
     assert missing.json()["detail"] == "Profile not found"
 
 
 def test_update_profile_changes_stored_fields(client, db_session):
+    auth = _register_and_authenticate(client, "profile@example.com")
+
     client.post(
         "/profiles/",
         data={
@@ -220,6 +239,7 @@ def test_update_profile_changes_stored_fields(client, db_session):
             "offers": False,
             "push": "everything",
         },
+        headers=auth,
     )
 
     updated = client.post(
@@ -240,6 +260,7 @@ def test_update_profile_changes_stored_fields(client, db_session):
             "offers": True,
             "push": "none",
         },
+        headers=auth,
     )
 
     assert updated.status_code == 201
@@ -251,6 +272,8 @@ def test_update_profile_changes_stored_fields(client, db_session):
 
 
 def test_profile_photo_upload_and_retrieval(client):
+    auth = _register_and_authenticate(client, "profile@example.com")
+
     created = client.post(
         "/profiles/",
         data={
@@ -270,16 +293,18 @@ def test_profile_photo_upload_and_retrieval(client):
             "push": "everything",
         },
         files={"photo": ("photo.jpg", b"fake-image-bytes", "image/jpeg")},
+        headers=auth,
     )
     assert created.status_code == 201
 
-    photo_response = client.get("/profiles/photo", params={"email": "profile@example.com"})
+    photo_response = client.get("/profiles/photo", params={"email": "profile@example.com"}, headers=auth)
 
     assert photo_response.status_code == 200
     assert photo_response.content == b"fake-image-bytes"
     assert photo_response.headers["content-type"].startswith("image/jpeg")
 
-    missing_response = client.get("/profiles/photo", params={"email": "ghost@example.com"})
+    no_photo_auth = _register_and_authenticate(client, "student@example.com")
+    missing_response = client.get("/profiles/photo", params={"email": "student@example.com"}, headers=no_photo_auth)
 
     assert missing_response.status_code == 404
     assert missing_response.json()["detail"] == "Profile photo not found"

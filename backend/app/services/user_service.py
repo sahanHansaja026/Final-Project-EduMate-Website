@@ -15,6 +15,7 @@ from app.core.security import (
 )
 from app.models.profile import Profile
 from app.models.subscription import PlanEnum, Subscription
+from app.models.user import User
 from app.repositories import user_repository
 from app.schemas.profile import Notifications, ProfileResponse, PushNotifications
 from app.schemas.user import LoginSchema, SignupSchema, TokenSchema, UserOut
@@ -47,6 +48,38 @@ def _to_profile_response(profile: Profile) -> ProfileResponse:
         photo=photo_b64,
         coverPhoto=cover_b64,
     )
+
+
+def _apply_profile_updates(
+    profile: Profile,
+    username: str,
+    about: Optional[str],
+    first_name: str,
+    last_name: str,
+    country: str,
+    street_address: str,
+    city: str,
+    region: str,
+    postal_code: str,
+    notify_comments: bool,
+    notify_candidates: bool,
+    notify_offers: bool,
+    push_notifications: PushNotifications,
+) -> None:
+    """Apply profile field updates onto an existing ``Profile`` instance."""
+    profile.username = username
+    profile.about = about
+    profile.first_name = first_name
+    profile.last_name = last_name
+    profile.country = country
+    profile.street_address = street_address
+    profile.city = city
+    profile.region = region
+    profile.postal_code = postal_code
+    profile.notify_comments = notify_comments
+    profile.notify_candidates = notify_candidates
+    profile.notify_offers = notify_offers
+    profile.push_notifications = push_notifications
 
 
 # ---------------- USER ACCOUNT: CREATE / AUTHENTICATE ----------------
@@ -109,8 +142,11 @@ def logout(refresh_token: str, db: Session) -> dict:
 
 
 # ---------------- USER PROFILE: RETRIEVE / UPDATE ----------------
-def get_profile(db: Session, email: str) -> ProfileResponse:
-    """Retrieve a user profile by email."""
+def get_profile(db: Session, email: str, current_user: User) -> ProfileResponse:
+    """Retrieve a user profile by email, enforcing ownership."""
+    if current_user.email != email:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to access this resource")
+
     profile = db.query(Profile).filter(Profile.email == email).first()
 
     if profile is None:
@@ -119,8 +155,11 @@ def get_profile(db: Session, email: str) -> ProfileResponse:
     return _to_profile_response(profile)
 
 
-def get_user_name_by_email(db: Session, email: str) -> dict:
-    """Retrieve the display names of a user profile by email."""
+def get_user_name_by_email(db: Session, email: str, current_user: User) -> dict:
+    """Retrieve the display names of a user by email, enforcing ownership."""
+    if current_user.email != email:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to access this resource")
+
     profile = db.query(Profile).filter(Profile.email == email).first()
 
     if profile is None:
@@ -133,8 +172,11 @@ def get_user_name_by_email(db: Session, email: str) -> dict:
     }
 
 
-def get_profile_photo(db: Session, email: str) -> Optional[bytes]:
-    """Return the raw profile photo bytes for the given email."""
+def get_profile_photo(db: Session, email: str, current_user: User) -> Optional[bytes]:
+    """Return the raw profile photo bytes for the given email, enforcing ownership."""
+    if current_user.email != email:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to access this resource")
+
     profile = db.query(Profile).filter(Profile.email == email).first()
 
     if profile is None or not profile.photo:
@@ -145,6 +187,7 @@ def get_profile_photo(db: Session, email: str) -> Optional[bytes]:
 
 def create_or_update_profile(
     db: Session,
+    current_user: User,
     username: str,
     about: Optional[str],
     first_name: str,
@@ -161,18 +204,25 @@ def create_or_update_profile(
     push_notifications: PushNotifications,
     photo: Optional[bytes],
     cover_photo: Optional[bytes],
+    profile_id: Optional[int] = None,
 ) -> ProfileResponse:
-    """Create or update the profile of a user."""
-    profile = db.query(Profile).filter(Profile.email == email).first()
+    """Create or update the profile of a user (optionally targeting a profile id)."""
+    if profile_id is not None:
+        # Update an existing profile by primary key, enforcing ownership.
+        profile = db.query(Profile).filter(Profile.id == profile_id).first()
 
-    if profile is None:
-        # Create new profile
-        profile = Profile(
+        if profile is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Profile not found")
+
+        if profile.email != current_user.email:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to update this profile")
+
+        _apply_profile_updates(
+            profile,
             username=username,
             about=about,
             first_name=first_name,
             last_name=last_name,
-            email=email,
             country=country,
             street_address=street_address,
             city=city,
@@ -182,29 +232,61 @@ def create_or_update_profile(
             notify_candidates=notify_candidates,
             notify_offers=notify_offers,
             push_notifications=push_notifications,
-            photo=photo,
-            cover_photo=cover_photo,
         )
-        db.add(profile)
-    else:
-        # Update existing profile
-        profile.username = username
-        profile.about = about
-        profile.first_name = first_name
-        profile.last_name = last_name
-        profile.country = country
-        profile.street_address = street_address
-        profile.city = city
-        profile.region = region
-        profile.postal_code = postal_code
-        profile.notify_comments = notify_comments
-        profile.notify_candidates = notify_candidates
-        profile.notify_offers = notify_offers
-        profile.push_notifications = push_notifications
         if photo:
             profile.photo = photo
         if cover_photo:
             profile.cover_photo = cover_photo
+    else:
+        # Enforce that a user only manages their own profile.
+        if current_user.email != email:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to update this profile")
+
+        profile = db.query(Profile).filter(Profile.email == email).first()
+
+        if profile is None:
+            # Create new profile
+            profile = Profile(
+                username=username,
+                about=about,
+                first_name=first_name,
+                last_name=last_name,
+                email=email,
+                country=country,
+                street_address=street_address,
+                city=city,
+                region=region,
+                postal_code=postal_code,
+                notify_comments=notify_comments,
+                notify_candidates=notify_candidates,
+                notify_offers=notify_offers,
+                push_notifications=push_notifications,
+                photo=photo,
+                cover_photo=cover_photo,
+            )
+            db.add(profile)
+        else:
+            # Update existing profile
+            _apply_profile_updates(
+                profile,
+                username=username,
+                about=about,
+                first_name=first_name,
+                last_name=last_name,
+                country=country,
+                street_address=street_address,
+                city=city,
+                region=region,
+                postal_code=postal_code,
+                notify_comments=notify_comments,
+                notify_candidates=notify_candidates,
+                notify_offers=notify_offers,
+                push_notifications=push_notifications,
+            )
+            if photo:
+                profile.photo = photo
+            if cover_photo:
+                profile.cover_photo = cover_photo
 
     db.commit()
     db.refresh(profile)

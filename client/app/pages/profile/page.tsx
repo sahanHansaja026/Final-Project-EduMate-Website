@@ -54,13 +54,22 @@ export default function ProfileForm() {
   const [user, setUser] = useState<{ id: number; email: string } | null>(getUser());
   const [loading, setLoading] = useState(true);
 
+  // The user management endpoints require a bearer access token.
+  const authHeaders: Record<string, string> = {};
+  if (user && typeof window !== "undefined") {
+    const token = localStorage.getItem("access_token");
+    if (token) {
+      authHeaders.Authorization = `Bearer ${token}`;
+    }
+  }
+
   useEffect(() => {
     if (!user) {
       setLoading(false);
       return;
     }
 
-    fetch(`${API_BASE_URL}/profiles/?email=${user.email}`)
+    fetch(`${API_BASE_URL}/profiles/?email=${user.email}`, { headers: authHeaders })
       .then((res) => {
         if (!res.ok) throw new Error("Profile not found");
         return res.json();
@@ -149,7 +158,7 @@ export default function ProfileForm() {
     if (formData.coverPhoto) form.append("coverPhoto", formData.coverPhoto);
 
     try {
-      const resCheck = await fetch(`${API_BASE_URL}/profiles/?email=${user.email}`);
+      const resCheck = await fetch(`${API_BASE_URL}/profiles/?email=${user.email}`, { headers: authHeaders });
       const existingProfile = await resCheck.json();
 
       const url =
@@ -159,7 +168,7 @@ export default function ProfileForm() {
 
       const method = existingProfile && existingProfile.length > 0 ? "PUT" : "POST";
 
-      const res = await fetch(url, { method, body: form });
+      const res = await fetch(url, { method, body: form, headers: authHeaders });
 
       if (!res.ok) {
         const error = await res.json();
