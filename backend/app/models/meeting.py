@@ -1,6 +1,6 @@
 import uuid
 from sqlalchemy import Column, String
-from database import Base
+from app.core.database import Base
 
 class Meeting(Base):
     __tablename__ = "meetings"

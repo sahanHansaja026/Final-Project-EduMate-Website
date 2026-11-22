@@ -2,7 +2,7 @@ from sqlalchemy import Column, Integer, ForeignKey, DateTime
 from datetime import datetime
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import relationship
-from database import Base
+from app.core.database import Base
 
 class ChannelModuleAccessController(Base):
     __tablename__ = "channel_module_access_controller"
@@ -13,6 +13,6 @@ class ChannelModuleAccessController(Base):
     user_id = Column(Integer, ForeignKey("users.user_id"))
     granted_at = Column(DateTime, default=datetime.utcnow)
 
-    channel = relationship("Channel", back_populates="module_access_controllers")
-    module = relationship("Module", back_populates="module_access_controllers")
-    user = relationship("User", back_populates="module_access_controllers")
+    channel = relationship("Channel")
+    module = relationship("Module")
+    user = relationship("User")

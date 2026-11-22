@@ -1,5 +1,5 @@
-from models.meeting import Meeting
-from database import SessionLocal
+from app.models.meeting import Meeting
+from app.core.database import SessionLocal
 
 db = SessionLocal()
 

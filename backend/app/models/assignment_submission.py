@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text
 from datetime import datetime
-from database import Base
+from app.core.database import Base
 
 class AssignmentSubmission(Base):
     __tablename__ = "assignment_submissions"

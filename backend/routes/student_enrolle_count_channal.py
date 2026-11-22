@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from collections import defaultdict
-from models.channel import Channel   # your channel model
-from models.profile import Profile
-from database import get_db
-from models.authorized_student import AuthorizedStudent
-from models.chaneel_modules import ChannelModule
-from models.enrollment import Enrollment
+from app.models.channel import Channel   # your channel model
+from app.models.profile import Profile
+from app.core.database import get_db
+from app.models.authorized_student import AuthorizedStudent
+from app.models.chaneel_modules import ChannelModule
+from app.models.enrollment import Enrollment
 
 router = APIRouter(
     prefix="/student-channel-count",

@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from database import get_db
-from models.subscription import Subscription
-from models.channel import Channel
-from models.subscription import PlanEnum
+from app.core.database import get_db
+from app.models.subscription import Subscription
+from app.models.channel import Channel
+from app.models.subscription import PlanEnum
 
 router = APIRouter(
     prefix="/quota",

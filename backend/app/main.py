@@ -1,14 +1,15 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
+from fastapi.responses import JSONResponse
+from sqlalchemy.exc import SQLAlchemyError
 
-from app.core.database import Base, engine, get_db
+from app.core.database import Base, engine, init_db
 from app.core.config import settings
 
-# Create database tables
-Base.metadata.create_all(bind=engine)
+# Create database tables using the centralized engine and declarative metadata
+init_db(bind_engine=engine)
 
-from app.routes import auth, profile, module, content, meeting, quiz, question, \
+from app.routes import user, module, content, meeting, quiz, question, \
     video, quiz_score, student_answer, subscription_routes, module_quota, \
     video_quota, quiz_quota, enrollment, submission, assignment, assignemnt_quota, \
     channel, channel_quota, channel_modules, usercomments, grade, manual_grading, \
@@ -22,6 +23,19 @@ from app.routes import auth, profile, module, content, meeting, quiz, question, 
 app = FastAPI()
 
 
+@app.exception_handler(SQLAlchemyError)
+async def database_exception_handler(request: Request, exc: SQLAlchemyError):
+    """Map database failures to a generic server error response.
+
+    Internal driver details (connection strings, credentials, etc.) are never
+    exposed to the client.
+    """
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Database error occurred. Please try again later."},
+    )
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # React dev server
@@ -31,8 +45,7 @@ app.add_middleware(
 )
 
 # Include routers
-app.include_router(auth.router)
-app.include_router(profile.router)
+app.include_router(user.router)
 app.include_router(module.router)
 app.include_router(content.router)
 app.include_router(meeting.router)

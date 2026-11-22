@@ -2,10 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 
-from database import get_db
+from app.core.database import get_db
 
-from models.question import Question
-from models.question_option import QuestionOption
+from app.models.question import Question
+from app.models.question_option import QuestionOption
 
 from schemas.question import (
     QuestionCreate,

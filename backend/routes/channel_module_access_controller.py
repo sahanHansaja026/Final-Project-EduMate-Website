@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from database import get_db
-from models.authorized_student import AuthorizedStudent
+from app.core.database import get_db
+from app.models.authorized_student import AuthorizedStudent
 
 router = APIRouter(
     prefix="/channel-module-access",

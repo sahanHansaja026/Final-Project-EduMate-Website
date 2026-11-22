@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
-from database import get_db
+from app.core.database import get_db
 
-from models.module import Module
-from models.chaneel_modules import ChannelModule
-from models.user import User
-from models.profile import Profile
+from app.models.module import Module
+from app.models.chaneel_modules import ChannelModule
+from app.models.user import User
+from app.models.profile import Profile
 
 router = APIRouter(prefix="/modules_search", tags=["Modules"])
 

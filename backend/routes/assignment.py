@@ -3,8 +3,8 @@ from fastapi import APIRouter, UploadFile, File, Form, Depends, HTTPException
 from sqlalchemy.orm import Session
 from datetime import date
 from services.s3_service import delete_file, upload_file
-from database import get_db
-from models.assignment import Assignment
+from app.core.database import get_db
+from app.models.assignment import Assignment
 from schemas.assignment import AssignmentResponse
 from typing import List
 

@@ -4,9 +4,9 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from services.s3_service import delete_file, upload_file
-from database import get_db
-from models.profile import Profile
-from models.chaneel_modules import ChannelModule, VisibilityEnum
+from app.core.database import get_db
+from app.models.profile import Profile
+from app.models.chaneel_modules import ChannelModule, VisibilityEnum
 from schemas.channel_modules import ChannelModuleResponse
 
 # Import your working S3 helper functions

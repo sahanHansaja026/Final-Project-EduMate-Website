@@ -1,33 +1,11 @@
-import os
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-#
-from dotenv import load_dotenv
+"""Backward-compatible re-exports for the centralized database module.
 
-load_dotenv()  # Load .env file 
-#
-DATABASE_URL = os.getenv("DATABASE_URL")
-if not DATABASE_URL:
-    raise ValueError("No DATABASE_URL found in environment variables")
+Database configuration and connection management now live in
+:mod:`app.core.database`. This module only re-exports the shared objects so
+that pre-existing imports keep working; new code should import from
+:mod:`app.core.database` directly.
+"""
 
-engine = create_engine(
-    DATABASE_URL,
-    pool_pre_ping=True,
-)
+from app.core.database import Base, SessionLocal, engine, get_db  # noqa: F401
 
-SessionLocal = sessionmaker(
-    autocommit=False,
-    autoflush=False,
-    bind=engine,
-    expire_on_commit=False,
-)
-
-Base = declarative_base()
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+__all__ = ["Base", "SessionLocal", "engine", "get_db"]

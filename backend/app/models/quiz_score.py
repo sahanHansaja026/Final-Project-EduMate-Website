@@ -7,7 +7,7 @@ from sqlalchemy import (
 )
 
 from datetime import datetime
-from database import Base
+from app.core.database import Base
 
 
 class QuizScore(Base):

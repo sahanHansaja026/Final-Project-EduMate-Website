@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from datetime import datetime
-from database import Base
+from app.core.database import Base
 
 class VideoQuota(Base):
     __tablename__ = "video_quotas"
@@ -13,4 +13,4 @@ class VideoQuota(Base):
     videos_limit = Column(Integer, default=3)
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    user = relationship("User", back_populates="video_quotas")
+    user = relationship("User")

@@ -2,8 +2,8 @@ from typing import List
 from fastapi import APIRouter, UploadFile, File, Form, Depends, HTTPException
 from sqlalchemy.orm import Session
 import json
-from database import get_db
-from models.module import Module, VisibilityEnum
+from app.core.database import get_db
+from app.models.module import Module, VisibilityEnum
 from schemas.module import ModuleResponse
 from fastapi import Path
 

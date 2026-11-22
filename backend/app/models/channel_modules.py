@@ -1,8 +1,8 @@
 # models/chaneel_modules.py
 
-from sqlalchemy import Column, Integer, Sequence, String, Text, Enum
+from sqlalchemy import Column, Integer, Sequence, String, Text, Enum, JSON
 from sqlalchemy.dialects.postgresql import ARRAY as PG_ARRAY
-from database import Base
+from app.core.database import Base
 import enum
 
 
@@ -28,7 +28,7 @@ class ChannelModule(Base):
     cover_image = Column(String(255), nullable=True)
     cover_image_name = Column(String(255), nullable=True)
 
-    skills = Column(PG_ARRAY(String), default=list)
+    skills = Column(PG_ARRAY(String).with_variant(JSON, "sqlite"), default=list)
 
     visibility = Column(
         Enum(VisibilityEnum),

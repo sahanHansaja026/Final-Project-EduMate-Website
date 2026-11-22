@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from database import get_db
+from app.core.database import get_db
 
-from models.quiz import Quiz
-from models.quiz_score import QuizScore
-from models.assignment import Assignment
-from models.assignment_submission import AssignmentSubmission
+from app.models.quiz import Quiz
+from app.models.quiz_score import QuizScore
+from app.models.assignment import Assignment
+from app.models.assignment_submission import AssignmentSubmission
 
 router = APIRouter(prefix="/student-score", tags=["Student Score Management"])
 

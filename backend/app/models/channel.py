@@ -1,6 +1,6 @@
-from sqlalchemy import Column, Integer, String, Text, Enum
+from sqlalchemy import Column, Integer, String, Text, Enum, JSON
 from sqlalchemy.dialects.postgresql import ARRAY as PG_ARRAY
-from database import Base
+from app.core.database import Base
 import enum
 
 
@@ -22,7 +22,7 @@ class Channel(Base):
     institute_owner_full_name = Column(String(255), nullable=False)
     physical_corporate_address = Column(Text, nullable=True)
 
-    co_hosts_and_faculty_members = Column(PG_ARRAY(String), default=[])
+    co_hosts_and_faculty_members = Column(PG_ARRAY(String).with_variant(JSON, "sqlite"), default=[])
 
     visibility = Column(
         Enum(ChannelVisibilityEnum),

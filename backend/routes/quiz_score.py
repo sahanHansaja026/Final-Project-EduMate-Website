@@ -2,10 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 
-from models.quiz import Quiz
-from database import get_db
+from app.models.quiz import Quiz
+from app.core.database import get_db
 
-from models.quiz_score import QuizScore
+from app.models.quiz_score import QuizScore
 
 from schemas.quiz_score import (
     QuizScoreCreate,

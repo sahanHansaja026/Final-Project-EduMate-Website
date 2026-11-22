@@ -4,8 +4,8 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from database import get_db
-from models.meeting import Meeting
+from app.core.database import get_db
+from app.models.meeting import Meeting
 from schemas.meeting import MeetingCreate, MeetingResponse
 
 router = APIRouter(prefix="/meetings", tags=["Meetings"])

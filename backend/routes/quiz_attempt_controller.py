@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from database import get_db
-from models.quiz import Quiz
-from models.quiz_score import QuizScore
+from app.core.database import get_db
+from app.models.quiz import Quiz
+from app.models.quiz_score import QuizScore
 
 router = APIRouter(
     prefix="/quiz-attempts",

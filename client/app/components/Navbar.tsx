@@ -26,15 +26,36 @@ type User = {
 export default function Navbar() {
   const [user, setUser] = useState<User | null>(null);
   const [imageError, setImageError] = useState(false);
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const currentUser = getUser();
     setUser(currentUser);
   }, []);
 
-  const profileImageUrl = user
-    ? `${API_BASE_URL}/profiles/photo?email=${encodeURIComponent(user.email)}`
-    : "/images/default-avatar.png";
+  // The user management endpoints require a bearer access token.
+  useEffect(() => {
+    if (!user?.email || typeof window === "undefined") {
+      setPhotoUrl(null);
+      return;
+    }
+
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      setPhotoUrl(null);
+      return;
+    }
+
+    fetch(`${API_BASE_URL}/profiles/photo?email=${encodeURIComponent(user.email)}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Profile photo not found");
+        return res.blob();
+      })
+      .then((blob) => setPhotoUrl(URL.createObjectURL(blob)))
+      .catch(() => setPhotoUrl(null));
+  }, [user?.email]);
 
   return (
     <Disclosure as="nav" className="sticky top-0 z-50 bg-slate-900 backdrop-blur-md border-b border-white/5 transition-all duration-300">
@@ -108,7 +129,7 @@ export default function Navbar() {
                     <div className="relative h-9 w-9 rounded-full overflow-hidden border border-white/10 bg-slate-800">
                       <img
                         className="h-full w-full object-cover"
-                        src={imageError ? "/images/default-avatar.png" : profileImageUrl}
+                        src={imageError || !photoUrl ? "/images/default-avatar.png" : photoUrl}
                         onError={() => setImageError(true)}
                         alt="User Avatar"
                       />

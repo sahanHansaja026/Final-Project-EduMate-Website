@@ -1,22 +1,10 @@
-from pydantic import BaseModel, EmailStr
-from typing import Optional
+"""Backward-compatible re-exports for user management schemas.
 
-class SignupSchema(BaseModel):
-    email: EmailStr
-    password: str
+The user management module owns the user authentication schemas; they now live
+in ``app.schemas.user``. They are re-exported here so existing imports keep
+working during the transition.
+"""
 
-class LoginSchema(BaseModel):
-    email: EmailStr
-    password: str
-    remember_me: Optional[bool] = False
+from app.schemas.user import LoginSchema, SignupSchema, TokenSchema, UserOut
 
-class UserOut(BaseModel):
-    id: int
-    email: str
-
-class TokenSchema(BaseModel):
-    access_token: str
-    refresh_token: str
-    token_type: str
-    user: UserOut
-
+__all__ = ["SignupSchema", "LoginSchema", "TokenSchema", "UserOut"]

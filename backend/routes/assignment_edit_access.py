@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from models.chaneel_modules import ChannelModule
-from database import get_db
-from models.assignment import Assignment
-from models.module import Module
+from app.models.chaneel_modules import ChannelModule
+from app.core.database import get_db
+from app.models.assignment import Assignment
+from app.models.module import Module
 
 router = APIRouter(prefix="/assignment-access", tags=["Assignment Access"])
 

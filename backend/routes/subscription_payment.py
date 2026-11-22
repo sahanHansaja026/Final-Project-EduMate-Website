@@ -9,10 +9,10 @@ from fastapi import (
 from sqlalchemy.orm import Session
 from datetime import datetime
 
-from database import get_db
+from app.core.database import get_db
 from services.s3_service import upload_file
 
-from models.subscription_payment import (
+from app.models.subscription_payment import (
     SubscriptionPayment,
     PlanEnum,
 )

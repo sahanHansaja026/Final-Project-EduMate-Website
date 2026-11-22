@@ -1,6 +1,5 @@
-import os
-# Set the database URL explicitly
-os.environ['DATABASE_URL'] = 'postgresql://postgres:postgres123@localhost:5432/edumate?sslmode=disable'
+# The database URL is provided through the environment (backend/.env or the
+# environment itself); nothing is overridden or hardcoded here.
 
 # Now run uvicorn
 import subprocess

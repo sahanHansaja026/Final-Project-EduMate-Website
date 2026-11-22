@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from models.subscription import PlanEnum, Subscription
-from database import get_db
-from models.user import User
+from app.models.subscription import PlanEnum, Subscription
+from app.core.database import get_db
+from app.models.user import User
 from datetime import datetime, timedelta
 from schemas.auth import SignupSchema, LoginSchema, TokenSchema
 from core.security import (

@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, Float, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from datetime import datetime
-from database import Base
+from app.core.database import Base
 
 class ChannelAnalytics(Base):
     __tablename__ = "channel_analytics"
@@ -13,4 +13,4 @@ class ChannelAnalytics(Base):
     total_enrollments = Column(Integer, default=0)
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    channel = relationship("Channel", back_populates="analytics")
+    channel = relationship("Channel")

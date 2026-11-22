@@ -4,8 +4,8 @@ from sqlalchemy.orm import Session
 from datetime import datetime, timedelta, timezone
 
 # Platform Database & Schema Dependencies
-from database import get_db
-from models.subscription import Subscription
+from app.core.database import get_db
+from app.models.subscription import Subscription
 from schemas.subscription import SubscriptionResponse
 from routes.access_control import can_access
 

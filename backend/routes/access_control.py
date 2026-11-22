@@ -1,5 +1,5 @@
 from datetime import datetime
-from models.subscription import PlanEnum
+from app.models.subscription import PlanEnum
 
 
 PLAN_ACCESS = {

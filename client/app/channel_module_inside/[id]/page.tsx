@@ -154,7 +154,12 @@ export default function CoursePage() {
             if (!localUser?.email) return;
             try {
                 const res = await fetch(
-                    `${API_BASE_URL}/profiles/by-email?email=${localUser.email}`
+                    `${API_BASE_URL}/profiles/by-email?email=${localUser.email}`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${typeof window !== "undefined" ? localStorage.getItem("access_token") ?? "" : ""}`,
+                        },
+                    }
                 );
                 const data = await res.json();
                 setProfile(data);

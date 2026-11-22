@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, Float, Text, DateTime
 from datetime import datetime
 from sqlalchemy.orm import relationship
-from database import Base
+from app.core.database import Base
 
 class SentimentAnalysis(Base):
     __tablename__ = "sentiment_analyses"

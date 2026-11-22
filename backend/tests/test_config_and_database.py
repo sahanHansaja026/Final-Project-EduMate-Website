@@ -3,7 +3,7 @@
 import pytest
 
 from app.core.config import settings
-from app.core.database import get_db
+from app.core.database import engine, get_db
 
 
 def test_settings_expose_expected_defaults():
@@ -26,3 +26,25 @@ def test_get_db_yields_a_session_and_closes_it():
 
     with pytest.raises(StopIteration):
         next(dependency)
+
+
+def test_get_db_rolls_back_and_closes_the_session_when_the_request_fails():
+    dependency = get_db()
+    session = next(dependency)
+
+    with pytest.raises(RuntimeError, match="database exploded"):
+        dependency.throw(RuntimeError("database exploded"))
+
+    # The session must not be left inside a transaction after the failure.
+    assert not session.in_transaction()
+
+
+def test_engine_is_created_from_the_centralized_database_configuration():
+    # The single shared engine must point at the active (test) database URL.
+    assert engine.url.render_as_string(hide_password=True) == settings.TEST_DATABASE_URL
+    assert engine.url.drivername.startswith("sqlite")
+
+
+def test_database_url_respects_the_current_environment():
+    assert settings.ENVIRONMENT == "test"
+    assert settings.database_url == settings.TEST_DATABASE_URL
