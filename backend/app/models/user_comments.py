@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, Text, Boolean, ForeignKey, DateTime
 from datetime import datetime
 from sqlalchemy.orm import relationship
-from database import Base
+from app.core.database import Base
 
 class UserComment(Base):
     __tablename__ = "user_comments"
@@ -13,5 +13,5 @@ class UserComment(Base):
     comment = Column(Text, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    module = relationship("Module", back_populates="user_comments")
-    user = relationship("User", back_populates="user_comments")
+    module = relationship("Module")
+    user = relationship("User")

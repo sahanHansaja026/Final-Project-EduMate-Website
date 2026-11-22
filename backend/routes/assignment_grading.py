@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from database import get_db
-from models.enrollment import Enrollment
-from models.assignment_submission import AssignmentSubmission
-from models.assignment import Assignment
+from app.core.database import get_db
+from app.models.enrollment import Enrollment
+from app.models.assignment_submission import AssignmentSubmission
+from app.models.assignment import Assignment
 
 router = APIRouter(
     prefix="/assignment_grading",

@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from database import get_db
-from models.subscription import Subscription
-from models.module import Module
-from models.video import Video
+from app.core.database import get_db
+from app.models.subscription import Subscription
+from app.models.module import Module
+from app.models.video import Video
 
 router = APIRouter(prefix="/quota", tags=["Video Quota"])
 

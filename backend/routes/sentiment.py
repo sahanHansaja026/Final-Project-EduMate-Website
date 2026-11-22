@@ -3,9 +3,9 @@ from sqlalchemy.orm import Session
 import joblib
 import os
 
-from database import get_db
-from models.module import Module
-from models.comment import Comment
+from app.core.database import get_db
+from app.models.module import Module
+from app.models.comment import Comment
 
 router = APIRouter(
     prefix="/sentiment",

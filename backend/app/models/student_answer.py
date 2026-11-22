@@ -6,7 +6,7 @@ from sqlalchemy import (
     Float
 )
 
-from database import Base
+from app.core.database import Base
 
 
 class StudentAnswer(Base):

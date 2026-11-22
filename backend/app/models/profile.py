@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, Boolean, LargeBinary
-from database import Base
+from app.core.database import Base
 import enum
 
 class PushNotificationEnum(str, enum.Enum):

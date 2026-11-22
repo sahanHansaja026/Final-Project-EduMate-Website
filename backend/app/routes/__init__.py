@@ -1,8 +1,7 @@
 # Route modules for EduMate FastAPI application
 # Each module defines a FastAPI router with its endpoints
 
-from app.routes import auth
-from app.routes import profile
+from app.routes import user
 from app.routes import module
 from app.routes import content
 from app.routes import meeting

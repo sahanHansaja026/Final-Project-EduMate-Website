@@ -8,8 +8,8 @@ from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 
 from services.s3_service import delete_file, upload_file
-from database import get_db
-from models.assignment_submission import AssignmentSubmission
+from app.core.database import get_db
+from app.models.assignment_submission import AssignmentSubmission
 from schemas.submission import GradeUpdate, SubmissionResponse
 
 # Import your working S3 helper functions

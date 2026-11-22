@@ -1,6 +1,6 @@
 from datetime import datetime
-from models.subscription import PlanEnum
-from models.video import Video
+from app.models.subscription import PlanEnum
+from app.models.video import Video
 
 
 def is_subscription_active(sub):

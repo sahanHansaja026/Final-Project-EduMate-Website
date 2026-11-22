@@ -6,8 +6,8 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
 from services.s3_service import delete_file, upload_file
-from database import get_db
-from models.video import Video
+from app.core.database import get_db
+from app.models.video import Video
 from schemas.video import VideoResponse
 
 # Import your working S3 helper functions

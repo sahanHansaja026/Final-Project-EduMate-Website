@@ -3,11 +3,11 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from pydantic import BaseModel
 
-from database import get_db
+from app.core.database import get_db
 
-from models.question import Question
-from models.student_answer import StudentAnswer
-from models.quiz_score import QuizScore
+from app.models.question import Question
+from app.models.student_answer import StudentAnswer
+from app.models.quiz_score import QuizScore
 
 router = APIRouter(
     prefix="/manual-grading",

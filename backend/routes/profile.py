@@ -3,9 +3,9 @@ from sqlalchemy.orm import Session
 from typing import Optional
 import base64
 from fastapi.responses import Response
-from models.profile import Profile
+from app.models.profile import Profile
 from schemas.profile import PushNotifications, ProfileResponse, Notifications
-from database import get_db
+from app.core.database import get_db
 
 router = APIRouter(prefix="/profiles", tags=["Profiles"])
 

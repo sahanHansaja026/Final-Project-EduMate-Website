@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, Boolean, DateTime, ForeignKey
 from datetime import datetime
-from database import Base
+from app.core.database import Base
 
 class Enrollment(Base):
     __tablename__ = "enrollments"

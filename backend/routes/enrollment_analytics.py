@@ -2,9 +2,9 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 
-from database import get_db
-from models.module import Module
-from models.enrollment import Enrollment
+from app.core.database import get_db
+from app.models.module import Module
+from app.models.enrollment import Enrollment
 
 router = APIRouter(
     prefix="/enrollment-analytics",

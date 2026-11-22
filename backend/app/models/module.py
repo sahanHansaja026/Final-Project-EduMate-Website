@@ -1,6 +1,6 @@
-from sqlalchemy import Column, Integer, String, Text, Enum, LargeBinary, ForeignKey
+from sqlalchemy import Column, Integer, String, Text, Enum, LargeBinary, ForeignKey, JSON
 from sqlalchemy.dialects.postgresql import ARRAY as PG_ARRAY
-from database import Base
+from app.core.database import Base
 import enum
 
 class VisibilityEnum(str, enum.Enum):
@@ -16,5 +16,5 @@ class Module(Base):
     description = Column(Text, nullable=True)
     cover_image = Column(LargeBinary, nullable=True)  # image bytes
     cover_image_name = Column(String(255), nullable=True)  # original filename
-    skills = Column(PG_ARRAY(String), default=[])
+    skills = Column(PG_ARRAY(String).with_variant(JSON, "sqlite"), default=[])
     visibility = Column(Enum(VisibilityEnum), default=VisibilityEnum.public)

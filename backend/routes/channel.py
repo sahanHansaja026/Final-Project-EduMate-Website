@@ -4,8 +4,8 @@ from typing import List
 from fastapi import APIRouter, UploadFile, File, Form, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from database import get_db
-from models.channel import Channel, ChannelVisibilityEnum
+from app.core.database import get_db
+from app.models.channel import Channel, ChannelVisibilityEnum
 from schemas.channel import ChannelResponse
 from services.s3_service import upload_file, delete_file
 

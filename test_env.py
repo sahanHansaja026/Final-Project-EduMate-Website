@@ -1,25 +1,36 @@
 import os
-import psycopg2
+import sys
 
-# Set the database URL explicitly
-os.environ['DATABASE_URL'] = 'postgresql://postgres:postgres123@localhost:5432/edumate?sslmode=disable'
+import psycopg2
 
 # Test connection directly
 try:
-    conn = psycopg2.connect('postgresql://postgres:postgres123@localhost:5432/edumate')
+    DATABASE_URL = os.environ.get("DATABASE_URL")
+
+    if not DATABASE_URL:
+        raise RuntimeError("DATABASE_URL environment variable is not set")
+
+    conn = psycopg2.connect(DATABASE_URL)
     cur = conn.cursor()
-    cur.execute('SELECT 1 as test')
-    print("Direct connection successful:", cur.fetchone())
+    cur.execute("SELECT 1 as test")
+    result = cur.fetchone()
+    print(f"Direct connection successful:", result)
     conn.close()
 except Exception as e:
-    print("Direct connection failed:", e)
+    print(f"Direct connection failed: {e}")
+    sys.exit(1)
 
 # Now test SQLAlchemy
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-engine = create_engine(os.environ['DATABASE_URL'])
+DATABASE_URL = os.environ.get("DATABASE_URL")
+
+if not DATABASE_URL:
+    raise RuntimeError("DATABASE_URL environment variable is not set")
+
+engine = create_engine(DATABASE_URL)
 print("SQLAlchemy engine created successfully")
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

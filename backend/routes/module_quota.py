@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from database import get_db
-from models.subscription import Subscription
-from models.module import Module
+from app.core.database import get_db
+from app.models.subscription import Subscription
+from app.models.module import Module
 
 router = APIRouter(prefix="/quota", tags=["Module Quota"])
 

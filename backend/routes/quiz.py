@@ -3,11 +3,11 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime
 
-from models.quiz_score import QuizScore
-from models.question import Question
-from models.question_option import QuestionOption
-from database import get_db
-from models.quiz import Quiz
+from app.models.quiz_score import QuizScore
+from app.models.question import Question
+from app.models.question_option import QuestionOption
+from app.core.database import get_db
+from app.models.quiz import Quiz
 from schemas.quiz import QuizResponse
 
 router = APIRouter(prefix="/quizzes", tags=["Quizzes"])

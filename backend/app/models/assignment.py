@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, Date, Boolean, ForeignKey, Text
-from database import Base
+from app.core.database import Base
 
 class Assignment(Base):
     __tablename__ = "assignments"

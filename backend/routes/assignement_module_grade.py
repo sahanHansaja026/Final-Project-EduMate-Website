@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, Form
 from sqlalchemy.orm import Session
 
-from database import get_db
-from models.assignment import Assignment
-from models.module import Module  # <-- your new model
+from app.core.database import get_db
+from app.models.assignment import Assignment
+from app.models.module import Module  # <-- your new model
 
 router = APIRouter(prefix="/module-access", tags=["Module Access"])
 

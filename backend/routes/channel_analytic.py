@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from database import get_db
-from models.channel import Channel
-from models.chaneel_modules import ChannelModule
-from models.authorized_student import AuthorizedStudent
+from app.core.database import get_db
+from app.models.channel import Channel
+from app.models.chaneel_modules import ChannelModule
+from app.models.authorized_student import AuthorizedStudent
 
 router = APIRouter(prefix="/channel-analytics", tags=["Channel Analytics"])
 

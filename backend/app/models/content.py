@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, Boolean, Date, ForeignKey
-from database import Base
+from app.core.database import Base
 
 class Content(Base):
     __tablename__ = "module_contents"

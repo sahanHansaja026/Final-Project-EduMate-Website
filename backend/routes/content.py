@@ -7,8 +7,8 @@ from sqlalchemy.orm import Session
 from datetime import date
 from typing import Optional
 from services.s3_service import delete_file, upload_file
-from database import get_db
-from models.content import Content
+from app.core.database import get_db
+from app.models.content import Content
 from schemas.content import ContentResponse
 
 router = APIRouter(prefix="/contents", tags=["Contents"])

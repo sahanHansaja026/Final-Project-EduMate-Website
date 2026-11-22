@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from models.chaneel_modules import ChannelModule
-from database import get_db
-from models.quiz import Quiz
-from models.module import Module
+from app.models.chaneel_modules import ChannelModule
+from app.core.database import get_db
+from app.models.quiz import Quiz
+from app.models.module import Module
 
 router = APIRouter(
     prefix="/access-control",
