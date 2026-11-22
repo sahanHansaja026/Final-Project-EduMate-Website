@@ -43,3 +43,4 @@ from app.routes import assignement_module_grade
 from app.routes import module_routes
 from app.routes import subscription_payment
 from app.routes import chatbot
+from app.routes import profile

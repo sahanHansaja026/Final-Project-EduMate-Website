@@ -18,7 +18,7 @@ from app.routes import user, module, content, meeting, quiz, question, \
     assignment_edit_access, channel_content_access_controller, video_access_control, \
     assignment_view_access, student_enrolle_count_channal, student_score_management, \
     channel_analytic, assignment_grade_access, assignement_module_grade, module_routes, \
-    subscription_payment, chatbot
+    subscription_payment, chatbot, profile
 
 app = FastAPI()
 
@@ -87,6 +87,7 @@ app.include_router(assignment_grade_access.router)
 app.include_router(assignement_module_grade.router)
 app.include_router(module_routes.router)
 app.include_router(subscription_payment.router)
+app.include_router(profile.router)
 
 
 @app.get("/")
