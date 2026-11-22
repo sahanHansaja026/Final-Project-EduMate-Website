@@ -76,11 +76,15 @@ export default function EditStudentPage() {
             setMessage("");
             setStatusType(null);
 
+            const token = typeof window !== "undefined" ? localStorage.getItem("access_token") ?? "" : "";
             await axios.put(
                 `${API_BASE_URL}/authorized-students/${accessId}`,
                 {
                     status,
                     remark,
+                },
+                {
+                    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
                 }
             );
 

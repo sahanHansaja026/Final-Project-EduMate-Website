@@ -39,15 +39,24 @@ interface ChannelManagerProps {
 // ==========================================
 // 2. RESPONSIVE COMPONENT
 // ==========================================
-export default function ChannelManager({ userId = 1 }: ChannelManagerProps) {
+export default function ChannelManager({ userId }: ChannelManagerProps) {
     // Explicitly typing the state hook to accept our API payload or null
     const [analyticsData, setAnalyticsData] = useState<AnalyticsResponse | null>(null);
-    const [loading, setLoading] = useState<boolean>(true);
+    const [loading, setLoading] = useState<boolean>(Boolean(userId));
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
+        if (!userId) {
+            setError("An authenticated user context is required for channel analytics.");
+            setLoading(false);
+            return;
+        }
+
         setLoading(true);
-        fetch(`${API_BASE_URL}/channel-analytics/${userId}`)
+        const token = typeof window !== "undefined" ? localStorage.getItem("access_token") ?? "" : "";
+        fetch(`${API_BASE_URL}/channel-analytics/${userId}`, {
+            headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        })
             .then((res) => {
                 if (!res.ok) {
                     throw new Error(`HTTP Error: Master data fetch failed with status ${res.status}`);

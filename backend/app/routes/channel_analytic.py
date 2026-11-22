@@ -1,13 +1,11 @@
 """Channel analytics endpoints."""
 
-from typing import Optional
-
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.controllers import channel_analytics_controller
 from app.core.database import get_db
-from app.core.dependencies import get_current_user_optional
+from app.core.dependencies import get_current_user
 from app.models.user import User
 
 router = APIRouter(prefix="/channel-analytics", tags=["Channel Analytics"])
@@ -17,7 +15,7 @@ router = APIRouter(prefix="/channel-analytics", tags=["Channel Analytics"])
 def get_channel_analytics(
     user_id: int,
     current_user_id: int = Query(None),
-    current_user: Optional[User] = Depends(get_current_user_optional),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Return per-channel student analytics for a channel owner."""

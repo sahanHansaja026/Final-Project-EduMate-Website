@@ -178,9 +178,11 @@ export default function UpdateChannelPage() {
             if (logoImage) formData.append("logo_image", logoImage);
 
             // Fetch request method mutations updated from POST to PUT targeting the specific ID route bound
+            const token = typeof window !== "undefined" ? localStorage.getItem("access_token") ?? "" : "";
             const response = await fetch(`${API_BASE_URL}/channels/${channelId}`, {
                 method: "PUT",
                 body: formData,
+                headers: token ? { Authorization: `Bearer ${token}` } : undefined,
             });
 
             if (!response.ok) {

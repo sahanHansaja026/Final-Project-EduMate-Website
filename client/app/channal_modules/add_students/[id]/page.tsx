@@ -28,13 +28,20 @@ export default function AuthorizeStudentPage() {
             setMessage("");
             setStatusType(null);
 
-            await axios.post(`${API_BASE_URL}/authorized-students/`, {
-                channel_module_id,
-                student_name,
-                student_email,
-                remark,
-                status,
-            });
+            const token = typeof window !== "undefined" ? localStorage.getItem("access_token") ?? "" : "";
+            await axios.post(
+                `${API_BASE_URL}/authorized-students/`,
+                {
+                    channel_module_id,
+                    student_name,
+                    student_email,
+                    remark,
+                    status,
+                },
+                {
+                    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+                }
+            );
 
             setStatusType("success");
             setMessage("Student access profile provisioned successfully.");

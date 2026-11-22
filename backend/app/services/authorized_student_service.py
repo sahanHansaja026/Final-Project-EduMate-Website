@@ -69,15 +69,16 @@ def _require_module_access(
     actor_user_id: Optional[int],
     actor_email: Optional[str],
 ) -> Optional[str]:
-    """Enforce module access when an actor identity is supplied.
+    """Enforce module access for the authenticated actor.
 
-    The legacy client does not send an actor for authorized-student calls, so
-    the check is skipped when neither an authenticated user nor an explicit
-    actor parameter is available. When an actor is supplied, channel owners,
-    channel co-hosts, module creators and module co-hosts are accepted.
+    Channel owners, channel co-hosts, module creators and module co-hosts are
+    accepted. Requests without an actor cannot reach this check.
     """
     if actor_user_id is None and actor_email is None:
-        return None
+        raise HTTPException(
+            status_code=403,
+            detail="Authentication is required to manage students for this channel",
+        )
 
     role = _module_role(channel, module, actor_user_id, actor_email)
 

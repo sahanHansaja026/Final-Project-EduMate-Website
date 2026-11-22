@@ -159,9 +159,11 @@ export default function CreateChannelPage() {
             if (coverImage) formData.append("cover_image", coverImage);
             if (logoImage) formData.append("logo_image", logoImage);
 
+            const token = typeof window !== "undefined" ? localStorage.getItem("access_token") ?? "" : "";
             const response = await fetch(`${API_BASE_URL}/channels/`, {
                 method: "POST",
                 body: formData,
+                headers: token ? { Authorization: `Bearer ${token}` } : undefined,
             });
 
             if (!response.ok) {

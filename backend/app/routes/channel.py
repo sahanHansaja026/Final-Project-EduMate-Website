@@ -5,14 +5,14 @@ forms, file uploads and dependencies). Business rules and ownership checks live
 in ``app.controllers.channel_controller`` and ``app.services.channel_service``.
 """
 
-from typing import List, Optional
+from typing import List
 
 from fastapi import APIRouter, Depends, File, Form, Query, UploadFile
 from sqlalchemy.orm import Session
 
 from app.controllers import channel_controller
 from app.core.database import get_db
-from app.core.dependencies import get_current_user_optional
+from app.core.dependencies import get_current_user
 from app.models.channel import ChannelVisibilityEnum
 from app.models.user import User
 from app.schemas.channel import ChannelResponse
@@ -43,7 +43,7 @@ async def create_channel(
     cover_image: UploadFile = File(None),
     logo_image: UploadFile = File(None),
 
-    current_user: Optional[User] = Depends(get_current_user_optional),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Create a channel owned by the supplied account."""
@@ -122,7 +122,7 @@ async def update_channel(
     facebook_portal_link: str = Form(None),
     cover_image: UploadFile = File(None),
     logo_image: UploadFile = File(None),
-    current_user: Optional[User] = Depends(get_current_user_optional),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Update a channel after verifying ownership."""
@@ -154,7 +154,7 @@ def authorize_channel_access(
     channel_id: int,
     current_user_id: int,
     current_email: str,
-    current_user: Optional[User] = Depends(get_current_user_optional),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Return whether the caller is the channel owner or a co-host."""
@@ -175,7 +175,7 @@ def delete_channel(
     channel_id: int,
     user_id: int = Query(None),
     current_email: str = Query(None),
-    current_user: Optional[User] = Depends(get_current_user_optional),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Delete a channel and its cloud assets after verifying ownership."""

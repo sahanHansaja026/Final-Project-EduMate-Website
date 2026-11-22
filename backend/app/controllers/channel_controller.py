@@ -11,20 +11,32 @@ from app.services import channel_service
 
 
 def _resolve_actor(
-    current_user: Optional[User],
+    current_user: User,
     user_id: Optional[int] = None,
     current_email: Optional[str] = None,
-) -> tuple[Optional[int], Optional[str]]:
-    """Resolve the acting identity, preferring the authenticated user."""
-    if current_user is not None:
-        if user_id is not None and current_user.user_id != user_id:
-            raise HTTPException(
-                status_code=403,
-                detail="Not authorized to act on behalf of another user",
-            )
-        return current_user.user_id, current_user.email
+) -> tuple[int, str]:
+    """Resolve the acting identity from the authenticated user.
 
-    return user_id, current_email
+    Legacy ``user_id`` / ``current_email`` parameters remain accepted for
+    request compatibility, but they are only allowed to confirm the identity
+    carried by the bearer token. They can never select a different actor.
+    """
+    if user_id is not None and current_user.user_id != user_id:
+        raise HTTPException(
+            status_code=403,
+            detail="Not authorized to act on behalf of another user",
+        )
+
+    if (
+        current_email is not None
+        and current_email.strip().lower() != current_user.email.strip().lower()
+    ):
+        raise HTTPException(
+            status_code=403,
+            detail="Authenticated user does not match current_email",
+        )
+
+    return current_user.user_id, current_user.email
 
 
 # ---------------- READ OPERATIONS ----------------
@@ -61,9 +73,9 @@ def create_channel(
     visibility: ChannelVisibilityEnum,
     official_website_link: Optional[str],
     facebook_portal_link: Optional[str],
+    current_user: User,
     cover_image: Optional[UploadFile] = None,
     logo_image: Optional[UploadFile] = None,
-    current_user: Optional[User] = None,
 ):
     """Create a channel (HTTP layer: multipart form + optional uploads)."""
     actor_user_id, _ = _resolve_actor(current_user, user_id=user_id)
@@ -88,6 +100,7 @@ def create_channel(
 def update_channel(
     db: Session,
     channel_id: int,
+    current_user: User,
     user_id: Optional[int] = None,
     current_email: Optional[str] = None,
     channel_name: Optional[str] = None,
@@ -101,7 +114,6 @@ def update_channel(
     facebook_portal_link: Optional[str] = None,
     cover_image: Optional[UploadFile] = None,
     logo_image: Optional[UploadFile] = None,
-    current_user: Optional[User] = None,
 ):
     """Update a channel (HTTP layer: multipart form + optional uploads)."""
     actor_user_id, actor_email = _resolve_actor(
@@ -142,11 +154,11 @@ def update_channel(
 def delete_channel(
     db: Session,
     channel_id: int,
+    current_user: User,
     user_id: Optional[int] = None,
     current_email: Optional[str] = None,
-    current_user: Optional[User] = None,
 ) -> dict:
-    """Delete a channel (HTTP layer: optional actor parameters)."""
+    """Delete a channel after validating the authenticated actor."""
     actor_user_id, actor_email = _resolve_actor(
         current_user,
         user_id=user_id,
@@ -166,20 +178,18 @@ def authorize_channel_access(
     channel_id: int,
     current_user_id: int,
     current_email: str,
-    current_user: Optional[User] = None,
+    current_user: User,
 ) -> dict:
     """Return the owner/co-host authorization decision for a channel."""
-    if current_user is not None:
-        if current_user.user_id != current_user_id:
-            raise HTTPException(
-                status_code=403,
-                detail="Authenticated user does not match current_user_id",
-            )
-        current_email = current_user.email
+    actor_user_id, actor_email = _resolve_actor(
+        current_user,
+        user_id=current_user_id,
+        current_email=current_email,
+    )
 
     return channel_service.authorize_channel_access(
         db,
         channel_id=channel_id,
-        current_user_id=current_user_id,
-        current_email=current_email,
+        current_user_id=actor_user_id,
+        current_email=actor_email,
     )

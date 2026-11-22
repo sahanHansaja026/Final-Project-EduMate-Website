@@ -1,7 +1,5 @@
 """Business logic for channel analytics."""
 
-from typing import Optional
-
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
@@ -11,16 +9,14 @@ from app.repositories import authorized_student_repository, channel_repository
 def get_channel_analytics(
     db: Session,
     user_id: int,
-    current_user_id: Optional[int] = None,
+    current_user_id: int,
 ) -> dict:
     """Return per-channel and per-module student analytics for a channel owner.
 
-    When the caller supplies an authenticated actor id it must match the
-    requested ``user_id``. The optional actor keeps the endpoint compatible
-    with the existing client while still enforcing ownership for authenticated
-    requests.
+    The endpoint requires a bearer token, so the caller is always authenticated
+    and may only request analytics for their own account.
     """
-    if current_user_id is not None and current_user_id != user_id:
+    if current_user_id != user_id:
         raise HTTPException(
             status_code=403,
             detail="Not authorized to view another user's channel analytics",

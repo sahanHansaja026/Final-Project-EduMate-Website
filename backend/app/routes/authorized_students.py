@@ -1,13 +1,11 @@
 """Authorized-student endpoints for channel modules."""
 
-from typing import Optional
-
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.controllers import authorized_student_controller
 from app.core.database import get_db
-from app.core.dependencies import get_current_user_optional
+from app.core.dependencies import get_current_user
 from app.models.user import User
 from app.schemas.authorized_student import (
     AuthorizedStudentCreate,
@@ -27,7 +25,7 @@ def add_student(
     payload: AuthorizedStudentCreate,
     user_id: int = Query(None),
     current_email: str = Query(None),
-    current_user: Optional[User] = Depends(get_current_user_optional),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Authorize a student for a channel module."""
@@ -46,7 +44,7 @@ def get_students_by_module(
     module_id: int,
     user_id: int = Query(None),
     current_email: str = Query(None),
-    current_user: Optional[User] = Depends(get_current_user_optional),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Return the students authorized for a module."""
@@ -65,7 +63,7 @@ def delete_student(
     student_id: int,
     user_id: int = Query(None),
     current_email: str = Query(None),
-    current_user: Optional[User] = Depends(get_current_user_optional),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Remove an authorized student."""
@@ -84,7 +82,7 @@ def update_student(
     payload: AuthorizedStudentUpdate,
     user_id: int = Query(None),
     current_email: str = Query(None),
-    current_user: Optional[User] = Depends(get_current_user_optional),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Update an authorized student's status or remark."""
@@ -103,7 +101,7 @@ def get_student_by_id(
     student_id: int,
     user_id: int = Query(None),
     current_email: str = Query(None),
-    current_user: Optional[User] = Depends(get_current_user_optional),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Return a single authorized student."""
