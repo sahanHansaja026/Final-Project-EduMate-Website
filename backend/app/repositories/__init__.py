@@ -1,1 +1,1 @@
-"""Database access layer package for the user management module."""
+"""Database access layer for the EduMate backend modules."""

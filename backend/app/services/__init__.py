@@ -1,1 +1,1 @@
-"""Service package for the user management module."""
+"""Business logic layer for the EduMate backend modules."""

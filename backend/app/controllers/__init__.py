@@ -1,1 +1,1 @@
-"""Controller package for the user management module."""
+"""HTTP handling layer for the EduMate backend modules."""
