@@ -167,3 +167,11 @@ def test_analytics_requires_authentication(client):
         headers={"Authorization": "Bearer not-a-valid-token"},
     )
     assert invalid_token_response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+def test_invalid_analytics_user_identifier_returns_validation_error(client):
+    _user_id, auth = _register_user(client, "analytics-invalid-user-id@example.com")
+
+    response = client.get("/channel-analytics/not-an-integer", headers=auth)
+
+    assert response.status_code == 422
