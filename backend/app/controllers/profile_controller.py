@@ -31,6 +31,11 @@ def get_profile_photo(email: str, current_user: User, db: Session) -> Response:
     return Response(content=photo, media_type="image/jpeg")
 
 
+def delete_profile(profile_id: int, current_user: User, db: Session) -> dict:
+    """Delete a profile owned by the current user."""
+    return profile_service.delete_profile(db, profile_id, current_user)
+
+
 async def create_or_update_profile(
     db: Session,
     current_user: User,
@@ -80,6 +85,6 @@ async def create_or_update_profile(
         )
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception as exc:
         db.rollback()
-        raise HTTPException(status_code=500, detail=f"Error saving profile: {e}")
+        raise HTTPException(status_code=500, detail="Unable to save profile") from exc

@@ -3,6 +3,7 @@
 import base64
 from typing import Optional
 
+from email_validator import EmailNotValidError, validate_email
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -10,6 +11,59 @@ from app.models.profile import Profile
 from app.models.user import User
 from app.repositories import profile_repository
 from app.schemas.profile import Notifications, ProfileResponse, PushNotifications
+
+
+def _validated_email(email: str) -> str:
+    """Validate and normalize an email address.
+
+    Invalid values are rejected with ``422 Unprocessable Entity`` before any
+    database lookup or authorization check is attempted.
+    """
+    if not isinstance(email, str) or not email.strip():
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail="Invalid email address",
+        )
+
+    try:
+        return validate_email(email.strip(), check_deliverability=False).normalized
+    except EmailNotValidError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail="Invalid email address",
+        ) from exc
+
+
+def _ensure_owner(current_user: User, email: str, detail: str) -> None:
+    """Reject cross-user access to a profile resource."""
+    if current_user.email != email:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=detail)
+
+
+def _load_profile_by_email(db: Session, email: str) -> Optional[Profile]:
+    """Load a profile by email, translating unexpected failures into a 500."""
+    try:
+        return profile_repository.get_profile_by_email(db, email)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Unable to retrieve profile",
+        ) from exc
+
+
+def _load_profile_by_id(db: Session, profile_id: int) -> Optional[Profile]:
+    """Load a profile by id, translating unexpected failures into a 500."""
+    try:
+        return profile_repository.get_profile_by_id(db, profile_id)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Unable to retrieve profile",
+        ) from exc
 
 
 def _to_profile_response(profile: Profile) -> ProfileResponse:
@@ -73,13 +127,13 @@ def _apply_profile_updates(
     profile.push_notifications = push_notifications
 
 
-# ---------------- USER PROFILE: RETRIEVE / UPDATE ----------------
+# ---------------- USER PROFILE: RETRIEVE / UPDATE / DELETE ----------------
 def get_profile(db: Session, email: str, current_user: User) -> ProfileResponse:
     """Retrieve a user profile by email, enforcing ownership."""
-    if current_user.email != email:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to access this resource")
+    email = _validated_email(email)
+    _ensure_owner(current_user, email, "Not authorized to access this resource")
 
-    profile = profile_repository.get_profile_by_email(db, email)
+    profile = _load_profile_by_email(db, email)
 
     if profile is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Profile not found")
@@ -89,10 +143,10 @@ def get_profile(db: Session, email: str, current_user: User) -> ProfileResponse:
 
 def get_user_name_by_email(db: Session, email: str, current_user: User) -> dict:
     """Retrieve the display names of a user by email, enforcing ownership."""
-    if current_user.email != email:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to access this resource")
+    email = _validated_email(email)
+    _ensure_owner(current_user, email, "Not authorized to access this resource")
 
-    profile = profile_repository.get_profile_by_email(db, email)
+    profile = _load_profile_by_email(db, email)
 
     if profile is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
@@ -106,15 +160,38 @@ def get_user_name_by_email(db: Session, email: str, current_user: User) -> dict:
 
 def get_profile_photo(db: Session, email: str, current_user: User) -> Optional[bytes]:
     """Return the raw profile photo bytes for the given email, enforcing ownership."""
-    if current_user.email != email:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to access this resource")
+    email = _validated_email(email)
+    _ensure_owner(current_user, email, "Not authorized to access this resource")
 
-    profile = profile_repository.get_profile_by_email(db, email)
+    profile = _load_profile_by_email(db, email)
 
     if profile is None or not profile.photo:
         return None
 
     return bytes(profile.photo)
+
+
+def delete_profile(db: Session, profile_id: int, current_user: User) -> dict:
+    """Delete a profile owned by the current user."""
+    profile = _load_profile_by_id(db, profile_id)
+
+    if profile is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Profile not found")
+
+    if profile.email != current_user.email:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to delete this profile")
+
+    try:
+        profile_repository.delete_profile(db, profile)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Unable to delete profile",
+        ) from exc
+
+    return {"message": "Profile deleted successfully"}
 
 
 def create_or_update_profile(
@@ -139,9 +216,11 @@ def create_or_update_profile(
     profile_id: Optional[int] = None,
 ) -> ProfileResponse:
     """Create or update the profile of a user (optionally targeting a profile id)."""
+    email = _validated_email(email)
+
     if profile_id is not None:
         # Update an existing profile by primary key, enforcing ownership.
-        profile = profile_repository.get_profile_by_id(db, profile_id)
+        profile = _load_profile_by_id(db, profile_id)
 
         if profile is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Profile not found")
@@ -176,7 +255,7 @@ def create_or_update_profile(
         if current_user.email != email:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to update this profile")
 
-        profile = profile_repository.get_profile_by_email(db, email)
+        profile = _load_profile_by_email(db, email)
 
         if profile is None:
             # Create new profile

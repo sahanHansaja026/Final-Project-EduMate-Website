@@ -30,3 +30,9 @@ def update_profile(db: Session, profile: Profile) -> Profile:
     db.commit()
     db.refresh(profile)
     return profile
+
+
+def delete_profile(db: Session, profile: Profile) -> None:
+    """Delete an existing profile."""
+    db.delete(profile)
+    db.commit()

@@ -3,6 +3,7 @@
 from typing import Optional
 
 from fastapi import APIRouter, Depends, File, Form, Path, Query, UploadFile
+from pydantic import EmailStr
 from sqlalchemy.orm import Session
 
 from app.controllers import profile_controller
@@ -17,7 +18,7 @@ router = APIRouter(prefix="/profiles", tags=["Profiles"])
 
 @router.get("/", response_model=ProfileResponse, tags=["Profiles"])
 def get_profile(
-    email: str = Query(...),
+    email: EmailStr = Query(...),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -31,7 +32,7 @@ async def create_or_update_profile(
     about: Optional[str] = Form(None),
     firstName: str = Form(...),
     lastName: str = Form(...),
-    email: str = Form(...),
+    email: EmailStr = Form(...),
     country: str = Form(...),
     streetAddress: str = Form(...),
     city: str = Form(...),
@@ -76,7 +77,7 @@ async def update_profile_by_id(
     about: Optional[str] = Form(None),
     firstName: str = Form(...),
     lastName: str = Form(...),
-    email: str = Form(...),
+    email: EmailStr = Form(...),
     country: str = Form(...),
     streetAddress: str = Form(...),
     city: str = Form(...),
@@ -115,9 +116,19 @@ async def update_profile_by_id(
     )
 
 
+@router.delete("/{profile_id}", tags=["Profiles"])
+def delete_profile(
+    profile_id: int = Path(...),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Delete a user profile by id, enforcing ownership."""
+    return profile_controller.delete_profile(profile_id, current_user, db)
+
+
 @router.get("/photo", tags=["Profiles"])
 def get_profile_photo(
-    email: str = Query(...),
+    email: EmailStr = Query(...),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -127,7 +138,7 @@ def get_profile_photo(
 
 @router.get("/by-email", tags=["Profiles"])
 def get_user_name_by_email(
-    email: str = Query(...),
+    email: EmailStr = Query(...),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
