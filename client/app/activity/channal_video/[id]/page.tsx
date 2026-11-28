@@ -37,35 +37,10 @@ export default function ViewVideoPage() {
     const router = useRouter();
     const id = params.id as string;
 
-    const [user, setUser] = useState<UserData | null>(null);
+    const [user] = useState<UserData | null>(() => getUser());
     const [video, setVideo] = useState<VideoData | null>(null);
     const [hasAccess, setHasAccess] = useState<boolean | null>(null);
     const [loading, setLoading] = useState(true);
-
-    // 1. Handle User Session Hydration on Mount
-    useEffect(() => {
-        const currentUser = getUser();
-        if (currentUser) {
-            setUser(currentUser);
-        } else {
-            // Unauthenticated: Trigger automatic redirection
-            router.push("/errors/autharization");
-        }
-    }, [router]);
-
-    // 2. Fetch Video and Access Rules when both ID and User are Ready
-    useEffect(() => {
-        if (id && user) {
-            fetchVideoAndCheckAccess(user);
-        }
-    }, [id, user]);
-
-    // 3. Handle Unauthorized Access Redirection
-    useEffect(() => {
-        if (hasAccess === false) {
-            router.push("/errors/autharization");
-        }
-    }, [hasAccess, router]);
 
     const fetchVideoAndCheckAccess = async (currentUser: UserData) => {
         try {
@@ -99,6 +74,32 @@ export default function ViewVideoPage() {
         }
     };
 
+    // 1. Handle User Session Hydration on Mount
+    useEffect(() => {
+        const currentUser = getUser();
+        if (!currentUser) {
+            // Unauthenticated: Trigger automatic redirection
+            router.push("/errors/autharization");
+        }
+    }, [router]);
+
+    // 2. Fetch Video and Access Rules when both ID and User are Ready
+    useEffect(() => {
+        const runFetch = async () => {
+            if (id && user) {
+                await fetchVideoAndCheckAccess(user);
+            }
+        };
+
+        runFetch();
+    }, [id, user]);
+
+    // 3. Handle Unauthorized Access Redirection
+    useEffect(() => {
+        if (hasAccess === false) {
+            router.push("/errors/autharization");
+        }
+    }, [hasAccess, router]);
     const today = new Date();
 
     const getStatus = () => {

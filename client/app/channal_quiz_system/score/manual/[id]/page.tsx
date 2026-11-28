@@ -40,7 +40,7 @@ export default function QuizResultsPage() {
     const router = useRouter();
     const [scores, setScores] = useState<QuizScore[]>([]);
     const [loading, setLoading] = useState(true);
-    const [user, setUser] = useState<{ id: number; email: string } | null>(getUser());
+    const [user] = useState<{ id: number; email: string } | null>(() => getUser());
     const [checking, setChecking] = useState(true);
     const [access, setAccess] = useState<boolean | null>(null);
 
@@ -72,11 +72,6 @@ export default function QuizResultsPage() {
 
     }, [quizId]);
 
-    useEffect(() => {
-        const currentUser = getUser();
-        setUser(currentUser);
-    }, []); 
-    
     useEffect(() => {
         if (!user?.id) return;
 

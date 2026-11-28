@@ -42,6 +42,34 @@ export default function EditAssignmentPage() {
     // =========================
     // DATA HYDRATION (GET)
     // =========================
+    const fetchAssignment = async () => {
+        try {
+            const res = await axios.get(
+                `${API_BASE_URL}/assignments/${assignmentId}`
+            );
+            const assignment = res.data;
+
+            setModuleId(assignment.module_id || "");
+            setTitle(assignment.title || "");
+            setDescription(assignment.description || "");
+            setAllowDownload(assignment.allow_download ?? true);
+            setExistingFilePath(assignment.file_path || null);
+            setFullMarks(assignment.full_marks ?? "");
+
+            if (assignment.open_date) {
+                setOpenDate(assignment.open_date.split("T")[0]);
+            }
+            if (assignment.close_date) {
+                setCloseDate(assignment.close_date.split("T")[0]);
+            }
+        } catch (error) {
+            console.error(error);
+            alert("Failed to load assignment workspace context.");
+        } finally {
+            setFetching(false);
+        }
+    };
+
     const checkAccess = async () => {
         try {
             const user = getUser();
@@ -76,36 +104,11 @@ export default function EditAssignmentPage() {
     };
     
     useEffect(() => {
-        checkAccess();
+        const runCheck = async () => {
+            await checkAccess();
+        };
+        runCheck();
     }, []);
-
-    const fetchAssignment = async () => {
-        try {
-            const res = await axios.get(
-                `${API_BASE_URL}/assignments/${assignmentId}`
-            );
-            const assignment = res.data;
-
-            setModuleId(assignment.module_id || "");
-            setTitle(assignment.title || "");
-            setDescription(assignment.description || "");
-            setAllowDownload(assignment.allow_download ?? true);
-            setExistingFilePath(assignment.file_path || null);
-            setFullMarks(assignment.full_marks ?? "");
-
-            if (assignment.open_date) {
-                setOpenDate(assignment.open_date.split("T")[0]);
-            }
-            if (assignment.close_date) {
-                setCloseDate(assignment.close_date.split("T")[0]);
-            }
-        } catch (error) {
-            console.error(error);
-            alert("Failed to load assignment workspace context.");
-        } finally {
-            setFetching(false);
-        }
-    };
 
     // =========================
     // MUTATION HANDLER (PUT)

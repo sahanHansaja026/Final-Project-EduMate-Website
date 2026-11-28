@@ -50,8 +50,6 @@ export default function Page() {
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-
-    useEffect(() => {
         const fetchData = async () => {
             if (!user?.id || !moduleId) return;
 

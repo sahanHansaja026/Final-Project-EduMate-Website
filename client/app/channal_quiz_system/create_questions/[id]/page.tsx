@@ -35,22 +35,14 @@ export default function QuizLMSPage() {
     const quizId = params.id as string;
     const moduleId = searchParams.get("module_id");
 
-    const [user, setUser] = useState<{ id: number; email: string } | null>(null);
+    const [user] = useState<{ id: number; email: string } | null>(() => getUser());
     const [module, setModule] = useState<Module | null>(null);
     const [quiz, setQuiz] = useState<Quiz | null>(null);
     const [hasAccess, setHasAccess] = useState(false);
     const [checkingAccess, setCheckingAccess] = useState(true);
     const [attemptInfo, setAttemptInfo] = useState<AttemptInfo | null>(null);
 
-    // 1. Initialize user profile immediately on component mount
-    useEffect(() => {
-        const u = getUser();
-        if (u?.id) {
-            setUser(u);
-        }
-    }, []);
-
-    // 2. Fetch Module Data, Quiz Metadata, and Access Level once credentials exist
+    // 1. Fetch Module Data, Quiz Metadata, and Access Level once credentials exist
     useEffect(() => {
         if (!moduleId || !quizId || !user?.email) return;
 

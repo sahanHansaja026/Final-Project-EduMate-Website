@@ -31,16 +31,10 @@ export default function LMSModuleDashboard() {
     const { id } = useParams<{ id: string }>();
     const router = useRouter();
     const [checking, setChecking] = useState(true);
-    const [user, setUser] = useState<User | null>(null);
+    const [, setUser] = useState<User | null>(() => getUser());
 
     useEffect(() => {
         const currentUser = getUser();
-        setUser(currentUser);
-    }, []);
-
-    useEffect(() => {
-        const currentUser = getUser();
-        setUser(currentUser);
 
         const checkAccess = async () => {
             try {

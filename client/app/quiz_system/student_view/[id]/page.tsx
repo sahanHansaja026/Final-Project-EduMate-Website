@@ -38,51 +38,11 @@ export default function StudentQuizView() {
 
     const [questions, setQuestions] = useState<Question[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
-    const [answers, setAnswers] = useState<Record<number, any>>({});
+    const [answers, setAnswers] = useState<Record<number, string | string[]>>({});
     const [loading, setLoading] = useState(true);
     const [timeLeft, setTimeLeft] = useState(1800);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [user, setUser] = useState<{ id: number; email: string } | null>(null);
-
-    useEffect(() => {
-        const fetchQuestions = async () => {
-            try {
-                const res = await axios.get(`${API_BASE_URL}/questions/quiz/${id}`);
-                setQuestions(res.data);
-            } catch (err) {
-                console.error("Error fetching quiz questions:", err);
-            } finally {
-                setLoading(false);
-            }
-        };
-        if (id) fetchQuestions();
-    }, [id]);
-
-    useEffect(() => {
-        if (timeLeft <= 0) {
-            handleFinalSubmit();
-            return;
-        }
-        const timer = setInterval(() => setTimeLeft((prev) => prev - 1), 1000);
-        return () => clearInterval(timer);
-    }, [timeLeft]);
-
-    const formatTime = (seconds: number) => {
-        const mins = Math.floor(seconds / 60);
-        const secs = seconds % 60;
-        return `${mins}:${secs.toString().padStart(2, "0")}`;
-    };
-
-    const handleAnswerChange = (questionId: number, value: any) => {
-        setAnswers(prev => ({ ...prev, [questionId]: value }));
-    };
-
-    useEffect(() => {
-        const u = getUser();
-        if (u?.id) {
-            setUser(u);
-        }
-    }, []);
+    const [user] = useState<{ id: number; email: string } | null>(() => getUser());
 
     const handleFinalSubmit = async () => {
 
@@ -133,7 +93,7 @@ export default function StudentQuizView() {
                 ) {
 
                     const correctOption = question.options.find(
-                        (o: any) => o.is_correct
+                        (o: Option) => o.is_correct
                     );
 
                     isCorrect =
@@ -146,11 +106,11 @@ export default function StudentQuizView() {
                 if (question.question_type === "multiple") {
 
                     const correctOptions = question.options
-                        .filter((o: any) => o.is_correct)
-                        .map((o: any) => o.option_text)
+                        .filter((o: Option) => o.is_correct)
+                        .map((o: Option) => o.option_text)
                         .sort();
 
-                    const selected = [...answer].sort();
+                    const selected = (Array.isArray(answer) ? [...answer] : [answer]).sort();
 
                     isCorrect =
                         JSON.stringify(correctOptions) ===
@@ -248,6 +208,43 @@ export default function StudentQuizView() {
         }
     };
 
+    useEffect(() => {
+        const fetchQuestions = async () => {
+            try {
+                const res = await axios.get(`${API_BASE_URL}/questions/quiz/${id}`);
+                setQuestions(res.data);
+            } catch (err) {
+                console.error("Error fetching quiz questions:", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        if (id) fetchQuestions();
+    }, [id]);
+
+    useEffect(() => {
+        if (timeLeft <= 0) {
+            const autoSubmit = async () => {
+                await Promise.resolve();
+                await handleFinalSubmit();
+            };
+            autoSubmit();
+            return;
+        }
+        const timer = setInterval(() => setTimeLeft((prev) => prev - 1), 1000);
+        return () => clearInterval(timer);
+    }, [timeLeft]);
+
+    const formatTime = (seconds: number) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins}:${secs.toString().padStart(2, "0")}`;
+    };
+
+    const handleAnswerChange = (questionId: number, value: string | string[]) => {
+        setAnswers(prev => ({ ...prev, [questionId]: value }));
+    };
+
     if (loading) return (
         <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-white">
             <div className="w-12 h-12 border-4 border-gray-100 border-t-gray-900 rounded-full animate-spin"></div>
@@ -335,7 +332,8 @@ export default function StudentQuizView() {
                                                 key={option.id}
                                                 onClick={() => {
                                                     if (currentQ.question_type === "multiple") {
-                                                        const current = answers[currentQ.id] || [];
+                                                        const rawCurrent = answers[currentQ.id];
+                                                        const current = Array.isArray(rawCurrent) ? rawCurrent : [];
                                                         const next = current.includes(option.option_text)
                                                             ? current.filter((a: string) => a !== option.option_text)
                                                             : [...current, option.option_text];

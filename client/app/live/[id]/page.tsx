@@ -285,14 +285,22 @@ function Whiteboard({
   // Receive remote segment
   useEffect(() => {
     if (!incomingSegment) return;
-    setPaths(prev => { const n = [...prev, incomingSegment]; redraw(n); return n; });
+    const applySegment = async () => {
+      await Promise.resolve();
+      setPaths(prev => { const n = [...prev, incomingSegment]; redraw(n); return n; });
+    };
+    applySegment();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [incomingSegment]);
 
   // Receive remote clear
   useEffect(() => {
     if (incomingClear === 0) return;
-    setPaths([]); redraw([]);
+    const applyClear = async () => {
+      await Promise.resolve();
+      setPaths([]); redraw([]);
+    };
+    applyClear();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [incomingClear]);
 
@@ -438,8 +446,6 @@ export default function MeetingRoom() {
 
   // ── Peers ──────────────────────────────────────────────────────────────────
   const [peers, dispatch] = useReducer(peersReducer, []);
-  const peersRef = useRef<PeerInfo[]>([]);
-  peersRef.current = peers;
 
   // ── Chat ───────────────────────────────────────────────────────────────────
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -494,93 +500,6 @@ export default function MeetingRoom() {
       if (dc.readyState === "open") dc.send(JSON.stringify(data));
     });
   }, []);
-
-  // ─────────────────────────── WebRTC Setup ─────────────────────────────────
-
-  const createPC = useCallback((remotePeerId: string, initiator: boolean) => {
-    if (pcsRef.current.has(remotePeerId)) return pcsRef.current.get(remotePeerId)!;
-
-    const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
-    pcsRef.current.set(remotePeerId, pc);
-
-    // Add local tracks
-    if (localStreamRef.current) {
-      localStreamRef.current.getTracks().forEach(t => pc.addTrack(t, localStreamRef.current!));
-    }
-
-    // ICE candidates
-    pc.onicecandidate = e => {
-      if (e.candidate) {
-        broadcastSignal({ type: "ice", from: myId, to: remotePeerId, candidate: e.candidate.toJSON() });
-      }
-    };
-
-    // Remote stream
-    pc.ontrack = e => {
-      const stream = e.streams[0] || new MediaStream([e.track]);
-      dispatch({ type: "set-stream", peerId: remotePeerId, stream });
-    };
-
-    // Data channel (initiator creates it)
-    if (initiator) {
-      const dc = pc.createDataChannel("data");
-      dcsRef.current.set(remotePeerId, dc);
-      dc.onmessage = ev => handleDCMessage(remotePeerId, ev.data);
-      dc.onopen = () => {
-        // Send current state
-        dc.send(JSON.stringify({ type: "state", isMuted, isCameraOff, isHandRaised }));
-      };
-    } else {
-      pc.ondatachannel = e => {
-        const dc = e.channel;
-        dcsRef.current.set(remotePeerId, dc);
-        dc.onmessage = ev => handleDCMessage(remotePeerId, ev.data);
-        dc.onopen = () => {
-          dc.send(JSON.stringify({ type: "state", isMuted, isCameraOff, isHandRaised }));
-        };
-      };
-    }
-
-    pc.onconnectionstatechange = () => {
-      if (pc.connectionState === "failed" || pc.connectionState === "disconnected") {
-        dispatch({ type: "remove", peerId: remotePeerId });
-        pcsRef.current.delete(remotePeerId);
-        dcsRef.current.delete(remotePeerId);
-      }
-    };
-
-    return pc;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [broadcastSignal, myId, isMuted, isCameraOff, isHandRaised]);
-
-   
-  const handleDCMessage = useCallback((fromPeerId: string, raw: string) => {
-    try {
-      const msg = JSON.parse(raw);
-      if (msg.type === "state") {
-        dispatch({
-          type: "update", peerId: fromPeerId, patch: {
-            isMuted: msg.isMuted, isCameraOff: msg.isCameraOff, isHandRaised: msg.isHandRaised,
-          }
-        });
-      } else if (msg.type === "host-cmd") {
-        // This is a message from host to us
-        if (msg.cmd === "mute") { stopMic(); }
-        if (msg.cmd === "unmute") { /* can't force unmute — just notify */ }
-        if (msg.cmd === "cam-off") { stopCamera(); }
-        if (msg.cmd === "cam-on") { /* can't force cam on */ }
-        if (msg.cmd === "kick") { window.location.href = "/"; }
-      } else if (msg.type === "chat") {
-        setMessages(prev => [...prev, {
-          id: genId(), sender: msg.sender, text: msg.text, time: msg.time, isMe: false,
-        }]);
-      } else if (msg.type === "draw") {
-        setIncomingSegment(msg.segment);
-      } else if (msg.type === "draw-clear") {
-        setIncomingClearCount(c => c + 1);
-      }
-    } catch { /* ignore */ }
-  }, []); // stopMic / stopCamera referenced below via closure
 
   // ─────────────────────────── Camera / Mic ─────────────────────────────────
 
@@ -669,6 +588,91 @@ export default function MeetingRoom() {
     } catch { /* cancelled */ }
   }, [isScreenSharing]);
 
+  // ─────────────────────────── WebRTC Setup ─────────────────────────────────
+
+  const handleDCMessage = useCallback((fromPeerId: string, raw: string) => {
+    try {
+      const msg = JSON.parse(raw);
+      if (msg.type === "state") {
+        dispatch({
+          type: "update", peerId: fromPeerId, patch: {
+            isMuted: msg.isMuted, isCameraOff: msg.isCameraOff, isHandRaised: msg.isHandRaised,
+          }
+        });
+      } else if (msg.type === "host-cmd") {
+        // This is a message from host to us
+        if (msg.cmd === "mute") { stopMic(); }
+        if (msg.cmd === "unmute") { /* can't force unmute — just notify */ }
+        if (msg.cmd === "cam-off") { stopCamera(); }
+        if (msg.cmd === "cam-on") { /* can't force cam on */ }
+        if (msg.cmd === "kick") { window.location.href = "/"; }
+      } else if (msg.type === "chat") {
+        setMessages(prev => [...prev, {
+          id: genId(), sender: msg.sender, text: msg.text, time: msg.time, isMe: false,
+        }]);
+      } else if (msg.type === "draw") {
+        setIncomingSegment(msg.segment);
+      } else if (msg.type === "draw-clear") {
+        setIncomingClearCount(c => c + 1);
+      }
+    } catch { /* ignore */ }
+  }, [stopMic, stopCamera]);
+
+  const createPC = useCallback((remotePeerId: string, initiator: boolean) => {
+    if (pcsRef.current.has(remotePeerId)) return pcsRef.current.get(remotePeerId)!;
+
+    const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
+    pcsRef.current.set(remotePeerId, pc);
+
+    // Add local tracks
+    if (localStreamRef.current) {
+      localStreamRef.current.getTracks().forEach(t => pc.addTrack(t, localStreamRef.current!));
+    }
+
+    // ICE candidates
+    pc.onicecandidate = e => {
+      if (e.candidate) {
+        broadcastSignal({ type: "ice", from: myId, to: remotePeerId, candidate: e.candidate.toJSON() });
+      }
+    };
+
+    // Remote stream
+    pc.ontrack = e => {
+      const stream = e.streams[0] || new MediaStream([e.track]);
+      dispatch({ type: "set-stream", peerId: remotePeerId, stream });
+    };
+
+    // Data channel (initiator creates it)
+    if (initiator) {
+      const dc = pc.createDataChannel("data");
+      dcsRef.current.set(remotePeerId, dc);
+      dc.onmessage = ev => handleDCMessage(remotePeerId, ev.data);
+      dc.onopen = () => {
+        // Send current state
+        dc.send(JSON.stringify({ type: "state", isMuted, isCameraOff, isHandRaised }));
+      };
+    } else {
+      pc.ondatachannel = e => {
+        const dc = e.channel;
+        dcsRef.current.set(remotePeerId, dc);
+        dc.onmessage = ev => handleDCMessage(remotePeerId, ev.data);
+        dc.onopen = () => {
+          dc.send(JSON.stringify({ type: "state", isMuted, isCameraOff, isHandRaised }));
+        };
+      };
+    }
+
+    pc.onconnectionstatechange = () => {
+      if (pc.connectionState === "failed" || pc.connectionState === "disconnected") {
+        dispatch({ type: "remove", peerId: remotePeerId });
+        pcsRef.current.delete(remotePeerId);
+        dcsRef.current.delete(remotePeerId);
+      }
+    };
+
+    return pc;
+  }, [broadcastSignal, handleDCMessage, myId, isMuted, isCameraOff, isHandRaised]);
+
   // ─────────────────────────── Signaling Handler ────────────────────────────
 
   const handleSignal = useCallback(async (msg: SignalMsg) => {
@@ -743,13 +747,17 @@ export default function MeetingRoom() {
   // ─────────────────────────── Room Init / Join ──────────────────────────────
 
   useEffect(() => {
-    // Parse / generate room ID from URL hash
-    let hash = window.location.hash.replace("#", "").trim();
-    if (!hash) {
-      hash = genId(6);
-      window.location.hash = hash;
-    }
-    setRoomId(hash);
+    const initRoom = async () => {
+      await Promise.resolve();
+      // Parse / generate room ID from URL hash
+      let hash = window.location.hash.replace("#", "").trim();
+      if (!hash) {
+        hash = genId(6);
+        window.location.hash = hash;
+      }
+      setRoomId(hash);
+    };
+    initRoom();
   }, []);
 
   const handleJoin = useCallback((name: string) => {
@@ -1008,7 +1016,7 @@ export default function MeetingRoom() {
               {allParticipants.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full gap-4 text-white/30">
                   <div className="text-4xl">👥</div>
-                  <p className="text-sm">You're alone — share the link to invite others</p>
+                  <p className="text-sm">You&apos;re alone — share the link to invite others</p>
                   <button onClick={() => setShowInviteModal(true)}
                     className="px-4 py-2 rounded-xl bg-[#007AFF]/20 border border-[#007AFF]/30 text-[#007AFF] text-sm font-semibold hover:bg-[#007AFF]/30 transition-colors">
                     + Invite
@@ -1204,16 +1212,19 @@ export default function MeetingRoom() {
                 </div>
                 {[
                   { label: "Lock meeting", icon: "🔒", desc: "Prevent new participants" },
-                  {
-                    label: "Mute all guests", icon: "🔇", desc: "Host only",
-                    action: () => peers.filter(p => p.role !== "host").forEach(p => sendHostCmd(p.peerId, "mute"))
-                  },
+                  { label: "Mute all guests", icon: "🔇", desc: "Host only", muteAll: true },
                   { label: "Allow reactions", icon: "😊", desc: "Enable emoji reactions" },
                   { label: "Closed captions", icon: "💬", desc: "Show live captions" },
                   { label: "Noise suppression", icon: "🔈", desc: "Reduce background noise" },
                   { label: "Breakout rooms", icon: "🏠", desc: "Split into smaller groups" },
                 ].map(item => (
-                  <div key={item.label} onClick={item.action}
+                  <div
+                    key={item.label}
+                    onClick={
+                      item.muteAll
+                        ? () => peers.filter(p => p.role !== "host").forEach(p => sendHostCmd(p.peerId, "mute"))
+                        : undefined
+                    }
                     className="flex items-center justify-between p-3 rounded-xl hover:bg-white/5 border border-transparent hover:border-white/5 transition-all cursor-pointer group">
                     <div className="flex items-center gap-3">
                       <span className="text-lg">{item.icon}</span>

@@ -46,24 +46,37 @@ export default function ChannelManager({ userId = 1 }: ChannelManagerProps) {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        setLoading(true);
-        fetch(`${API_BASE_URL}/channel-analytics/${userId}`)
-            .then((res) => {
+        let cancelled = false;
+
+        const fetchAnalytics = async () => {
+            await Promise.resolve();
+            if (cancelled) return;
+            setLoading(true);
+            try {
+                const res = await fetch(`${API_BASE_URL}/channel-analytics/${userId}`);
                 if (!res.ok) {
                     throw new Error(`HTTP Error: Master data fetch failed with status ${res.status}`);
                 }
-                return res.json();
-            })
-            .then((data: AnalyticsResponse) => {
-                setAnalyticsData(data);
-                setError(null);
-            })
-            .catch((err) => {
-                setError(err instanceof Error ? err.message : "An unexpected error occurred");
-            })
-            .finally(() => {
-                setLoading(false);
-            });
+                const data: AnalyticsResponse = await res.json();
+                if (!cancelled) {
+                    setAnalyticsData(data);
+                    setError(null);
+                }
+            } catch (err) {
+                if (!cancelled) {
+                    setError(err instanceof Error ? err.message : "An unexpected error occurred");
+                }
+            } finally {
+                if (!cancelled) {
+                    setLoading(false);
+                }
+            }
+        };
+
+        fetchAnalytics();
+        return () => {
+            cancelled = true;
+        };
     }, [userId]);
 
     // Loading State

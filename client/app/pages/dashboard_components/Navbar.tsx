@@ -16,12 +16,7 @@ type User = {
     email: string;
 };
 export default function Navbar({ currentRole, onRoleChange }: NavbarProps) {
-    const [user, setUser] = useState<{ email: string } | null>(getUser());
-
-    useEffect(() => {
-        const currentUser = getUser();
-        setUser(currentUser);
-      }, []);
+    const [user] = useState<{ email: string } | null>(() => getUser());
 
     return (
         <header className="border-b border-gray-200 bg-white sticky top-0 z-50 px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">

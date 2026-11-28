@@ -22,16 +22,11 @@ export default function Enrolle() {
   const id = params.id as string;
 
   const [module, setModule] = useState<ModuleType | null>(null);
-  const [user, setUser] = useState<{ id: number; email: string } | null>(getUser());
+  const [user] = useState<{ id: number; email: string } | null>(() => getUser());
   const [loading, setLoading] = useState(true);
   const [isEnrolled, setIsEnrolled] = useState(false);
 
-  // 1. Fetch current user data on mount
-  useEffect(() => {
-    setUser(getUser());
-  }, []);
-
-  // 2. Fetch module details based on URL parameters
+  // 1. Fetch module details based on URL parameters
   useEffect(() => {
     if (!id) return;
 
@@ -61,7 +56,7 @@ export default function Enrolle() {
 
           // Verify if user is attached to this specific module instance
           const alreadyEnrolled = enrollments.some(
-            (e: any) => e.module_id === module.module_id
+            (e: { module_id: number }) => e.module_id === module.module_id
           );
 
           setIsEnrolled(alreadyEnrolled);

@@ -12,7 +12,7 @@ export default function UpdateChannelPage() {
     const router = useRouter();
     const channelId = params?.channel_id || params?.id; // Matches dynamic folder layout names like [id] or [channel_id]
 
-    const [user, setUser] = useState<{ id: number; email: string } | null>(null);
+    const [user] = useState<{ id: number; email: string } | null>(() => getUser());
     const [channelName, setChannelName] = useState("");
     const [description, setDescription] = useState("");
     const [isPublic, setIsPublic] = useState(true);
@@ -38,11 +38,6 @@ export default function UpdateChannelPage() {
     // Faculty Tag Management State
     const [coHosts, setCoHosts] = useState<string[]>([]);
     const [emailInput, setEmailInput] = useState("");
-
-    useEffect(() => {
-        const currentUser = getUser();
-        setUser(currentUser);
-    }, []);
 
     // FETCH EXISTING CHANNEL RECORDS
     useEffect(() => {
@@ -89,9 +84,9 @@ export default function UpdateChannelPage() {
                     setLogoPreview(fullLogoUrl);
                 }
 
-            } catch (err: any) {
+            } catch (err: unknown) {
                 console.error(err);
-                setMessage({ type: "error", text: err.message || "Failed parsing record structure." });
+                setMessage({ type: "error", text: err instanceof Error ? err.message : "Failed parsing record structure." });
             }
         };
 
@@ -189,9 +184,9 @@ export default function UpdateChannelPage() {
             }
 
             setMessage({ type: "success", text: "Channel successfully updated and re-published!" });
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error(error);
-            setMessage({ type: "error", text: error.message || "Something went wrong. Please try again." });
+            setMessage({ type: "error", text: error instanceof Error ? error.message : "Something went wrong. Please try again." });
         } finally {
             setLoading(false);
         }

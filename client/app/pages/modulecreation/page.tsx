@@ -15,14 +15,8 @@ export default function CreateModule() {
   const [visibility, setVisibility] = useState<Visibility>("public");
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
-  const [user, setUser] = useState<{ id: number; email: string } | null>(null);
+  const [user] = useState<{ id: number; email: string } | null>(() => getUser());
   const router = useRouter();
-
-  // Get logged-in user
-  useEffect(() => {
-    const currentUser = getUser();
-    setUser(currentUser);
-  }, []);
 
   // Example skills for autocomplete
   const availableSkills = [

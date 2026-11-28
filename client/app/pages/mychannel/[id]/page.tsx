@@ -48,12 +48,7 @@ export default function ChannelDashboardView() {
     const [modules, setModules] = useState<ChannelModuleData[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
-    const [authUser, setAuthUser] = useState<{ id: number; email: string } | null>(null);
-
-    useEffect(() => {
-        const localUser = getUser();
-        setAuthUser(localUser);
-    }, []);
+    const [authUser] = useState<{ id: number; email: string } | null>(() => getUser());
 
     useEffect(() => {
         if (!channelId) return;
@@ -82,9 +77,9 @@ export default function ChannelDashboardView() {
                     console.error("Failed to parse connected structural modules.");
                 }
 
-            } catch (err: any) {
+            } catch (err: unknown) {
                 console.error(err);
-                setError(err.message || "An unexpected system execution fault occurred.");
+                setError(err instanceof Error ? err.message : "An unexpected system execution fault occurred.");
             } finally {
                 setLoading(false);
             }

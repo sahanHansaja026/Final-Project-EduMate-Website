@@ -65,12 +65,7 @@ export default function WeekItemInfo({ moduleId }: Props) {
     const [loading, setLoading] = useState(true);
     const [expanded, setExpanded] = useState<Record<string, boolean>>({});
     const [done, setDone] = useState<Record<string, boolean>>({});
-    const [user, setUser] = useState<{ id: number; email: string } | null>(null);
-
-    useEffect(() => {
-        const currentUser = getUser();
-        setUser(currentUser);
-    }, []);
+    const [user] = useState<{ id: number; email: string } | null>(() => getUser());
 
     const fetchData = async () => {
         try {
@@ -92,9 +87,9 @@ export default function WeekItemInfo({ moduleId }: Props) {
             let formattedContents: Content[] = [];
 
             if (contentRes.ok) {
-                const contentData = await contentRes.json();
+                const contentData: Omit<Content, "type">[] = await contentRes.json();
 
-                formattedContents = contentData.map((item: any) => ({
+                formattedContents = contentData.map((item) => ({
                     ...item,
                     type: "content",
                 }));
@@ -109,9 +104,9 @@ export default function WeekItemInfo({ moduleId }: Props) {
                 );
 
                 if (quizRes.ok) {
-                    const quizData = await quizRes.json();
+                    const quizData: Omit<Quiz, "type">[] = await quizRes.json();
 
-                    formattedQuizzes = quizData.map((quiz: any) => ({
+                    formattedQuizzes = quizData.map((quiz) => ({
                         ...quiz,
                         type: "quiz",
                     }));
@@ -129,9 +124,9 @@ export default function WeekItemInfo({ moduleId }: Props) {
                 );
 
                 if (videoRes.ok) {
-                    const videoData = await videoRes.json();
+                    const videoData: (Omit<Video, "type" | "week"> & { week?: number })[] = await videoRes.json();
 
-                    formattedVideos = videoData.map((video: any) => ({
+                    formattedVideos = videoData.map((video) => ({
                         ...video,
                         week: video.week ?? 1,
                         type: "video",
@@ -150,12 +145,12 @@ export default function WeekItemInfo({ moduleId }: Props) {
                 );
 
                 if (assignmentRes.ok) {
-                    const assignmentData = await assignmentRes.json();
+                    const assignmentData: (Omit<Assignment, "type" | "id" | "week"> & { id?: number; assignment_id?: number; week?: number })[] = await assignmentRes.json();
 
-                    formattedAssignments = assignmentData.map((assignment: any) => ({
+                    formattedAssignments = assignmentData.map((assignment) => ({
                         ...assignment,
                         // If your backend schemas handle assignment_id, map it dynamically to id
-                        id: assignment.id ?? assignment.assignment_id,
+                        id: assignment.id ?? assignment.assignment_id ?? 0,
                         week: assignment.week ?? 1,
                         type: "assignment",
                     }));
@@ -193,7 +188,10 @@ export default function WeekItemInfo({ moduleId }: Props) {
     };
 
     useEffect(() => {
-        fetchData();
+        const load = async () => {
+            await fetchData();
+        };
+        load();
     }, [moduleId]);
 
     useEffect(() => {

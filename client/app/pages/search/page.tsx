@@ -76,9 +76,9 @@ export default function ModuleSearchPage() {
                     });
                     return Array.from(tagsSet);
                 });
-            } catch (err: any) {
+            } catch (err: unknown) {
                 console.error("Fetch Exception caught:", err);
-                setErrorMsg(err.message || "An unexpected network error occurred.");
+                setErrorMsg(err instanceof Error ? err.message : "An unexpected network error occurred.");
                 setModules([]);
             } finally {
                 setLoading(false);
@@ -233,7 +233,7 @@ export default function ModuleSearchPage() {
                                 <Compass className="mx-auto text-zinc-300 stroke-[1.5]" size={36} />
                                 <h3 className="mt-4 text-sm font-medium text-zinc-900">No modules found</h3>
                                 <p className="mt-1 text-xs text-zinc-500 max-w-xs mx-auto">
-                                    We couldn't find anything matching your requirements. Try adjusting your scope.
+                                    We couldn&apos;t find anything matching your requirements. Try adjusting your scope.
                                 </p>
                                 {(searchQuery || selectedTags.length > 0) && (
                                     <button

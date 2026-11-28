@@ -1,6 +1,8 @@
 "use client";
 
-import { Plus, Trash2, Settings2, Eye, Type, CheckSquare, AlignLeft, CheckCircle2, Sigma } from "lucide-react";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { Plus, Trash2, Settings2, Eye, Type, ListOrdered, CheckSquare, AlignLeft, CheckCircle2, Sigma } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import axios from "axios";
 import { API_BASE_URL } from "@/app/config/api";
@@ -38,7 +40,7 @@ export default function QuizBuilder() {
     const [success, setSuccess] = useState("");
     const router = useRouter();
     // Initialize user from getUser() to avoid setState in effect
-    const [user, setUser] = useState<{ id: number; email: string } | null>(getUser());
+    const [user] = useState<{ id: number; email: string } | null>(() => getUser());
     const [checking, setChecking] = useState(true);
     const [access, setAccess] = useState<boolean | null>(null);
 
@@ -49,13 +51,6 @@ export default function QuizBuilder() {
     const removeOption = (index: number) => {
         setOptions(options.filter((_, i) => i !== index));
     };
-
-    useEffect(() => {
-        const fetchData = async () => {
-            // User already initialized via getUser() above
-        };
-        fetchData();
-    }, []);
 
     const updateOption = (index: number, field: keyof Option, value: string | boolean) => {
         const updated = options.map((opt, i) => {
@@ -118,9 +113,12 @@ export default function QuizBuilder() {
                 { text: "", correct: false },
             ]);
 
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error(err);
-            setError(err.response?.data?.detail || "Failed to create question");
+            const message = axios.isAxiosError<{ detail?: string }>(err)
+                ? err.response?.data?.detail || "Failed to create question"
+                : "Failed to create question";
+            setError(message);
         } finally {
             setLoading(false);
         }

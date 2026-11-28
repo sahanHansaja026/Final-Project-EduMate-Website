@@ -45,14 +45,8 @@ export default function VideoInput() {
     const videoInputRef = useRef<HTMLInputElement>(null);
     const router = useRouter();
 
-    const [user, setUser] = useState<{ id: number; email: string } | null>(null);
-    const [quota, setQuota] = useState<any>(null);
-
-    // load user
-    useEffect(() => {
-        const currentUser = getUser();
-        setUser(currentUser);
-    }, []);
+    const [user] = useState<{ id: number; email: string } | null>(() => getUser());
+    const [, setQuota] = useState<{ can_create?: boolean } | null>(null);
 
     useEffect(() => {
         const loadQuota = async () => {

@@ -59,6 +59,30 @@ type Video = {
     created_at?: string;
 };
 
+type AuthUser = {
+    id?: number;
+    user_id?: number;
+    email?: string;
+};
+
+type UserProfile = {
+    firstName?: string | null;
+    lastName?: string | null;
+    email?: string;
+};
+
+type ModuleItem = {
+    id: number;
+    title: string;
+    type: "content" | "quiz" | "video" | "assignment";
+};
+
+type RawModuleItem = {
+    id?: number;
+    assignment_id?: number;
+    title: string;
+};
+
 export default function CoursePage() {
     const params = useParams();
     const id = params?.id;
@@ -66,16 +90,16 @@ export default function CoursePage() {
     // =========================
     // STATES
     // =========================
-    const [authUser, setAuthUser] = useState<any>(null);
-    const [profile, setProfile] = useState<any>(null);
+    const [authUser] = useState<AuthUser | null>(() => getUser());
+    const [profile, setProfile] = useState<UserProfile | null>(null);
     const [module, setModule] = useState<Module | null>(null);
     const [videos, setVideos] = useState<Video[]>([]);
     const [loading, setLoading] = useState(true);
     const [videoLoading, setVideoLoading] = useState(true);
-    const [selectedItem, setSelectedItem] = useState<any>(null);
-    const [activeWeek, setActiveWeek] = useState<number>(1);
+    const [selectedItem, setSelectedItem] = useState<ModuleItem | null>(null);
+    const [activeWeek] = useState<number>(1);
     const [showMore, setShowMore] = useState(false);
-    const [moduleItems, setModuleItems] = useState<any[]>([]);
+    const [moduleItems, setModuleItems] = useState<ModuleItem[]>([]);
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [showSettingsDropdown, setShowSettingsDropdown] = useState(false);
     const [showComments, setShowComments] = useState(false); // Controls the Right Chatbot Drawer
@@ -136,14 +160,6 @@ export default function CoursePage() {
             fetchVideos();
         }
     }, [id]);
-
-    // =========================
-    // LOAD AUTH USER
-    // =========================
-    useEffect(() => {
-        const localUser = getUser();
-        setAuthUser(localUser);
-    }, []);
 
     // =========================
     // LOAD PROFILE
@@ -211,33 +227,33 @@ export default function CoursePage() {
                     fetch(`${API_BASE_URL}/assignments/module/${id}`)
                 ]);
 
-                const contents = contentRes.ok
-                    ? (await contentRes.json()).map((item: any) => ({
-                        id: item.id || item.assignment_id,
+                const contents: ModuleItem[] = contentRes.ok
+                    ? (await contentRes.json()).map((item: RawModuleItem) => ({
+                        id: item.id ?? item.assignment_id ?? 0,
                         title: item.title,
                         type: "content"
                     }))
                     : [];
 
-                const quizzes = quizRes.ok
-                    ? (await quizRes.json()).map((item: any) => ({
-                        id: item.id,
+                const quizzes: ModuleItem[] = quizRes.ok
+                    ? (await quizRes.json()).map((item: RawModuleItem) => ({
+                        id: item.id ?? 0,
                         title: item.title,
                         type: "quiz"
                     }))
                     : [];
 
-                const videosData = videoRes.ok
-                    ? (await videoRes.json()).map((item: any) => ({
-                        id: item.id,
+                const videosData: ModuleItem[] = videoRes.ok
+                    ? (await videoRes.json()).map((item: RawModuleItem) => ({
+                        id: item.id ?? 0,
                         title: item.title,
                         type: "video"
                     }))
                     : [];
 
-                const assignments = assignmentRes.ok
-                    ? (await assignmentRes.json()).map((item: any) => ({
-                        id: item.id,
+                const assignments: ModuleItem[] = assignmentRes.ok
+                    ? (await assignmentRes.json()).map((item: RawModuleItem) => ({
+                        id: item.id ?? 0,
                         title: item.title,
                         type: "assignment"
                     }))

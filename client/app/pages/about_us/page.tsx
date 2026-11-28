@@ -104,12 +104,16 @@ const platformLayers = [
     { icon: <Users className="w-5 h-5" />, name: "Student Access", color: "bg-emerald-100 text-emerald-700" },
 ];
 
+type AdSenseWindow = Window & { adsbygoogle?: unknown[] };
+
 // ─── Ad Component ───────────────────────────────────────────────────────────
 function AdSlot({ adSlotId, style }: { adSlotId: string; style?: React.CSSProperties }) {
     useEffect(() => {
         try {
             // Push the advertisement container into the Google script initializer stack
-            ((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({});
+            const win = window as AdSenseWindow;
+            win.adsbygoogle = win.adsbygoogle || [];
+            win.adsbygoogle.push({});
         } catch (err) {
             console.error("AdSense initialization layout block error: ", err);
         }
@@ -260,7 +264,7 @@ export default function AboutPage() {
                             Traditional learning platforms are either too rigid for open
                             education or too chaotic for institutions that need structure and
                             control. EduMate does both — giving every educator the tools they
-                            need, without the bloat they don't.
+                            need, without the bloat they don&apos;t.
                         </p>
                         <p className="mt-4 text-slate-500 leading-relaxed">
                             We believe quality education should be accessible to every learner
@@ -357,7 +361,7 @@ export default function AboutPage() {
                         Everything stacks neatly
                     </h2>
                     <p className="mt-3 text-slate-500 max-w-xl mx-auto">
-                        EduMate's hierarchy keeps content organised and access controlled at
+                        EduMate&apos;s hierarchy keeps content organised and access controlled at
                         every layer.
                     </p>
                 </div>

@@ -7,7 +7,7 @@ import { API_BASE_URL } from "@/app/config/api";
 import { useRouter } from "next/navigation";
 
 export default function CreateChannelPage() {
-    const [user, setUser] = useState<{ id: number; email: string } | null>(null);
+    const [user] = useState<{ id: number; email: string } | null>(() => getUser());
     const [channelName, setChannelName] = useState("");
     const [description, setDescription] = useState("");
     const [isPublic, setIsPublic] = useState(true);
@@ -44,16 +44,13 @@ export default function CreateChannelPage() {
     } | null>(null);
 
     useEffect(() => {
-        const currentUser = getUser();
-        setUser(currentUser);
-
-        if (currentUser?.id) {
-            fetch(`${API_BASE_URL}/quota/channel/${currentUser.id}`)
+        if (user?.id) {
+            fetch(`${API_BASE_URL}/quota/channel/${user.id}`)
                 .then((res) => res.json())
                 .then((data) => setQuota(data))
                 .catch((err) => console.error("Quota fetch error:", err));
         }
-    }, []);
+    }, [user?.id]);
     const checkQuota = async (userId: number) => {
         try {
             const res = await fetch(`${API_BASE_URL}/quota/channel/${userId}`);
@@ -187,11 +184,11 @@ export default function CreateChannelPage() {
             setLogoImage(null);
             setLogoPreview("");
 
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error(error);
             setMessage({
                 type: "error",
-                text: error.message || "Something went wrong. Please try again.",
+                text: error instanceof Error ? error.message : "Something went wrong. Please try again.",
             });
         } finally {
             setLoading(false);
