@@ -14,11 +14,11 @@ function ScorePageContent() {
     const assignmentId = searchParams.get("assignment_id");
     const studentId = searchParams.get("student_id");
 
-    const [user, setUser] = useState<any>(null);
+    const [user] = useState<{ id?: number; user_id?: number; email?: string } | null>(() => getUser());
     const [isVerifying, setIsVerifying] = useState(true); // Core security gate state
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
-    const [submission, setSubmission] = useState<any>(null);
+    const [submission, setSubmission] = useState<{ id?: number; marks?: number; fileName?: string; filename?: string } | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [marks, setMarks] = useState<number | "">("");
 
@@ -29,13 +29,10 @@ function ScorePageContent() {
     const directFileUrl = submission ? `${API_BASE_URL}/submissions/file/${submission.id}` : null;
 
     // 1. Fetch current logged-in user on component mount
-    useEffect(() => {
-        const currentUser = getUser();
-        setUser(currentUser);
-    }, []);
+    const [user] = useState<{ id?: number; user_id?: number; email?: string } | null>(() => getUser());
 
     // 2. Perform the Module Access Security Check
-    useEffect(() => {
+    const fetchSubmissionMetadata = async () => {
         const verifyAccessAndFetch = async () => {
             if (!assignmentId || !user) return;
 

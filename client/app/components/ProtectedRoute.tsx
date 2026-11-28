@@ -13,13 +13,30 @@ export default function ProtectedRoute({
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const user = getUser();
+        let cancelled = false;
 
-        if (!user) {
-            router.replace("/login"); // redirect if not logged in
-        } else {
-            setLoading(false);
-        }
+        const checkAccess = async () => {
+            const user = getUser();
+
+            if (!user) {
+                if (!cancelled) {
+                    router.replace("/login"); // redirect if not logged in
+                }
+                return;
+            }
+
+            // Defer the state update out of the synchronous effect body.
+            await Promise.resolve();
+            if (!cancelled) {
+                setLoading(false);
+            }
+        };
+
+        checkAccess();
+
+        return () => {
+            cancelled = true;
+        };
     }, [router]);
 
     if (loading) return null; // or a spinner

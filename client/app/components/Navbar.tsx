@@ -5,6 +5,7 @@ import { Bars3Icon, BellIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import React, { useEffect, useState, Fragment } from "react";
 import { getUser } from "../services/authService";
 import { API_BASE_URL } from "../config/api";
+import Link from "next/link";
 
 const navigation = [
   { name: "Home", href: "/pages/home", current: true },
@@ -24,37 +25,35 @@ type User = {
 };
 
 export default function Navbar() {
-  const [user, setUser] = useState<User | null>(null);
+  const [user] = useState<User | null>(() => getUser());
   const [imageError, setImageError] = useState(false);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
 
-  useEffect(() => {
-    const currentUser = getUser();
-    setUser(currentUser);
-  }, []);
-
   // The user management endpoints require a bearer access token.
   useEffect(() => {
-    if (!user?.email || typeof window === "undefined") {
-      setPhotoUrl(null);
-      return;
-    }
+    const loadPhoto = async () => {
+      const email = user?.email;
+      const token = typeof window === "undefined" ? null : localStorage.getItem("access_token");
+      let blob: Blob | null = null;
 
-    const token = localStorage.getItem("access_token");
-    if (!token) {
-      setPhotoUrl(null);
-      return;
-    }
+      if (email && token) {
+        try {
+          const res = await fetch(`${API_BASE_URL}/profiles/photo?email=${encodeURIComponent(email)}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (res.ok) {
+            blob = await res.blob();
+          }
+        } catch {
+          blob = null;
+        }
+      }
 
-    fetch(`${API_BASE_URL}/profiles/photo?email=${encodeURIComponent(user.email)}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error("Profile photo not found");
-        return res.blob();
-      })
-      .then((blob) => setPhotoUrl(URL.createObjectURL(blob)))
-      .catch(() => setPhotoUrl(null));
+      const nextPhotoUrl = blob ? URL.createObjectURL(blob) : null;
+      setPhotoUrl(nextPhotoUrl);
+    };
+
+    loadPhoto();
   }, [user?.email]);
 
   return (
@@ -186,7 +185,7 @@ export default function Navbar() {
 
                       <Menu.Item>
                         {({ active }) => (
-                          <a
+                          <Link
                             href="/"
                             className={classNames(
                               active ? "bg-red-500/10 text-red-400" : "text-slate-400",
@@ -194,7 +193,7 @@ export default function Navbar() {
                             )}
                           >
                             Sign out System
-                          </a>
+                          </Link>
                         )}
                       </Menu.Item>
                     </Menu.Items>
