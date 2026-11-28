@@ -81,7 +81,7 @@ export default function DashboardPage() {
                             </div>
                         )}
 
-                        {role === "channel" && <ChannelManager />}
+                        {role === "channel" && <ChannelManager userId={user?.id} />}
                     </>
                 )}
             </main>

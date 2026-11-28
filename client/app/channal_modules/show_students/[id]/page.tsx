@@ -35,8 +35,12 @@ export default function AuthorizedStudentsPage() {
         try {
             setLoading(true);
             setError("");
+            const token = typeof window !== "undefined" ? localStorage.getItem("access_token") ?? "" : "";
             const res = await axios.get(
-                `${API_BASE_URL}/authorized-students/module/${channel_module_id}`
+                `${API_BASE_URL}/authorized-students/module/${channel_module_id}`,
+                {
+                    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+                }
             );
             setStudents(res.data);
         } catch (err: any) {
@@ -60,8 +64,12 @@ export default function AuthorizedStudentsPage() {
         if (!confirm("Are you sure you want to revoke this student access?")) return;
 
         try {
+            const token = typeof window !== "undefined" ? localStorage.getItem("access_token") ?? "" : "";
             await axios.delete(
-                `${API_BASE_URL}/authorized-students/${studentId}`
+                `${API_BASE_URL}/authorized-students/${studentId}`,
+                {
+                    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+                }
             );
 
             // remove from UI instantly (no refetch needed)

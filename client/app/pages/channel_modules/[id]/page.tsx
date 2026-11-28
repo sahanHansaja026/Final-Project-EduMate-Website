@@ -48,9 +48,13 @@ export default function CreateModule() {
                 url.searchParams.append("current_user_id", localUser.id.toString());
                 url.searchParams.append("current_email", localUser.email);
 
+                const token = typeof window !== "undefined" ? localStorage.getItem("access_token") ?? "" : "";
                 const response = await fetch(url.toString(), {
                     method: "GET",
-                    headers: { "Content-Type": "application/json" }
+                    headers: {
+                        "Content-Type": "application/json",
+                        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                    },
                 });
 
                 if (!response.ok) {
