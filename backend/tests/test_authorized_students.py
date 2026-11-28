@@ -468,6 +468,47 @@ def test_module_co_host_can_retrieve_module_students(client, db_session):
     assert cohost_student_response.status_code == status.HTTP_200_OK
 
 
+def test_student_endpoint_error_details_are_stable_for_missing_records(client, db_session):
+    """Missing module and student records return stable error contracts."""
+    owner_id, owner_auth = _register_user(client, "error-detail-owner@example.com")
+    created = _create_channel(client, owner_auth, owner_id, "Error Detail Channel")
+    module = _create_module(db_session, created["channel_id"], owner_id)
+
+    missing_module_response = client.get(
+        "/authorized-students/module/999999",
+        headers=owner_auth,
+    )
+    missing_student_response = client.get(
+        "/authorized-students/999999",
+        headers=owner_auth,
+    )
+
+    assert missing_module_response.status_code == 404
+    assert missing_module_response.json()["detail"] == "Channel module not found"
+    assert missing_student_response.status_code == 404
+    assert missing_student_response.json()["detail"] == "Student not found"
+
+
+def test_student_module_access_error_response_is_consistent(client, db_session):
+    """Unauthorized module access returns a stable error contract."""
+    owner_id, owner_auth = _register_user(client, "error-access-owner@example.com")
+    _attacker_id, attacker_auth = _register_user(client, "error-access-attacker@example.com")
+    created = _create_channel(client, owner_auth, owner_id, "Error Access Channel")
+    module = _create_module(db_session, created["channel_id"], owner_id)
+
+    add_response = _add_student(client, owner_auth, module.module_id)
+    assert add_response.status_code == status.HTTP_200_OK
+    student_id = add_response.json()["id"]
+
+    attacker_response = client.get(
+        f"/authorized-students/{student_id}",
+        headers=attacker_auth,
+    )
+
+    assert attacker_response.status_code == status.HTTP_403_FORBIDDEN
+    assert attacker_response.json()["detail"] == "Not authorized to manage students for this channel"
+
+
 def test_orphaned_student_record_can_be_deleted(client, db_session):
     owner_id, owner_auth = _register_user(client, "orphan-owner@example.com")
     created = _create_channel(client, owner_auth, owner_id, "Orphan Student Channel")

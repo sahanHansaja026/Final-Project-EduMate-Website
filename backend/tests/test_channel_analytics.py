@@ -143,6 +143,16 @@ def test_analytics_returns_only_authenticated_users_own_channels(client):
     assert attacker_response.json()["channels"][0]["channel_id"] == created_by_attacker["channel_id"]
 
 
+def test_cross_user_analytics_error_detail_is_stable(client):
+    owner_id, owner_auth = _register_user(client, "analytics-error-detail-owner@example.com")
+    attacker_id, _attacker_auth = _register_user(client, "analytics-error-detail-attacker@example.com")
+
+    response = client.get(f"/channel-analytics/{attacker_id}", headers=owner_auth)
+
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert response.json()["detail"] == "Not authorized to view another user's channel analytics"
+
+
 def test_missing_analytics_resources_are_handled_safely(client):
     user_id, auth = _register_user(client, "analytics-owner-no-channels@example.com")
 
