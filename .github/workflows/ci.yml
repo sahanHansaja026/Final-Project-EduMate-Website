@@ -76,10 +76,15 @@ jobs:
 
       - name: Run backend tests
         run: |
-          # Test suite lives in backend/tests (see pytest.ini). It runs against
-          # an isolated SQLite database so it does not depend on the Postgres
-          # service; the connectivity checks above cover real PostgreSQL.
-          python -m pytest -v --tb=short
+          # Test suite lives in backend/tests (see pytest.ini at the repo root,
+          # which sets testpaths = backend/tests). Pass the test directory
+          # explicitly so collection follows the real backend test layout;
+          # pytest exits non-zero when no tests are collected, so a missing or
+          # empty suite fails this step loudly instead of being skipped.
+          # The suite runs against an isolated SQLite database so it does not
+          # depend on the Postgres service; the connectivity checks above cover
+          # real PostgreSQL.
+          python -m pytest backend/tests -v --tb=short
 
   frontend:
     name: Frontend
