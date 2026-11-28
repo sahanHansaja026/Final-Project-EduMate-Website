@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { API_BASE_URL } from "@/app/config/api";
 import {
     UserCheck,
@@ -57,7 +57,7 @@ export default function EditStudentPage() {
                 setStudent(res.data);
                 setStatus(res.data.status);
                 setRemark(res.data.remark || "");
-            } catch (err: any) {
+            } catch (err: AxiosError) {
                 setStatusType("error");
                 setMessage("Failed to retrieve matching student authorization state record.");
             } finally {
@@ -91,7 +91,7 @@ export default function EditStudentPage() {
             setTimeout(() => {
                 router.back();
             }, 1200);
-        } catch (err: any) {
+        } catch (err: AxiosError) {
             setStatusType("error");
             setMessage(
                 err?.response?.data?.detail || "Failed to commit security context modifications."

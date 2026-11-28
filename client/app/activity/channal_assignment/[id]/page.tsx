@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation"; // Added useRouter for redirection
 import { API_BASE_URL } from "@/app/config/api";
-import { getUser } from "@/app/services/authService";
+import { getUser, User } from "@/app/services/authService";
 import Link from "next/link";
 import {
     Calendar,
@@ -39,7 +39,7 @@ export default function Page() {
     const [assignment, setAssignment] = useState<Assignment | null>(null);
     const [loading, setLoading] = useState(true);
     const [authChecking, setAuthChecking] = useState(true); // Track authorization verification state
-    const [user, setUser] = useState<any>(null);
+    const [user] = useState<User | null>(() => getUser());
 
     // submission UI panel states
     const [isFormOpen, setIsFormOpen] = useState(false);
@@ -49,14 +49,17 @@ export default function Page() {
     const [customName, setCustomName] = useState("");
     const [feedback, setFeedback] = useState("");
     const [submitting, setSubmitting] = useState(false);
-    const [submission, setSubmission] = useState<any>(null);
+    const [submission, setSubmission] = useState<{
+        id: number;
+        file_path: string;
+        marks: number | null;
+        submitted_at: string;
+        feedback: string | null;
+    } | null>(null);
     const [checking, setChecking] = useState(true);
 
-    // 1. Load user context on mount
-    useEffect(() => {
-        const u = getUser();
-        setUser(u);
-    }, []);
+    // 1. Load user context via lazy state initializer
+    const userId = user?.id;
 
     // 2. Authorize user access against the FastAPI guard endpoint
     useEffect(() => {
@@ -122,11 +125,11 @@ export default function Page() {
 
     // 4. Fetch structural user submission records
     const fetchSubmission = useCallback(async () => {
-        if (!user?.id) return;
+        if (!userId) return;
         try {
             setChecking(true);
             const res = await fetch(
-                `${API_BASE_URL}/submissions/check/${id}/${user.id}`
+                `${API_BASE_URL}/submissions/check/${id}/${userId}`
             );
 
             if (!res.ok) {
@@ -142,10 +145,14 @@ export default function Page() {
         } finally {
             setChecking(false);
         }
-    }, [id, user?.id]);
+    }, [id, userId]);
 
     useEffect(() => {
-        fetchSubmission();
+        const runFetch = async () => {
+            await fetchSubmission();
+        };
+
+        runFetch();
     }, [fetchSubmission]);
 
     const handleCancel = () => {

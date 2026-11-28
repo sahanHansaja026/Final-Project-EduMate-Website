@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus, Trash2, Settings2, ChevronLeft, ChevronRight, Eye, BarChart3, AlertCircle, Sigma, ArrowLeft, Loader2, Save, X, FileText, ListChecks } from "lucide-react";
+import { Plus, Trash2, Settings2, ChevronLeft, ChevronRight, Eye, BarChart3, AlertCircle, Sigma, ArrowLeft, Loader2, Save, X, FileText, ListChecks, Pencil, CheckCircle2 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import axios from "axios";
 import { API_BASE_URL } from "@/app/config/api";
@@ -48,7 +48,7 @@ export default function QuizPreview() {
     const [editData, setEditData] = useState<Question | null>(null);
 
     // Initialize user from getUser() to avoid setState in effect
-    const [user, setUser] = useState<{ id: number; email: string } | null>(getUser());
+    const [user] = useState<{ id: number; email: string } | null>(() => getUser());
     const [checking, setChecking] = useState(true);
     const [access, setAccess] = useState<boolean | null>(null);
 
@@ -80,7 +80,11 @@ export default function QuizPreview() {
     };
 
     useEffect(() => {
-        if (quizId) fetchQuestions();
+        const runFetch = async () => {
+            if (quizId) await fetchQuestions();
+        };
+
+        runFetch();
     }, [quizId]);
 
     // =========================
@@ -88,13 +92,19 @@ export default function QuizPreview() {
     // =========================
 
     useEffect(() => {
-        if (questions[currentIndex]) {
-            setEditData(
-                JSON.parse(JSON.stringify(questions[currentIndex]))
-            );
+        const syncQuestion = async () => {
+            const currentQuestion = questions[currentIndex];
 
-            setIsEditing(false);
-        }
+            if (currentQuestion) {
+                setEditData(
+                    JSON.parse(JSON.stringify(currentQuestion))
+                );
+
+                setIsEditing(false);
+            }
+        };
+
+        syncQuestion();
     }, [currentIndex, questions]);
 
     // =========================
@@ -431,7 +441,7 @@ export default function QuizPreview() {
                                             key={opt.id || i}
                                             className={`p-5 rounded-xl border-2 flex items-center justify-between transition-all ${opt.is_correct
                                                 ? "border-emerald-500 bg-emerald-50/30"
-                                                : "border-slate-100 bg-white"`
+                                                : "border-slate-100 bg-white"
                                                 }`}
                                         >
 
@@ -440,7 +450,7 @@ export default function QuizPreview() {
                                                 <div
                                                     className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs ${opt.is_correct
                                                         ? "bg-emerald-500 text-white"
-                                                        : "bg-slate-100 text-slate-500"`
+                                                        : "bg-slate-100 text-slate-500"
                                                         }`}
                                                 >
                                                     {String.fromCharCode(65 + i)}
@@ -469,7 +479,7 @@ export default function QuizPreview() {
                                                     <span
                                                         className={`text-base ${opt.is_correct
                                                             ? "font-bold text-emerald-900"
-                                                            : "font-medium text-slate-700"`
+                                                            : "font-medium text-slate-700"
                                                             }`}
                                                     >
                                                         {opt.option_text}
@@ -620,7 +630,7 @@ export default function QuizPreview() {
                                             setEditData({
                                                 ...editData,
                                                 marks: e.target.value
-                                            })
+                                            })}
                                     />
                                 ) : (
                                     <span className="text-sm font-bold uppercase">

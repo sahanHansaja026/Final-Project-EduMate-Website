@@ -35,27 +35,6 @@ export default function ViewContentPage() {
     const [access, setAccess] = useState<boolean | null>(null);
     const [content, setContent] = useState<Content | null>(null);
     const [loading, setLoading] = useState(true);
-    const [user, setUser] = useState<any>(null);
-
-    useEffect(() => {
-        fetchContent();
-    }, [id]);
-
-    useEffect(() => {
-        const currentUser = getUser();
-        setUser(currentUser);
-
-        if (currentUser && content) {
-            checkAccess(currentUser.id, currentUser.email);
-        }
-    }, [content]);
-
-    // Triggers a client-side redirect if backend access evaluation fails
-    useEffect(() => {
-        if (access === false) {
-            router.push("/errors/autharization");
-        }
-    }, [access, router]);
 
     const fetchContent = async () => {
         try {
@@ -84,6 +63,33 @@ export default function ViewContentPage() {
             setAccess(false);
         }
     };
+
+    useEffect(() => {
+        const runAccessCheck = async () => {
+            const currentUser = getUser();
+
+            if (currentUser && content) {
+                await checkAccess(currentUser.id, currentUser.email);
+            }
+        };
+
+        runAccessCheck();
+    }, [content]);
+
+    useEffect(() => {
+        const runFetch = async () => {
+            await fetchContent();
+        };
+
+        runFetch();
+    }, [id]);
+
+    // Triggers a client-side redirect if backend access evaluation fails
+    useEffect(() => {
+        if (access === false) {
+            router.push("/errors/authrization");
+        }
+    }, [access, router]);
 
     const today = new Date();
     const getStatus = () => {

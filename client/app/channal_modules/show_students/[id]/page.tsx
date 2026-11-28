@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { API_BASE_URL } from "@/app/config/api";
 import {
     Users, ArrowLeft, Search, Filter, RefreshCw, UserPlus,
@@ -39,7 +39,7 @@ export default function AuthorizedStudentsPage() {
                 `${API_BASE_URL}/authorized-students/module/${channel_module_id}`
             );
             setStudents(res.data);
-        } catch (err: any) {
+        } catch (err: AxiosError) {
             setError("Failed to synchronize authorized student metrics.");
         } finally {
             setLoading(false);
@@ -47,9 +47,13 @@ export default function AuthorizedStudentsPage() {
     };
 
     useEffect(() => {
-        if (channel_module_id) {
-            fetchStudents();
-        }
+        const runFetch = async () => {
+            if (channel_module_id) {
+                await fetchStudents();
+            }
+        };
+
+        runFetch();
     }, [channel_module_id]);
 
     const handleEdit = (accessId: number) => {

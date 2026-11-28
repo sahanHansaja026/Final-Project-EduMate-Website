@@ -28,55 +28,7 @@ function ScorePageContent() {
     // Construct the backend file link directly
     const directFileUrl = submission ? `${API_BASE_URL}/submissions/file/${submission.id}` : null;
 
-    // 1. Fetch current logged-in user on component mount
-    const [user] = useState<{ id?: number; user_id?: number; email?: string } | null>(() => getUser());
-
-    // 2. Perform the Module Access Security Check
-    const fetchSubmissionMetadata = async () => {
-        const verifyAccessAndFetch = async () => {
-            if (!assignmentId || !user) return;
-
-            try {
-                // FastAPI Form(...) parsing requires form-url-encoded search params payload
-                const formData = new URLSearchParams();
-                formData.append("assignment_id", assignmentId);
-                formData.append("current_user_id", String(user.id || user.user_id));
-
-                const authRes = await fetch(`${API_BASE_URL}/module-access/check`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/x-www-form-urlencoded",
-                    },
-                    body: formData,
-                });
-
-                // Redirect to authorization error page if access is denied
-                if (authRes.status === 403 || authRes.status === 401) {
-                    router.push("/errors/autharization");
-                    return;
-                }
-
-                if (!authRes.ok) {
-                    const errData = await authRes.json().catch(() => ({}));
-                    throw new Error(errData?.detail || "Module verification failure.");
-                }
-
-                // If authorized, drop the safety gate and immediately pull sub metadata
-                setIsVerifying(false);
-                if (studentId) {
-                    fetchSubmissionMetadata();
-                }
-
-            } catch (err: any) {
-                setError(err.message);
-                setIsVerifying(false);
-            }
-        };
-
-        verifyAccessAndFetch();
-    }, [assignmentId, studentId, user]);
-
-    // 3. Isolated internal logic to retrieve submission asset parameters
+    // 2. Isolated internal logic to retrieve submission asset parameters
     const fetchSubmissionMetadata = async () => {
         try {
             setLoading(true);
@@ -100,12 +52,57 @@ function ScorePageContent() {
             const extension = inferredName.split(".").pop()?.toLowerCase() || "";
             setIsPdf(extension === "pdf");
 
-        } catch (err: any) {
-            setError(err.message || "An unexpected integration failure occurred.");
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : "An unexpected integration failure occurred.");
         } finally {
             setLoading(false);
         }
     };
+
+    // 2. Perform the Module Access Security Check
+    const verifyAccessAndFetch = async () => {
+        if (!assignmentId || !user) return;
+
+        try {
+            const formData = new URLSearchParams();
+            formData.append("assignment_id", assignmentId);
+            formData.append("current_user_id", String(user.id || user.user_id));
+
+            const authRes = await fetch(`${API_BASE_URL}/module-access/check`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+                body: formData,
+            });
+
+            if (authRes.status === 403 || authRes.status === 401) {
+                router.push("/errors/authrization");
+                return;
+            }
+
+            if (!authRes.ok) {
+                const errData = await authRes.json().catch(() => ({}));
+                throw new Error(errData?.detail || "Module verification failure.");
+            }
+
+            setIsVerifying(false);
+            if (studentId) {
+                fetchSubmissionMetadata();
+            }
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : "Module verification failure.");
+            setIsVerifying(false);
+        }
+    };
+
+    useEffect(() => {
+        const runVerification = async () => {
+            await verifyAccessAndFetch();
+        };
+
+        runVerification();
+    }, [assignmentId, studentId, user]);
 
     const handleSaveGrade = async () => {
         if (!submission) return;
@@ -131,8 +128,8 @@ function ScorePageContent() {
             const updated = await res.json();
             setSubmission(updated);
             alert("Marks updated successfully!");
-        } catch (err: any) {
-            alert(err.message);
+        } catch (err: unknown) {
+            alert(err instanceof Error ? err.message : "Failed to post marks updates.");
         } finally {
             setSaving(false);
         }
@@ -159,7 +156,7 @@ function ScorePageContent() {
                     <div className="h-10 w-2/4 bg-gray-900" />
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 pt-4">
                         <div className="lg:col-span-8 h-[650px] bg-gray-50 border border-gray-200" />
-                        <div className="lg:col-span-4 h-[300px] bg-gray-50 border border-gray-100" />
+                        <div className="lg:col-span-4 h-[300px] bg-gray-100" />
                     </div>
                 </div>
             </div>
