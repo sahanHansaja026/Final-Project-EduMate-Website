@@ -31,16 +31,19 @@ export default function CommentSection({ ownerId }: CommentSectionProps) {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        if (!ownerId || !API_BASE_URL) {
-            setError(!ownerId ? "Waiting for a valid Owner ID context..." : "Configuration Error: API_BASE_URL is undefined.");
-            setLoading(false);
-            return;
-        }
-
         const controller = new AbortController();
         const signal = controller.signal;
 
         async function fetchSentiments() {
+            await Promise.resolve();
+            if (signal.aborted) return;
+
+            if (!ownerId || !API_BASE_URL) {
+                setError(!ownerId ? "Waiting for a valid Owner ID context..." : "Configuration Error: API_BASE_URL is undefined.");
+                setLoading(false);
+                return;
+            }
+
             try {
                 setLoading(true);
                 setError(null);
@@ -53,10 +56,11 @@ export default function CommentSection({ ownerId }: CommentSectionProps) {
                 if (!response.ok) throw new Error(`HTTP Error status: ${response.status}`);
                 const json: ApiResponse = await response.json();
                 setData(json);
-            } catch (err: any) {
-                if (err.name !== "AbortError") {
-                    setError(err.message || "Could not complete network transfer.");
+            } catch (err: unknown) {
+                if (err instanceof Error && err.name === "AbortError") {
+                    return;
                 }
+                setError(err instanceof Error ? err.message : "Could not complete network transfer.");
             } finally {
                 setLoading(false);
             }
@@ -127,7 +131,7 @@ export default function CommentSection({ ownerId }: CommentSectionProps) {
                         return (
                             <div key={comment.comment_id} className="bg-white border border-gray-200/80 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-gray-950 transition-all duration-300 flex flex-col justify-between">
                                 <div className="mb-4">
-                                    <p className="text-sm text-gray-950 font-medium leading-relaxed">"{comment.text}"</p>
+                                    <p className="text-sm text-gray-950 font-medium leading-relaxed">&quot;{comment.text}&quot;</p>
                                 </div>
 
                                 {/* Status Card Footer */}

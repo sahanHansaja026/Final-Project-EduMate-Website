@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { API_BASE_URL } from "@/app/config/api";
 
@@ -22,7 +22,6 @@ interface ChannelItem {
 
 export default function ChannelDirectoryPage() {
     const [channels, setChannels] = useState<ChannelItem[]>([]);
-    const [filteredChannels, setFilteredChannels] = useState<ChannelItem[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -42,10 +41,9 @@ export default function ChannelDirectoryPage() {
 
                 const data = await response.json();
                 setChannels(data);
-                setFilteredChannels(data);
-            } catch (err: any) {
+            } catch (err: unknown) {
                 console.error(err);
-                setError(err.message || "An error occurred compiling directory nodes.");
+                setError(err instanceof Error ? err.message : "An error occurred compiling directory nodes.");
             } finally {
                 setLoading(false);
             }
@@ -54,8 +52,8 @@ export default function ChannelDirectoryPage() {
         fetchAllChannels();
     }, []);
 
-    // Sync Search Query and Visibility Filtering Logic Loops
-    useEffect(() => {
+    // Derive filtered channels from query and visibility filter
+    const filteredChannels = useMemo(() => {
         let result = channels;
 
         if (searchQuery.trim() !== "") {
@@ -72,7 +70,7 @@ export default function ChannelDirectoryPage() {
             result = result.filter((c) => c.visibility === activeVisibilityFilter);
         }
 
-        setFilteredChannels(result);
+        return result;
     }, [searchQuery, activeVisibilityFilter, channels]);
 
     if (loading) {

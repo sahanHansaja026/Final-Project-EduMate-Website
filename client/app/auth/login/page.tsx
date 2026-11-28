@@ -4,7 +4,7 @@ import { saveUser } from "../../services/authService";
 
 import React, { useState } from "react";
 import Link from "next/link";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
 import { API_BASE_URL } from "@/app/config/api";
 
@@ -57,7 +57,7 @@ const LoginPage: React.FC = () => {
 
       // ✅ REDIRECT
       router.push("/pages/home");
-    } catch (err: any) {
+    } catch (err: AxiosError) {
       setError(err.response?.data?.detail || "Invalid email or password");
     } finally {
       setLoading(false);

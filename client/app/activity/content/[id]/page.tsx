@@ -36,10 +36,6 @@ export default function ViewContentPage() {
     const [content, setContent] = useState<Content | null>(null);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        fetchContent();
-    }, [id]);
-
     const fetchContent = async () => {
         try {
             const res = await fetch(`${API_BASE_URL}/contents/view/${id}`);
@@ -52,6 +48,15 @@ export default function ViewContentPage() {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        const runFetch = async () => {
+            await fetchContent();
+        };
+
+        runFetch();
+    }, [id]);
+
 
     const today = new Date();
     const getStatus = () => {

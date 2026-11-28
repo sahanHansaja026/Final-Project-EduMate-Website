@@ -35,12 +35,6 @@ export default function ViewVideoPage() {
     const [video, setVideo] = useState<VideoData | null>(null);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        if (id) {
-            fetchVideo();
-        }
-    }, [id]);
-
     const fetchVideo = async () => {
         try {
             const res = await fetch(`${API_BASE_URL}/videos/${id}`);
@@ -53,6 +47,15 @@ export default function ViewVideoPage() {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        if (id) {
+            const runFetch = async () => {
+                await fetchVideo();
+            };
+            runFetch();
+        }
+    }, [id]);
 
     const today = new Date();
 

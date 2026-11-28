@@ -16,7 +16,7 @@ type Module = {
 };
 
 const HomePage = () => {
-  const [user, setUser] = useState<{ id: number; email: string } | null>(null);
+  const [user] = useState<{ id: number; email: string } | null>(() => getUser());
   const [modules, setModules] = useState<Module[]>([]);
   const [publicModules, setPublicModules] = useState<Module[]>([]);
   const [loading, setLoading] = useState(false);
@@ -24,11 +24,6 @@ const HomePage = () => {
 
   // Coursera-style grid limit for clean layout composition
   const PUBLIC_LIMIT = 8;
-
-  useEffect(() => {
-    const currentUser = getUser();
-    setUser(currentUser);
-  }, []);
 
   useEffect(() => {
     if (!user) return;

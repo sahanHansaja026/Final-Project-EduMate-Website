@@ -37,8 +37,8 @@ export default function CreateAssignmentPage() {
     const [allowDownload, setAllowDownload] = useState(true);
     const [file, setFile] = useState<File | null>(null);
     const [fullMarks, setFullMarks] = useState<number | "">("");
-    const [user, setUser] = useState<{ id: number; email: string } | null>(null);
-    const [quota, setQuota] = useState<any>(null);
+    const [user] = useState<{ id: number; email: string } | null>(() => getUser());
+    const [quota, setQuota] = useState<{ can_create: boolean } | null>(null);
 
     // ======================
     // LOAD USER

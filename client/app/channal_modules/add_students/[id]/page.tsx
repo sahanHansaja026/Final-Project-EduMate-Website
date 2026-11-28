@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { API_BASE_URL } from "@/app/config/api";
 import { UserPlus, ArrowLeft, Mail, FileText, ShieldAlert, CheckCircle2, AlertCircle, Fingerprint, Layers, HelpCircle } from "lucide-react";
 
@@ -44,7 +44,7 @@ export default function AuthorizeStudentPage() {
             setStudentEmail("");
             setRemark("");
             setStatus("active");
-        } catch (err: any) {
+        } catch (err: AxiosError) {
             setStatusType("error");
             setMessage(
                 err?.response?.data?.detail || "Failed to authorize student context."

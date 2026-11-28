@@ -17,7 +17,7 @@ import {
     Sigma,
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import { getUser } from "@/app/services/authService";
+import { getUser, User } from "@/app/services/authService";
 
 type QuestionType = "mcq" | "multiple" | "short" | "essay" | "true_false";
 
@@ -45,7 +45,7 @@ export default function QuizBuilder() {
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
     const router = useRouter();
-    const [user, setUser] = useState<any>(null);
+    const [user] = useState<User | null>(() => getUser());
     const [checking, setChecking] = useState(true);
     const [access, setAccess] = useState<boolean | null>(null);
 
@@ -56,11 +56,6 @@ export default function QuizBuilder() {
     const removeOption = (index: number) => {
         setOptions(options.filter((_, i) => i !== index));
     };
-
-    useEffect(() => {
-        const currentUser = getUser();
-        setUser(currentUser);
-    }, []);
     
     const updateOption = (index: number, field: keyof Option, value: string | boolean) => {
         const updated = options.map((opt, i) => {
@@ -82,7 +77,7 @@ export default function QuizBuilder() {
             setSuccess("");
 
             // Logic to determine what 'options' to send based on type
-            let finalOptions: any[] = [];
+            let finalOptions: { option_text: string; is_correct: boolean }[] = [];
 
             if (questionType === "mcq" || questionType === "multiple") {
                 finalOptions = options.map((opt) => ({
@@ -123,9 +118,12 @@ export default function QuizBuilder() {
                 { text: "", correct: false },
             ]);
 
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error(err);
-            setError(err.response?.data?.detail || "Failed to create question");
+            const message = axios.isAxiosError<{ detail?: string }>(err)
+                ? err.response?.data?.detail || "Failed to create question"
+                : "Failed to create question";
+            setError(message);
         } finally {
             setLoading(false);
         }

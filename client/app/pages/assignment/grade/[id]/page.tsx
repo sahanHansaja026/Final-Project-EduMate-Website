@@ -34,17 +34,33 @@ export default function Page() {
     const router = useRouter();
     const assignmentId = params?.id as string;
 
-    const [user, setUser] = useState<any>(null);
+    const [user] = useState<{ id?: number; user_id?: number; email?: string } | null>(() => getUser());
     const [isVerifying, setIsVerifying] = useState(true); // Gate content until auth check clears
     const [data, setData] = useState<AssignmentData | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    // 1. Fetch current logged-in user on mount
-    useEffect(() => {
-        const currentUser = getUser();
-        setUser(currentUser);
-    }, []);
+    // 1. Fetch grading data handler
+    const loadData = async () => {
+        setLoading(true);
+        setError(null);
+
+        try {
+            const res = await fetch(`${API_BASE_URL}/assignment_grading/${assignmentId}`);
+
+            if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                throw new Error(errData?.detail || `HTTP error! status: ${res.status}`);
+            }
+
+            const result = await res.json();
+            setData(result);
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : "Failed to load grading data.");
+        } finally {
+            setLoading(false);
+        }
+    };
 
     // 2. Core Security Check: Verify module access before fetching grades
     useEffect(() => {
@@ -80,36 +96,14 @@ export default function Page() {
                 setIsVerifying(false);
                 loadData();
 
-            } catch (err: any) {
-                setError(err.message);
+            } catch (err: unknown) {
+                setError(err instanceof Error ? err.message : "Access verification failed.");
                 setIsVerifying(false);
             }
         };
 
         verifyAccess();
     }, [assignmentId, user]);
-
-    // 3. Fetch grading data handler
-    const loadData = async () => {
-        setLoading(true);
-        setError(null);
-
-        try {
-            const res = await fetch(`${API_BASE_URL}/assignment_grading/${assignmentId}`);
-
-            if (!res.ok) {
-                const errData = await res.json().catch(() => ({}));
-                throw new Error(errData?.detail || `HTTP error! status: ${res.status}`);
-            }
-
-            const result = await res.json();
-            setData(result);
-        } catch (err: any) {
-            setError(err.message);
-        } finally {
-            setLoading(false);
-        }
-    };
 
     // Helper function to safely render dates without breaking the render engine
     const formatDate = (dateStr: string | null) => {

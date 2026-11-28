@@ -37,7 +37,7 @@ function ManualGradingContent() {
     const [scores, setScores] = useState<Record<number, number>>({});
     const [isSaving, setIsSaving] = useState(false);
     const [saveStatus, setSaveStatus] = useState<{ type: 'success' | 'error', message: string } | null>(null);
-    const [user, setUser] = useState<{ id: number; email: string } | null>(getUser());
+    const [user] = useState<{ id: number; email: string } | null>(() => getUser());
     const [checking, setChecking] = useState(true);
     const [access, setAccess] = useState<boolean | null>(null);
 
@@ -104,11 +104,6 @@ function ManualGradingContent() {
             setIsSaving(false);
         }
     };
-
-    useEffect(() => {
-        const currentUser = getUser();
-        setUser(currentUser);
-    }, []);
 
     useEffect(() => {
         if (!user?.id) return;
@@ -291,7 +286,7 @@ function ManualGradingContent() {
                         {isSaving ? (
                             <>
                                 <Loader2 className="w-4 h-4 animate-spin" />
-                                "Saving Grades..."
+                                &quot;Saving Grades...&quot;
                             </>
                         ) : (
                             <>

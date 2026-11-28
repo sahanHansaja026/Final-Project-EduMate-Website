@@ -76,10 +76,71 @@ jobs:
 
       - name: Run backend tests
         run: |
-          # Test suite lives in backend/tests (see pytest.ini). It runs against
-          # an isolated SQLite database so it does not depend on the Postgres
-          # service; the connectivity checks above cover real PostgreSQL.
-          python -m pytest -v --tb=short
+          # Test suite lives in backend/tests (see pytest.ini at the repo root,
+          # which sets testpaths = backend/tests). Pass the test directory
+          # explicitly so collection follows the real backend test layout;
+          # pytest exits non-zero when no tests are collected, so a missing or
+          # empty suite fails this step loudly instead of being skipped.
+          # The suite runs against an isolated SQLite database so it does not
+          # depend on the Postgres service; the connectivity checks above cover
+          # real PostgreSQL.
+          python -m pytest backend/tests -v --tb=short
+
+  backend-linter-check:
+    name: Backend Linter Availability (Ruff)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      ruff_available: ${{ steps.prerequisite_check.outputs.ruff }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check backend Ruff prerequisite
+        id: prerequisite_check
+        run: |
+          # Issue #76: the backend linter (Ruff) is optional. Detect whether
+          # the prerequisite is in place (backend Python sources plus a Ruff
+          # configuration file) and log the outcome clearly. The dedicated
+          # Backend Code Quality job consumes this result and is natively
+          # skipped when the optional linter is not available.
+          shopt -s globstar nullglob
+          backend_sources=(backend/**/*.py)
+          ruff_config=false
+          for config_file in backend/pyproject.toml backend/ruff.toml backend/.ruff.toml backend/setup.cfg backend/tox.ini pyproject.toml ruff.toml setup.cfg tox.ini; do
+            if [ -f "$config_file" ]; then
+              ruff_config=true
+              break
+            fi
+          done
+          if [ ${#backend_sources[@]} -gt 0 ] && [ "$ruff_config" = true ]; then
+            echo "ruff=true" >> "$GITHUB_OUTPUT"
+            echo "Backend Ruff prerequisite satisfied: Python sources and Ruff config found."
+          else
+            echo "ruff=false" >> "$GITHUB_OUTPUT"
+            echo "Backend Ruff prerequisite MISSING: no backend Python sources or no Ruff config found. Skipping backend code quality check."
+          fi
+
+  backend-code-quality:
+    name: Backend Code Quality (Ruff)
+    needs: backend-linter-check
+    if: needs.backend-linter-check.outputs.ruff_available == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Ruff
+        run: python -m pip install ruff
+
+      - name: Run Ruff check
+        run: ruff check backend
 
   frontend:
     name: Frontend
@@ -107,13 +168,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # The repository has pre-existing ESLint and TypeScript failures.
-      # These checks are advisory until that baseline is cleaned up, so CI
-      # fails only on real regressions in the steps that are enforced today.
-      - name: Lint (advisory)
-        continue-on-error: true
-        run: npm run lint
-
       - name: Run frontend tests
         # Unit tests use Vitest; see the Testing section in client/README.md.
         run: npm test
@@ -121,3 +175,64 @@ jobs:
       - name: Build (advisory)
         continue-on-error: true
         run: npm run build
+
+  frontend-linter-check:
+    name: Frontend Linter Availability (ESLint)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      eslint_available: ${{ steps.prerequisite_check.outputs.eslint }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check frontend ESLint prerequisite
+        id: prerequisite_check
+        run: |
+          # Issue #76: the frontend linter (ESLint) is optional. Detect whether
+          # the prerequisite is in place (ESLint config plus frontend source
+          # files) and log the outcome clearly. The dedicated Frontend Code
+          # Quality job consumes this result and is natively skipped when the
+          # optional linter is not available.
+          shopt -s globstar nullglob
+          frontend_sources=(client/**/*.{ts,tsx,js,jsx,mjs,cjs})
+          eslint_config=false
+          for config_file in client/eslint.config.mjs client/eslint.config.js client/.eslintrc.json client/package.json; do
+            if [ -f "$config_file" ]; then
+              eslint_config=true
+              break
+            fi
+          done
+          if [ ${#frontend_sources[@]} -gt 0 ] && [ "$eslint_config" = true ]; then
+            echo "eslint=true" >> "$GITHUB_OUTPUT"
+            echo "Frontend ESLint prerequisite satisfied: ESLint config and source files found."
+          else
+            echo "eslint=false" >> "$GITHUB_OUTPUT"
+            echo "Frontend ESLint prerequisite MISSING: no ESLint config/package or no frontend source files found. Skipping frontend code quality check."
+          fi
+
+  frontend-code-quality:
+    name: Frontend Code Quality (ESLint)
+    needs: frontend-linter-check
+    if: needs.frontend-linter-check.outputs.eslint_available == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: client
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint

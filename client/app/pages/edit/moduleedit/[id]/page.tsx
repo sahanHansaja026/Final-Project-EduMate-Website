@@ -30,16 +30,11 @@ export default function EditModule() {
   const [visibility, setVisibility] = useState<Visibility>("public");
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
-  const [user, setUser] = useState<{ id: number; email: string } | null>(null);
+  const [user] = useState<{ id: number; email: string } | null>(() => getUser());
   const [loading, setLoading] = useState(true);
   const [hasAccess, setHasAccess] = useState<boolean | null>(null);
 
-  // 1. Fetch current user data on mount
-  useEffect(() => {
-    setUser(getUser());
-  }, []);
-
-  // 2. Fetch module details and verify ownership logic
+  // 1. Fetch module details and verify ownership logic
   useEffect(() => {
     const fetchModule = async () => {
       if (!id || !user) return;
@@ -79,11 +74,16 @@ export default function EditModule() {
       }
     };
 
-    if (user && id) {
-      fetchModule();
-    } else if (!id) {
-      setLoading(false);
-    }
+    const run = async () => {
+      if (user && id) {
+        await fetchModule();
+      } else if (!id) {
+        await Promise.resolve();
+        setLoading(false);
+      }
+    };
+
+    run();
   }, [id, user]);
 
   // 3. Strict Routing Guard for unauthorized entities

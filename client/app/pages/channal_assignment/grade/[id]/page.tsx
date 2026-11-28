@@ -33,24 +33,16 @@ export default function Page() {
     const assignmentId = params?.id as string;
 
     // 1. Setup user state
-    const [user, setUser] = useState<any>(null);
+    const [user] = useState<{ id?: number; email?: string } | null>(() => getUser());
     const [data, setData] = useState<AssignmentData | null>(null);
     const [loading, setLoading] = useState(true); // Start as true since we are checking user & loading metrics
     const [error, setError] = useState<string | null>(null);
 
-    // 2. Get user on component mount
-    useEffect(() => {
-        // Replace this fallback logic if getUser() is imported from elsewhere
-        if (typeof window !== "undefined") {
-            const currentUser = getUser();
-            setUser(currentUser);
-        }
-    }, []);
-
-    // 3. Handle access verification and data loading once assignmentId AND user are ready
+    // 2. Handle access verification and data loading once assignmentId AND user are ready
     const loadData = async (currentUserId: string | number) => {
         if (!assignmentId) return;
 
+        await Promise.resolve();
         setLoading(true);
         setError(null);
 
@@ -91,23 +83,27 @@ export default function Page() {
 
             const result = await res.json();
             setData(result);
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : "Failed to load grading data.");
         } finally {
             setLoading(false);
         }
     };
 
-    // 4. Watch for both assignmentId and user state changes before executing the pipeline
+    // 3. Watch for both assignmentId and user state changes before executing the pipeline
     useEffect(() => {
-        // Only run when we safely have the assignment ID and the logged-in user's ID
-        if (assignmentId && user?.id) {
-            loadData(user.id);
-        } else if (assignmentId && user === null && !loading) {
-            // Optional: If user check finished and no user exists, redirect to login
-            setError("User authentication required.");
-            setLoading(false);
-        }
+        const run = async () => {
+            // Only run when we safely have the assignment ID and the logged-in user's ID
+            if (assignmentId && user?.id) {
+                await loadData(user.id);
+            } else if (assignmentId && user === null && !loading) {
+                // Optional: If user check finished and no user exists, redirect to login
+                await Promise.resolve();
+                setError("User authentication required.");
+                setLoading(false);
+            }
+        };
+        run();
     }, [assignmentId, user]);
 
     // Helper function to safely render dates without breaking the render engine

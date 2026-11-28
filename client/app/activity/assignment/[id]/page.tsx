@@ -31,13 +31,21 @@ type Assignment = {
     allow_download: boolean;
 };
 
+type Submission = {
+    id: number;
+    file_path: string;
+    marks: number | null;
+    submitted_at: string;
+    feedback: string | null;
+};
+
 export default function Page() {
     const params = useParams();
     const id = params.id as string;
 
     const [assignment, setAssignment] = useState<Assignment | null>(null);
     const [loading, setLoading] = useState(true);
-    const [user, setUser] = useState<any>(null);
+    const [user] = useState<{ id: number } | null>(() => getUser());
 
     // submission UI panel states
     const [isFormOpen, setIsFormOpen] = useState(false);
@@ -47,13 +55,8 @@ export default function Page() {
     const [customName, setCustomName] = useState("");
     const [feedback, setFeedback] = useState("");
     const [submitting, setSubmitting] = useState(false);
-    const [submission, setSubmission] = useState<any>(null);
+    const [submission, setSubmission] = useState<Submission | null>(null);
     const [checking, setChecking] = useState(true);
-
-    useEffect(() => {
-        const u = getUser();
-        setUser(u);
-    }, []);
 
     useEffect(() => {
         const fetchAssignment = async () => {
@@ -76,12 +79,14 @@ export default function Page() {
         fetchAssignment();
     }, [id]);
 
+    const userId = user?.id;
+
     const fetchSubmission = useCallback(async () => {
-        if (!user?.id) return;
+        if (!userId) return;
         try {
             setChecking(true);
             const res = await fetch(
-                `${API_BASE_URL}/submissions/check/${id}/${user.id}`
+                `${API_BASE_URL}/submissions/check/${id}/${userId}`
             );
 
             if (!res.ok) {
@@ -97,10 +102,14 @@ export default function Page() {
         } finally {
             setChecking(false);
         }
-    }, [id, user?.id]);
+    }, [id, userId]);
 
     useEffect(() => {
-        fetchSubmission();
+        const runFetch = async () => {
+            await fetchSubmission();
+        };
+
+        runFetch();
     }, [fetchSubmission]);
 
     const handleCancel = () => {

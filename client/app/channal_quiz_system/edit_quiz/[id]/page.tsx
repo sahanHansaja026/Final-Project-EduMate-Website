@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useParams, useRouter } from "next/navigation";
 import { API_BASE_URL } from "@/app/config/api";
-import { getUser } from "@/app/services/authService";
+import { getUser, User } from "@/app/services/authService";
 
 type Quiz = {
     id: number;
@@ -35,16 +35,9 @@ export default function EditQuizForm() {
     const [isGraded, setIsGraded] = useState(true);
     const [shuffleQuestions, setShuffleQuestions] = useState(false);
     const [moduleId, setModuleId] = useState<number | null>(null);
-    const [user, setUser] = useState<any>(null);
+    const [user] = useState<User | null>(() => getUser());
     const [access, setAccess] = useState<boolean | null>(null);
     const [checking, setChecking] = useState(true);
-
-
-    // ALWAYS declare hooks first
-    useEffect(() => {
-        const currentUser = getUser();
-        setUser(currentUser);
-    }, []);
 
     // ===============================
     // FETCH QUIZ (GET SINGLE QUIZ)

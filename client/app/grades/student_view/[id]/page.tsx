@@ -10,25 +10,44 @@ type User = {
     email: string;
 };
 
+type QuizSummary = {
+    quiz_id?: number;
+    title?: string;
+    total_marks?: number;
+    obtained_marks?: number;
+    percentage?: number;
+    status?: string;
+};
+
+type AssignmentSummary = {
+    assignment_id?: number;
+    title?: string;
+    full_marks?: number;
+    marks?: number;
+    feedback?: string;
+};
+
+type ScoreSummary = {
+    overall_percentage: number;
+    total_obtained: number;
+    total_marks: number;
+};
+
 type ScoreResponse = {
     student_id: number;
     module_id: number;
-    summary: any;
-    quizzes: any[];
-    assignments: any[];
+    summary: ScoreSummary | null;
+    quizzes: QuizSummary[];
+    assignments: AssignmentSummary[];
 };
 
 export default function Page() {
     const params = useParams();
     const moduleId = params.id as string;
 
-    const [user, setUser] = useState<User | null>(null);
+    const [user] = useState<User | null>(() => getUser());
     const [data, setData] = useState<ScoreResponse | null>(null);
     const [loading, setLoading] = useState(false);
-
-    useEffect(() => {
-        setUser(getUser());
-    }, []);
 
     useEffect(() => {
         const fetchData = async () => {

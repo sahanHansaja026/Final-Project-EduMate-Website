@@ -26,7 +26,7 @@ const Footer = () => {
         <div className="lg:col-span-4 flex flex-col justify-between space-y-6">
           <div>
             <h1 className="text-xl font-bold tracking-tight text-slate-900">
-              Baniya's <span className="text-slate-500 font-medium">Code Universe</span>
+              Baniya&apos;s <span className="text-slate-500 font-medium">Code Universe</span>
             </h1>
             <p className="text-slate-500 mt-4 leading-relaxed max-w-sm">
               Enterprise software development, full-stack LMS modules, and highly optimized web components built for modern deployment pipelines.
@@ -109,7 +109,7 @@ const Footer = () => {
           <p>
             Copyright 2026 ©{" "}
             <a href="#" className="font-semibold text-slate-700 hover:text-slate-900 transition-colors">
-              Baniya's Code Universe
+              Baniya&apos;s Code Universe
             </a>
             . All Rights Reserved.
           </p>

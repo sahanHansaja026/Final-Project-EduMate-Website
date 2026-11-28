@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
 import { API_BASE_URL } from "@/app/config/api";
 
@@ -43,7 +43,7 @@ const SignupPage: React.FC = () => {
       setConfirmPassword("");
       setTermsAccepted(false);
       router.push("/auth/login");
-    } catch (err: any) {
+    } catch (err: AxiosError) {
       if (err.response && err.response.data) {
         setError(err.response.data.detail);
       } else {

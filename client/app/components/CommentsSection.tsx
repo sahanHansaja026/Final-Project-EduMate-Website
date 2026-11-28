@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import { Send, Trash2, Edit2, Check, X } from "lucide-react";
 import { API_BASE_URL } from "@/app/config/api";
 import { getUser } from "../services/authService";
@@ -35,7 +35,7 @@ export default function CommentsSection({ moduleId }: Props) {
     // =========================
     // FETCH COMMENTS
     // =========================
-    const fetchComments = async () => {
+    const fetchComments = useCallback(async () => {
         try {
             const res = await fetch(
                 `${API_BASE_URL}/modules/comments/${moduleId}`
@@ -47,11 +47,14 @@ export default function CommentsSection({ moduleId }: Props) {
         } catch (err) {
             console.error("Failed to fetch comments:", err);
         }
-    };
+    }, [moduleId]);
 
     useEffect(() => {
-        fetchComments();
-    }, [moduleId]);
+        const load = async () => {
+            await fetchComments();
+        };
+        load();
+    }, [fetchComments]);
 
     useEffect(() => {
         messageEndRef.current?.scrollIntoView({ behavior: "smooth" });

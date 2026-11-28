@@ -54,7 +54,7 @@ export default function CoursePage() {
     // =========================
     // STATES
     // =========================
-    const [authUser, setAuthUser] = useState<{ id: number; email: string } | null>(getUser());
+    const [authUser] = useState<{ id: number; user_id?: number; email: string } | null>(() => getUser());
     const [profile, setProfile] = useState<{ id: number; name: string; email: string } | null>(null);
     const [module, setModule] = useState<Module | null>(null);
     const [videos, setVideos] = useState<Video[]>([]);
@@ -114,14 +114,6 @@ export default function CoursePage() {
     }, [id]);
 
     // =========================
-    // LOAD AUTH USER
-    // =========================
-    useEffect(() => {
-        const localUser = getUser();
-        setAuthUser(localUser);
-    }, []);
-
-    // =========================
     // LOAD PROFILE
     // =========================
     useEffect(() => {
@@ -160,7 +152,7 @@ export default function CoursePage() {
                 ]);
 
                 const contents = contentRes.ok
-                    ? (await contentRes.json()).map((item: any) => ({
+                    ? (await contentRes.json()).map((item: { assignment_id: number; title: string }) => ({
                         id: item.assignment_id,
                         title: item.title,
                         type: "content"
@@ -168,7 +160,7 @@ export default function CoursePage() {
                     : [];
 
                 const quizzes = quizRes.ok
-                    ? (await quizRes.json()).map((item: any) => ({
+                    ? (await quizRes.json()).map((item: { id: number; title: string }) => ({
                         id: item.id,
                         title: item.title,
                         type: "quiz"
@@ -176,7 +168,7 @@ export default function CoursePage() {
                     : [];
 
                 const videosList = videoRes.ok
-                    ? (await videoRes.json()).map((item: any) => ({
+                    ? (await videoRes.json()).map((item: { id: number; title: string }) => ({
                         id: item.id,
                         title: item.title,
                         type: "video"
@@ -184,7 +176,7 @@ export default function CoursePage() {
                     : [];
 
                 const assignments = assignmentRes.ok
-                    ? (await assignmentRes.json()).map((item: any) => ({
+                    ? (await assignmentRes.json()).map((item: { id: number; title: string }) => ({
                         id: item.id,
                         title: item.title,
                         type: "assignment"

@@ -4,10 +4,14 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { ChevronLeft, User, FileText, Download, AlertCircle, Loader2 } from "lucide-react";
 import { useEffect, useState, Suspense } from "react";
 import { API_BASE_URL } from "@/app/config/api";
-import { getUser } from "@/app/services/authService";
+import { getUser, User as AuthUser } from "@/app/services/authService";
 
-// Assuming this helper utility can be imported here if defined elsewhere:
-// import { getUser } from "@/app/utils/auth";
+interface Submission {
+    id: number;
+    marks?: number | null;
+    fileName?: string;
+    filename?: string;
+}
 
 function ScorePageContent() {
     const searchParams = useSearchParams();
@@ -17,11 +21,11 @@ function ScorePageContent() {
     const studentId = searchParams.get("student_id");
 
     // 1. Setup user authentication state tracker
-    const [user, setUser] = useState<any>(null);
+    const [user] = useState<AuthUser | null>(() => getUser());
 
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
-    const [submission, setSubmission] = useState<any>(null);
+    const [submission, setSubmission] = useState<Submission | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [marks, setMarks] = useState<number | "">("");
 
@@ -30,15 +34,7 @@ function ScorePageContent() {
 
     const directFileUrl = submission ? `${API_BASE_URL}/submissions/file/${submission.id}` : null;
 
-    // 2. Pull user on mount stage
-    useEffect(() => {
-        if (typeof window !== "undefined") {
-            const currentUser = getUser();
-            setUser(currentUser);
-        }
-    }, []);
-
-    // 3. Combined execution for validating access and then resolving student record assets
+    // 2. Combined execution for validating access and then resolving student record assets
     useEffect(() => {
         if (!assignmentId || !studentId || !user?.id) return;
 
@@ -90,8 +86,9 @@ function ScorePageContent() {
                 const extension = inferredName.split(".").pop()?.toLowerCase() || "";
                 setIsPdf(extension === "pdf");
 
-            } catch (err: any) {
-                setError(err.message || "An unexpected integration failure occurred.");
+            } catch (err: unknown) {
+                const message = err instanceof Error ? err.message : "An unexpected integration failure occurred.";
+                setError(message);
             } finally {
                 setLoading(false);
             }
@@ -124,8 +121,8 @@ function ScorePageContent() {
             const updated = await res.json();
             setSubmission(updated);
             alert("Marks updated successfully!");
-        } catch (err: any) {
-            alert(err.message);
+        } catch (err: unknown) {
+            alert(err instanceof Error ? err.message : "Failed to post marks updates.");
         } finally {
             setSaving(false);
         }

@@ -21,7 +21,7 @@ import {
     FileText,
     ListChecks
 } from "lucide-react";
-import { getUser } from "@/app/services/authService";
+import { getUser, User } from "@/app/services/authService";
 import Link from "next/link";
 
 // --- TYPES ---
@@ -64,9 +64,17 @@ export default function QuizPreview() {
     // --- EDITING STATE ---
     const [isEditing, setIsEditing] = useState(false);
     const [editData, setEditData] = useState<Question | null>(null);
-    const [user, setUser] = useState<any>(null);
+    const [user] = useState<User | null>(() => getUser());
     const [checking, setChecking] = useState(true);
     const [access, setAccess] = useState<boolean | null>(null);
+
+    const selectQuestion = useCallback((index: number, list: Question[] = questions) => {
+        setCurrentIndex(index);
+        if (list[index]) {
+            setEditData(JSON.parse(JSON.stringify(list[index])));
+        }
+        setIsEditing(false);
+    }, [questions]);
 
     // =========================
     // FETCH QUESTIONS
@@ -74,8 +82,6 @@ export default function QuizPreview() {
 
     const fetchQuestions = useCallback(async () => {
         try {
-            setLoading(true);
-
             const res = await axios.get(
                 `${API_BASE_URL}/questions/quiz/${quizId}`
             );
@@ -95,22 +101,13 @@ export default function QuizPreview() {
     }, [quizId]);
 
     useEffect(() => {
-        if (quizId) fetchQuestions();
-    }, [quizId, fetchQuestions]);
-
-    // =========================
-    // SYNC QUESTION
-    // =========================
-
-    useEffect(() => {
-        if (questions[currentIndex]) {
-            setEditData(
-                JSON.parse(JSON.stringify(questions[currentIndex]))
-            );
-
-            setIsEditing(false);
+        if (quizId) {
+            const runFetch = async () => {
+                await fetchQuestions();
+            };
+            runFetch();
         }
-    }, [currentIndex, questions]);
+    }, [quizId, fetchQuestions]);
 
     // =========================
     // SAVE
@@ -172,11 +169,12 @@ export default function QuizPreview() {
 
             setQuestions(updated);
 
-            if (
-                currentIndex >= updated.length &&
-                updated.length > 0
-            ) {
-                setCurrentIndex(updated.length - 1);
+            if (updated.length === 0) {
+                setEditData(null);
+                setIsEditing(false);
+            } else {
+                const nextIndex = currentIndex >= updated.length ? updated.length - 1 : currentIndex;
+                selectQuestion(nextIndex, updated);
             }
         } catch (err) {
             alert("Delete failed");
@@ -184,11 +182,6 @@ export default function QuizPreview() {
             setActionLoading(false);
         }
     };
-
-    useEffect(() => {
-        const currentUser = getUser();
-        setUser(currentUser);
-    }, []);
 
     useEffect(() => {
         if (!user?.id) return;
@@ -310,7 +303,7 @@ export default function QuizPreview() {
                                 {questions.map((q, idx) => (
                                     <button
                                         key={q.id}
-                                        onClick={() => setCurrentIndex(idx)}
+                                        onClick={() => selectQuestion(idx)}
                                         className={`w-9 h-9 rounded-md text-sm font-bold transition-all ${currentIndex === idx
                                             ? "bg-slate-900 text-white shadow-md scale-105"
                                             : "text-slate-500 hover:bg-white hover:text-slate-900"
@@ -623,9 +616,7 @@ export default function QuizPreview() {
 
                         <button
                             disabled={currentIndex === 0}
-                            onClick={() =>
-                                setCurrentIndex((p) => p - 1)
-                            }
+                            onClick={() => selectQuestion(currentIndex - 1)}
                             className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-600 hover:text-slate-900 disabled:opacity-30 transition-all"
                         >
                             <ChevronLeft className="w-5 h-5" />
@@ -640,9 +631,7 @@ export default function QuizPreview() {
                             disabled={
                                 currentIndex === questions.length - 1
                             }
-                            onClick={() =>
-                                setCurrentIndex((p) => p + 1)
-                            }
+                            onClick={() => selectQuestion(currentIndex + 1)}
                             className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-600 hover:text-slate-900 disabled:opacity-30 transition-all"
                         >
                             Next
