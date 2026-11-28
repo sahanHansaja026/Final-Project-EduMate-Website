@@ -79,6 +79,38 @@ def test_access_other_users_profile_returns_403(client):
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
+def test_access_other_users_display_names_returns_403(client):
+    owner_auth = _register_and_authenticate(client, "owner@example.com")
+    created = _create_profile(client, owner_auth, "owner@example.com")
+    assert created.status_code == 201
+
+    attacker_auth = _register_and_authenticate(client, "attacker@example.com")
+
+    response = client.get(
+        "/profiles/by-email",
+        params={"email": "owner@example.com"},
+        headers=attacker_auth,
+    )
+
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+def test_access_other_users_profile_photo_returns_403(client):
+    owner_auth = _register_and_authenticate(client, "owner@example.com")
+    created = _create_profile(client, owner_auth, "owner@example.com")
+    assert created.status_code == 201
+
+    attacker_auth = _register_and_authenticate(client, "attacker@example.com")
+
+    response = client.get(
+        "/profiles/photo",
+        params={"email": "owner@example.com"},
+        headers=attacker_auth,
+    )
+
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
 def test_update_other_users_profile_returns_403(client):
     owner_auth = _register_and_authenticate(client, "owner@example.com")
     created = _create_profile(client, owner_auth, "owner@example.com")
